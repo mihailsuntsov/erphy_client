@@ -3,7 +3,7 @@
         <mat-card-title class="top-bar container-fluid"> 
             <div class="row" id="topBlock">
                 <div class="card-name">
-                    {{t('docs.docs.resources')}} <span [ngClass]="{invisible: +id==0}"> "{{formBaseInformation.get('name').value}}"</span>
+                    {{t('docs.docs.resource')}} <span [ngClass]="{invisible: +id==0}"> "{{formBaseInformation.get('name').value}}"</span>
                 </div>
                 <div class="separator"></div><!-- !!! -->
                 <button 
@@ -21,7 +21,7 @@
                 </button>
                 <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
                     <button mat-menu-item (click)="goToNewDocument()">
-                        <span>{{t('docs.docs.resources')}}</span>
+                        <span>{{t('docs.docs.resource')}}</span>
                     </button>
                 </mat-menu>
                 <button 
@@ -324,7 +324,7 @@
 
                                                 <!-- Delete Column -->
                                                 <ng-container matColumnDef="delete" [formArrayName]="'departmentPartsTable'">
-                                                    <th mat-header-cell *matHeaderCellDef style="width: 30px;"><mat-icon style="cursor: default" (click)="clearTable()" matTooltip="{{t('modules.tip.del_frm_tabl_')}}">close</mat-icon></th>
+                                                    <th mat-header-cell *matHeaderCellDef style="width: 30px;"><mat-icon style="cursor: default" (click)="clearTable()" matTooltip="{{t('docs.msg.cln_table')}}">close</mat-icon></th>
                                                     <td mat-cell *matCellDef="let row; let i = index" [formGroupName]="i">
                                                         <mat-icon style="cursor: default" (click)="deleteDepartmentPartRow(row,i)">delete_forever</mat-icon>
                                                     </td>

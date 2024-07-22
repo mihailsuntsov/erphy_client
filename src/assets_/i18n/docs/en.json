@@ -21,7 +21,8 @@
         "advanced":     "Advanced",
         "history":      "History",
         "services":     "Services",
-        "documents":    "Documents"
+        "documents":    "Documents",
+        "employee":"Employee"
     },
     "card":{
         "base_info":    "Main information",
@@ -65,7 +66,16 @@
         "ready":"Ready",
         "resource_parts_qtt":"Quantity of resource in parts of departments",
         "clients":"Сustomers",
-        "scdl_constr":"Quick fill"
+        "scdl_constr":"Quick fill",
+        "appointmnt_settngs":"Appointment settings",
+        "day_type":"Day type",
+        "dep_parts":"Department parts",
+        "employee_services":"Services provided by the employee",
+        "deppart_services":"Services provided in this part of the department",
+        "employee_info":"Employee information",
+        "resources":"Resources",
+        "work_shift":"Work shift",
+        "vacation":"Non-working day"
     },
     "field":{ 
         "-- COMMON":"--",
@@ -386,7 +396,19 @@
         "displ_cancl":"Display cancelled",
         "amount":"Amount",
         "step":"Step",
-        "presets":"Presets"
+        "presets":"Presets",
+        "is_active":"Active",
+        "resource":"Resource",
+        "quantity":"Quantity",
+        "is_employee":"Employee",
+        "curr_employed":"Current employee",
+        "incoming_service":"Accepted service",
+        "breaks":"Breaks",
+        "srvc_appoint":"Service by appointment",
+        "time_from":"Start time",
+        "time_to":"End time",
+        "date_range":"Date range"
+        
     },
     "error":{ 
         "-- COMMON":"--",
@@ -421,6 +443,10 @@
         "too_short":"Too short",
         "too_long":"Too long",
         "dates_from_to_valid":"The end date and time must be later than the start date and time",
+        "overlap_breaks_time":"There are errors in the break schedule. Breaks should not extend beyond the time of work shift or overlap with each other",
+        "overlap_shifts_time":"There are errors in the work shift schedule. Shifts on neighboring days should not overlap in time",
+        "wrong_unit":" Wrong unit of measure",
+        "overlap_time":"Overlapping time periods",
         
         "-- RETURNS TO SUPPLIERS":"--",
 
@@ -547,9 +573,7 @@
         "res_month":"Resource usage during the month",
         "srvc_acsbl_res_dprt":"In a selected part of the department there are not enough resources to perform this service: {{resources}}",
         "dp_no_res_for_srvc":"This part of the department does not have enough resources to perform the selected service: {{resources}}",
-        "srvc_acsbl_res_dprts":"There are not enough resources in any of the accessible parts of the departments to perform this service: {{resources}}",
-
-        
+        "srvc_acsbl_res_dprts":"There are not enough resources in any of the accessible parts of the departments to perform this service: {{resources}}",      
         "select_all":"Select all",
         "unselect_all":"Cancel all",
         "select_all_onedep":"Select everything in this department",
@@ -595,7 +619,9 @@
         "fxd_there_doc_tp":"Transfer of products and services to the customer is recorded",
         "fxd_there_doc_gm":"Reception of funds from the client is recorded",
         "refresh":"Reload document",
-        "and_plus":"and {{amnt}} more"
+        "and_plus":"and {{amnt}} more",
+        "clr_empl_scdl":"Clear employee schedule",
+        "reset":"Reset"
         
     },
     "msg":{
@@ -699,6 +725,7 @@
         "cln_table_qry":"Do you really want to clear this table?",
         "del_prod_item":"Deleting",
         "del_prod_quer":"Do you really want to delete \"{{name}}\"",
+        "del_query":"Do you really want to delete?",
         "ch_prnted_scc":"Cashiers'c cheque printed successfully",
         "c_cnnctd":     "The connection is established!",
         "c_conn_err":   "Sell register connection error. Requesting an error code...",
@@ -800,7 +827,22 @@
         "select_customer":"Select at least one client and service for him",
         "save_first":"Please save the document first",
         "alr_there_doc_tp":"There is already a document taking into account the transfer of products and services",
-        "alr_there_doc_gm":"There is already a document that takes into account the receipt of funds from the client"
+        "alr_there_doc_gm":"There is already a document that takes into account the receipt of funds from the client",
+        "no_service":"Not a service. Please select a service",
+        "del_dep_part":"Removing of department part",
+        "del_dep_part_fromlist_questn":"Remove this part of the department from the list?",
+        "try_empl_dep":"You are trying to assign an employee to departments that he does not belong to.",
+        "some_of_depparts":"Not all parts of the departments to which the employee is assigned have services that the employee can provide",
+        "none_of_depparts":"None of the parts of the departments to which the employee is assigned provide services that the employee can provide",
+        "one_second":"1 second",
+        "delete_this_row":"Delete this row?",
+        "next_day":"The next day",
+        "warning":"Warning",
+        "form_has_errors":"The form contains errors",
+        "no_srvcs_this_part":"There are no services provided in this part of the department",
+        "too_many_days":"The number of days must be no more than {{cnt}}",
+        "there_unsaved_cngs":"There are unsaved changes in the document.",
+        "want_to_contnue_q":"Are you sure you want to continue?"
     },
     "button":{        
         "test_connct":  "Connection test",
@@ -885,7 +927,9 @@
         "each_day":"Every day",
         "two_two":"2 days in 2 days",
         "three_one":"3 days in 1 day",
-        "one_pweek":"Once a week"        
+        "one_pweek":"Once a week",
+        "time":"Time",
+        "uncountable":"Uncountable"
 
     },
     "docs":{            
@@ -944,7 +988,9 @@
         "appointment":"Appointment",
         "reservation":"Reservation",
         "appointments":"Appointments",
-        "reservations":"Reservations" 
+        "reservations":"Reservations",
+        "resource":"Resource",
+        "jobtitle":"Job title"
 
     }
 }

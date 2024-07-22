@@ -32,7 +32,11 @@
         "ship_date":    "ESD",  "Estimated shipping date":"",
         "status":       "Status",
         "n_shipd_resrv":"Non-shipped reserves",
-        "child":        "Child"
+        "child":        "Child",
+        "service_name":"Service",
+        "paiding":"Paid",
+        "time_from":"Start time",
+        "time_to":"End time"
     },
     "tip":{
         "delete":       "Delete",
@@ -175,7 +179,9 @@
         "str_selectd":  "Selected stores",
         "lui":"Legal user information",
         "pay_methds":   "Payment methods",
-        "info_tpo":"This information is collected for tax purposes only"
+        "info_tpo":"This information is collected for tax purposes only",
+        "dep_part_create":"Part of department creation",
+        "dep_part":"Part of department"
     },
     "field":{ 
         "company":      "Company",
@@ -320,7 +326,8 @@
         "file_":        "File ",
         "_with_size_":  " with a size of ",
         "_mb_":         " Mb",
-        "_more_than":   ", exceeds the maximum file size allowed for uploading - "
+        "_more_than":   ", exceeds the maximum file size allowed for uploading - ",
+        "record_in_list":"Such an entry is already in the table!"
     },
     "button":{
         "save_n_close": "Save",

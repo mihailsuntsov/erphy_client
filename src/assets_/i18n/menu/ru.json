@@ -396,10 +396,13 @@
         "subscription": "подписка",
         "stores":       "интернет-магазины (соединения)",
         "calendar":     "Календарь",
-        "appointment":"Запись",
-        "reservation":"Бронирование",
-        "appointments":"Записи",
-        "reservations":"Бронирования"
+        "appointment":  "запись",
+        "reservation":  "бронирование",
+        "appointments": "записи",
+        "reservations": "бронирования",
+        "resources":    "ресурсы",
+        "jobtitles":    "должности",
+        "employeescdl": "график работы сотрудников"
     },
     "indicators":{
         "revenue":      "Выручка",

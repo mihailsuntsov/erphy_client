@@ -3,7 +3,7 @@
         <mat-card-title class="top-bar container-fluid"> 
             <div class="row" id="topBlock">
                 <div class="card-name">
-                    {{t('docs.docs.jobtitles')}} <span [ngClass]="{invisible: +id==0}"> "{{formBaseInformation.get('name').value}}"</span>
+                    {{t('docs.docs.jobtitle')}} <span [ngClass]="{invisible: +id==0}"> "{{formBaseInformation.get('name').value}}"</span>
                 </div>
                 <div class="separator"></div><!-- !!! -->
                 <button 
@@ -21,7 +21,7 @@
                 </button>
                 <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
                     <button mat-menu-item (click)="goToNewDocument()">
-                        <span>{{t('docs.docs.jobtitles')}}</span>
+                        <span>{{t('docs.docs.jobtitle')}}</span>
                     </button>
                 </mat-menu>
                 <button 

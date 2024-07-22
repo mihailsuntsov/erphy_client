@@ -742,7 +742,7 @@
                                                                     <i class="form-invalid">{{t('docs.error.field_miss')}}</i>
                                                                 </mat-hint>
                                                             </mat-form-field>
-                                                            <mat-form-field 
+                                                            <!-- <mat-form-field 
                                                                 style="width:100%; /*margin-right:5px;*/">                                                                    
                                                                 <mat-label>{{t('docs.field.max_pers_on_same_time')}} <span *ngIf="formBaseInformation.get('scdl_max_pers_on_same_time').value==''" class="star">*</span></mat-label>
                                                                 <input  matInput
@@ -758,12 +758,7 @@
                                                                     <mat-hint  align="start" *ngIf="formBaseInformation.get('scdl_max_pers_on_same_time').touched && formBaseInformation.get('scdl_max_pers_on_same_time').invalid && scdl_max_pers_on_same_time.value=='0'">
                                                                         <i class="form-invalid">{{t('modules.error.more_than',{num:0})}}</i>
                                                                     </mat-hint>
-                                                                    <!-- <mat-hint  align="start">
-                                                                    error-{{formBaseInformation.get('scdl_max_pers_on_same_time').touched}}-<br>
-                                                                    scdl_max_pers_on_same_time.value==0-{{scdl_max_pers_on_same_time.value==0}}-<br>
-                                                                    scdl_max_pers_on_same_time.value!='0'-{{scdl_max_pers_on_same_time.value!='0'}}-<br>
-                                                                    </mat-hint> -->
-                                                            </mat-form-field>
+                                                            </mat-form-field> -->
                                                             <mat-form-field 
                                                                 style="width:65%; margin-right:5px;">                                                                    
                                                                 <mat-label>{{t('docs.field.srvc_min_duration')}} <span *ngIf="formBaseInformation.get('scdl_srvc_duration').value==''" class="star">*</span></mat-label>
@@ -794,7 +789,7 @@
                                                                 </mat-hint>
                                                             </mat-form-field>
 
-                                                            <mat-form-field 
+                                                            <!-- <mat-form-field 
                                                                 style="width:65%; margin-right:5px;">                                                                    
                                                                 <mat-label>{{t('docs.field.scedule_appntmnt_before')}} <span *ngIf="formBaseInformation.get('scdl_appointment_atleast_before_time').value==null" class="star">*</span></mat-label>
                                                                     <input  matInput
@@ -807,47 +802,43 @@
                                                                     <mat-hint  align="start" *ngIf="formBaseInformation.get('scdl_appointment_atleast_before_time').touched && formBaseInformation.get('scdl_appointment_atleast_before_time').invalid && scdl_appointment_atleast_before_time.value!='0'">
                                                                         <i class="form-invalid">{{t('docs.error.field_miss')}}</i>
                                                                     </mat-hint>
-                                                                    <!-- <mat-hint  align="start">
-                                                                        scdl_appointment_atleast_before_time.value-{{formBaseInformation.get('scdl_appointment_atleast_before_time').value}}-<br>
-                                                                        scdl_appointment_atleast_before_time.value==''-{{formBaseInformation.get('scdl_appointment_atleast_before_time').value==null}}-<br>
-                                                                    </mat-hint> -->
-                                                            </mat-form-field>
+                                                            </mat-form-field> -->
 
-                                                            <mat-form-field style="width: calc(35% - 6px);">
+                                                            <!-- <mat-form-field style="width: calc(35% - 6px);">
                                                                 <mat-label>&nbsp;</mat-label>
                                                                 <mat-select  formControlName="scdl_appointment_atleast_before_unit_id">                          
                                                                     <mat-option *ngFor="let rt of spravSysEdizmOfProductTime" [value]="rt.id">
                                                                             {{rt.short_name}}
                                                                     </mat-option> 
                                                                 </mat-select>
-                                                            </mat-form-field>
+                                                            </mat-form-field> -->
 
-                                                            <mat-form-field class="slideWidth100">
+                                                            <!-- <mat-form-field class="slideWidth100">
                                                                 <mat-label>{{t('docs.field.customer_reminders')}}</mat-label>
                                                                 <mat-select formControlName="scdl_customer_reminders" multiple>
                                                                     <mat-option *ngFor="let rt of remindersList" [value]="rt.id">
                                                                         {{rt.type}} {{rt.value_text}}
                                                                     </mat-option> 
                                                                 </mat-select>
-                                                            </mat-form-field>
+                                                            </mat-form-field> -->
 
-                                                            <mat-form-field class="slideWidth100">
+                                                            <!-- <mat-form-field class="slideWidth100">
                                                                 <mat-label>{{t('docs.field.employee_reminders')}}</mat-label>
                                                                 <mat-select formControlName="scdl_employee_reminders" multiple>
                                                                     <mat-option *ngFor="let rt of remindersList" [value]="rt.id">
                                                                         {{rt.type}} {{rt.value_text}}
                                                                     </mat-option> 
                                                                 </mat-select>
-                                                            </mat-form-field>
+                                                            </mat-form-field> -->
 
-                                                            <mat-form-field class="slideWidth100">
+                                                            <!-- <mat-form-field class="slideWidth100">
                                                                 <mat-label>{{t('docs.field.assignments_ways')}}</mat-label>
                                                                 <mat-select formControlName="scdl_assignments" multiple>
                                                                     <mat-option *ngFor="let rt of assignmentsList" [value]="rt.id">
                                                                         {{rt.name}}
                                                                     </mat-option> 
                                                                 </mat-select>
-                                                            </mat-form-field>
+                                                            </mat-form-field> -->
 
                                                         </mat-card-content>
                                                     </mat-card>
@@ -1199,7 +1190,7 @@
                                                             </mat-form-field>
                                                             
                                                             <mat-form-field class="date-range" style="margin-left:20px;">
-                                                                <mat-label>{{t('menu.top.date_range')}}</mat-label>
+                                                                <mat-label>{{t('docs.field.date_range')}}</mat-label>
                                                                 <mat-date-range-input [rangePicker]="picker">
                                                                 <input matStartDate (dateChange)="getData()" [(ngModel)]="formProductHistory.dateFrom" [ngModelOptions]="{standalone: true}" placeholder="{{t('menu.top.date_from')}}">
                                                                 <input matEndDate (dateChange)="getData()" [(ngModel)]="formProductHistory.dateTo" [ngModelOptions]="{standalone: true}" placeholder="{{t('menu.top.date_to')}}">

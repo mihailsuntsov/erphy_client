@@ -395,11 +395,14 @@
         "productattr":  "атрибути производа",
         "subscription": "претплата",
         "stores":       "онлине продавнице (конекције)",
-        "calendar":     "Календар",
-        "appointment":"Састанак",
-        "reservation":"Резервација",
-        "appointments":"Састанке",
-        "reservations":"Резервације"
+        "calendar":     "календар",
+        "appointment":  "састанак",
+        "reservation":  "резервација",
+        "appointments": "састанке",
+        "reservations": "резервације",
+        "resources":    "ресурси",
+        "jobtitles":    "позиције",
+        "employeescdl": "распоред рада запослених"
     },
     "indicators":{
         "revenue":      "Приход",

@@ -53,96 +53,109 @@
                     >{{resource.name}}</span>
                     <span class="amount-resource" matTooltip="{{'modules.tip.amnt_res' | transloco}}">{{resource.resource_qtt}}</span>
                 </div>
-                <div
-                  class="cal-day-column"
-                  *ngFor="let day of days; trackBy: trackByResourceDay.bind(this, resource.resource_id)"
-                  mwlDroppable
-                  dragOverClass="cal-drag-over"
-                  (drop)="eventDropped_($event, day.date, true, deppart.id)"
-                  (dragEnter)="dateDragEnter(day.date)"
-                >
-                <hr *ngIf="!deppart.is_active">
-                </div>
+                <ng-container *ngIf="viewPeriodName!='resources_day'; else resourcesNotDays">
+                  <div 
+                    class="cal-day-column"
+                    *ngFor="let day of days; trackBy: trackByResourceDay.bind(this, resource.resource_id)"
+                    mwlDroppable
+                    dragOverClass="cal-drag-over"
+                    (drop)="eventDropped_($event, day.date, true, deppart.id)"
+                    (dragEnter)="dateDragEnter(day.date)"
+                  >
+                    <hr *ngIf="!deppart.is_active">
+                  </div>
+                </ng-container>
+                <ng-template #resourcesNotDays>
+                  <div 
+                    class="cal-day-column"
+                    *ngFor="let day of weekDays; trackBy: trackByResourceDay.bind(this, resource.resource_id)"
+                    mwlDroppable
+                    dragOverClass="cal-drag-over"
+                    (drop)="eventDropped_($event, day.date, true, deppart.id)"
+                    (dragEnter)="dateDragEnter(day.date)"
+                  >
+                    <hr *ngIf="!deppart.is_active">
+                  </div>
+                </ng-template>
+                <mat-menu #resource_services_menu="matMenu" xPosition="after">
+                  <mat-spinner 
+                      strokeWidth="3" 
+                      class="spinner"
+                      style="top:0px; left:30px"
+                      [diameter]="50"
+                      *ngIf="resourceServicesListLoading"></mat-spinner>
+                  
+                  <ng-container *ngIf="resourceServicesList.length>1; else oneCard" >
 
-                  <mat-menu #resource_services_menu="matMenu" xPosition="after">
-                    <mat-spinner 
-                        strokeWidth="3" 
-                        class="spinner"
-                        style="top:0px; left:30px"
-                        [diameter]="50"
-                        *ngIf="resourceServicesListLoading"></mat-spinner>
-                    
-                    <ng-container *ngIf="resourceServicesList.length>1; else oneCard" >
-
-                    
-                      <div *ngFor="let service of resourceServicesList">
-                        <button mat-menu-item [matMenuTriggerFor]="menu">{{ service.name }}</button>
-                        <mat-menu #menu>
-                          <mat-card class="serviceinfo-card" appearance="outlined">
-                            <mat-card-header>
-                              <mat-card-title-group>
-                                <mat-card-title>{{service.name}}</mat-card-title>
-                                <mat-card-subtitle [innerHTML]="service.description"></mat-card-subtitle>
-                                <img mat-card-sm-image *ngIf="service.imageFile" matTooltip="{{('modules.tip.opn_image' | transloco)}}" (click)="showImage(service.imageFile)" [src]="'/api/public/getFile/'+service.imageFile" width=100%>
-                                <img mat-card-sm-image *ngIf="!service.imageFile" src="assets_/images/no_foto.jpg" width=100% style="cursor:default">
-                              </mat-card-title-group>
-                            </mat-card-header>
-                            <mat-card-content>
-                              <ul style="margin-top: 15px; padding: 0;">
-                                <li *ngFor="let attribute of service.attributesList; let even = even; let odd = odd" [style.display]="'block'" class="row-striped" [ngClass]="{ odd: odd, even: even }">
-                                  <div class="row">
-                                    <div class="col-4">
-                                      <span [matTooltip]="attribute.description">{{attribute.name}}</span>
-                                    </div>
-                                    <div class="col-8">
-                                      <ul style="padding: 0;">
-                                        <li *ngFor="let term of attribute.termsList" [style.display]="'block'">
-                                          <span 
-                                          [matTooltip]="term.description">{{term.name}}</span>
-                                        </li>
-                                      </ul>
-                                    </div>
+                  
+                    <div *ngFor="let service of resourceServicesList">
+                      <button mat-menu-item [matMenuTriggerFor]="menu">{{ service.name }}</button>
+                      <mat-menu #menu>
+                        <mat-card class="serviceinfo-card" appearance="outlined">
+                          <mat-card-header>
+                            <mat-card-title-group>
+                              <mat-card-title>{{service.name}}</mat-card-title>
+                              <mat-card-subtitle [innerHTML]="service.description"></mat-card-subtitle>
+                              <img mat-card-sm-image *ngIf="service.imageFile" matTooltip="{{('modules.tip.opn_image' | transloco)}}" (click)="showImage(service.imageFile)" [src]="'/api/public/getFile/'+service.imageFile" width=100%>
+                              <img mat-card-sm-image *ngIf="!service.imageFile" src="assets_/images/no_foto.jpg" width=100% style="cursor:default">
+                            </mat-card-title-group>
+                          </mat-card-header>
+                          <mat-card-content>
+                            <ul style="margin-top: 15px; padding: 0;">
+                              <li *ngFor="let attribute of service.attributesList; let even = even; let odd = odd" [style.display]="'block'" class="row-striped" [ngClass]="{ odd: odd, even: even }">
+                                <div class="row">
+                                  <div class="col-4">
+                                    <span [matTooltip]="attribute.description">{{attribute.name}}</span>
                                   </div>
-                                </li>
-                            </ul>
-                            </mat-card-content>
-                          </mat-card>
-                        </mat-menu>
-                      </div>
-                    </ng-container>
-                    <ng-template #oneCard>
-                      <mat-card class="serviceinfo-card" appearance="outlined" *ngIf="resourceServicesList.length==1;">
-                        <mat-card-header>
-                          <mat-card-title-group>
-                            <mat-card-title>{{resourceServicesList[0].name}}</mat-card-title>
-                            <mat-card-subtitle [innerHTML]="resourceServicesList[0].description"></mat-card-subtitle>
-                            <img mat-card-sm-image *ngIf="resourceServicesList[0].imageFile" matTooltip="{{('modules.tip.opn_image' | transloco)}}" (click)="showImage(resourceServicesList[0].imageFile)" [src]="'/api/public/getFile/'+resourceServicesList[0].imageFile" width=100%>
-                            <img mat-card-sm-image *ngIf="!resourceServicesList[0].imageFile" src="assets_/images/no_foto.jpg" width=100% style="cursor:default">
-                          </mat-card-title-group>
-                        </mat-card-header>
-                        <mat-card-content>
-                          <ul style="margin-top: 15px; padding: 0;">
-                            <li *ngFor="let attribute of resourceServicesList[0].attributesList; let even = even; let odd = odd" [style.display]="'block'" class="row-striped" [ngClass]="{ odd: odd, even: even }">
-                              <div class="row">
-                                <div class="col-4">
-                                  <span [matTooltip]="attribute.description">{{attribute.name}}</span>
+                                  <div class="col-8">
+                                    <ul style="padding: 0;">
+                                      <li *ngFor="let term of attribute.termsList" [style.display]="'block'">
+                                        <span 
+                                        [matTooltip]="term.description">{{term.name}}</span>
+                                      </li>
+                                    </ul>
+                                  </div>
                                 </div>
-                                <div class="col-8">
-                                  <ul style="padding: 0;">
-                                    <li *ngFor="let term of attribute.termsList" [style.display]="'block'">
-                                      <span 
-                                      [matTooltip]="term.description">{{term.name}}</span>
-                                    </li>
-                                  </ul>
-                                </div>
+                              </li>
+                          </ul>
+                          </mat-card-content>
+                        </mat-card>
+                      </mat-menu>
+                    </div>
+                  </ng-container>
+                  <ng-template #oneCard>
+                    <mat-card class="serviceinfo-card" appearance="outlined" *ngIf="resourceServicesList.length==1;">
+                      <mat-card-header>
+                        <mat-card-title-group>
+                          <mat-card-title>{{resourceServicesList[0].name}}</mat-card-title>
+                          <mat-card-subtitle [innerHTML]="resourceServicesList[0].description"></mat-card-subtitle>
+                          <img mat-card-sm-image *ngIf="resourceServicesList[0].imageFile" matTooltip="{{('modules.tip.opn_image' | transloco)}}" (click)="showImage(resourceServicesList[0].imageFile)" [src]="'/api/public/getFile/'+resourceServicesList[0].imageFile" width=100%>
+                          <img mat-card-sm-image *ngIf="!resourceServicesList[0].imageFile" src="assets_/images/no_foto.jpg" width=100% style="cursor:default">
+                        </mat-card-title-group>
+                      </mat-card-header>
+                      <mat-card-content>
+                        <ul style="margin-top: 15px; padding: 0;">
+                          <li *ngFor="let attribute of resourceServicesList[0].attributesList; let even = even; let odd = odd" [style.display]="'block'" class="row-striped" [ngClass]="{ odd: odd, even: even }">
+                            <div class="row">
+                              <div class="col-4">
+                                <span [matTooltip]="attribute.description">{{attribute.name}}</span>
                               </div>
-                            </li>
-                        </ul>
-                        </mat-card-content>
-                      </mat-card>
-                    </ng-template>
+                              <div class="col-8">
+                                <ul style="padding: 0;">
+                                  <li *ngFor="let term of attribute.termsList" [style.display]="'block'">
+                                    <span 
+                                    [matTooltip]="term.description">{{term.name}}</span>
+                                  </li>
+                                </ul>
+                              </div>
+                            </div>
+                          </li>
+                      </ul>
+                      </mat-card-content>
+                    </mat-card>
+                  </ng-template>
 
-                  </mat-menu>
+                </mat-menu>
 
 
 
@@ -316,7 +329,7 @@
   </ng-container>
 
 <!-- 1--<code><pre>{{getResourceEventsRows(1)}}</pre></code>--1 -->
-  --<code><pre>{{resourceServicesList | json}}</pre></code>--
+  <!-- --<code><pre>{{resourceServicesList | json}}</pre></code>-- -->
   <!-- daysInWeek - {{daysInWeek}}<br> -->
   <!-- dayColumnWidth - {{dayColumnWidth}}<br> -->
   <!-- snapDraggedEvents - {{snapDraggedEvents}}<br> -->

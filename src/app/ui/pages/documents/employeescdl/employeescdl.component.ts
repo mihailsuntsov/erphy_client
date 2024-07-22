@@ -130,6 +130,8 @@ export class EmployeeScdlComponent implements OnInit {
   vacationForm: any;  // form for vacation
 
 
+  needAgainOfAfterChangeFiltersApiCalls:boolean=false;
+  waitingOfAfterChangeFiltersApiCalls:boolean=false;
 
   //переменные прав
   permissionsSet: any[];//сет прав на документ
@@ -237,6 +239,27 @@ export class EmployeeScdlComponent implements OnInit {
     
 
   // }
+  afterChangeFiltersApiCalls(){
+    if(!this.waitingOfAfterChangeFiltersApiCalls){ // если не в режиме отложенного срабатывания / if not in delayed triggering mode
+      this.waitingOfAfterChangeFiltersApiCalls=true; // ставим в режим отложенного срабатывания / delayed triggering mode is "ON"
+      // console.log('!this.waitingOfAfterChangeFiltersApiCalls before timeOut()')
+      setTimeout(() => { //ожидание / delayed triggering
+        // отложенное срабатывание случилось: / delayed triggering happened:
+        // отключаем режим отложенного срабатывания / disable delayed triggering mode
+        this.waitingOfAfterChangeFiltersApiCalls=false;        
+        if(!this.needAgainOfAfterChangeFiltersApiCalls){ // если повторные запросы во время ожидания больше не "прилетали" / if repeated requests no longer arrived
+          //выполняем код, частоту которого нужно ограничить / execute code whose frequency needs to be limited
+          this.clickApplyFilters();
+        } else {// если повторные запросы "прилетали" во время ожидания / if repeated requests arrived while waiting
+          // сбросили отметку о наличии повторных запросов / cleared the mark for repeated requests
+          this.needAgainOfAfterChangeFiltersApiCalls=false;
+          // обратились к данной функции снова, чтобы включить отложенное срабатывание / turned to this function again to enable delayed triggering (recursive call)
+          this.afterChangeFiltersApiCalls();
+        }
+      }, 800);
+      // режим отложенного срабатывания, но продолжают "прилетать" повторные запросы / delayed triggering mode, but repeated requests continue to arrive
+    } else this.needAgainOfAfterChangeFiltersApiCalls=true; 
+  } 
   get formValid() {
     if(this.queryForm!=undefined)
       return (this.queryForm.valid);
@@ -588,8 +611,8 @@ export class EmployeeScdlComponent implements OnInit {
     this.displayedColumnsBreaks=[];
     this.displayedColumnsBreaks.push('time_from');
     this.displayedColumnsBreaks.push('time_to');
-    this.displayedColumnsBreaks.push('paid');
-    this.displayedColumnsBreaks.push('precent');
+    // this.displayedColumnsBreaks.push('paid');
+    // this.displayedColumnsBreaks.push('precent');
     if(this.editability)
       this.displayedColumnsBreaks.push('delete');
   }
@@ -1304,22 +1327,31 @@ export class EmployeeScdlComponent implements OnInit {
 
   createFastScedule(row_index:number,col_index:number) {
     const dialogFastDcedule = this.fastSceduleComponent.open(FastSceduleComponent, {
-      width:  '400px', 
-      //height: '500px',
-      data:
-      { 
-        
-      },
+      width: '400px', 
+      data: {},
     });
     dialogFastDcedule.afterClosed().subscribe(result => {
       // console.log(`Dialog result: ${result}`);
       if(result){
-        console.log('amount:', result.amount);
-        console.log('row_index:', row_index);
-        console.log('col_index:', col_index);
+        let amount_tick = 1; // Response for fill working days. 1 because current day also matters
+        let step_tick = 0;   // Response for 
+        let fillDayMode = amount_tick < result.amount || result.step == 0; // if step = 0 then each day is a working day (fillDayMode=true)
+
+        // until next day is workshift or next day = the end day of selected period
+        while (this.getDayType(row_index, col_index+1)!='workshift' && col_index+2!=this.scheduleData[row_index].days.length){
+          col_index++;
+          if(fillDayMode){
+            amount_tick++;
+            this.onDayClick(row_index,col_index,'undefined');
+            fillDayMode = amount_tick < result.amount || result.step == 0;
+            step_tick= 0;
+          } else {
+            step_tick++;
+            fillDayMode = step_tick >= result.step;
+            amount_tick=0;
+          }
+        }
       }
-
-
     });
   }
 }

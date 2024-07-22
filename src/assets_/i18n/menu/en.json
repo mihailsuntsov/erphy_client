@@ -397,11 +397,14 @@
         "ch_cat_stores":"Сhange online stores",
         "subscription": "subscription",
         "del_ctgrs":    "Delete categories",
-        "calendar":     "Сalendar",
-        "appointment":"Appointment",
-        "reservation":"Reservation",
-        "appointments":"Appointments",
-        "reservations":"Reservations"
+        "calendar":     "calendar",
+        "appointment":  "appointment",
+        "reservation":  "reservation",
+        "appointments": "appointments",
+        "reservations": "reservations",        
+        "resources":    "resources",
+        "jobtitles":    "job titles",
+        "employeescdl": "employee work schedule"
     },
     "indicators":{
         "revenue":      "Revenue",

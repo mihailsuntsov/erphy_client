@@ -1,7 +1,9 @@
 <mat-card appearance="outlined" *ngIf="isSignedUp" class="reg-mat-card text-center">
-  <mat-card-title>
-    {{'user.card.hurray' | transloco}}
-  </mat-card-title>
+  <mat-card-header>
+    <mat-card-title>
+      {{'user.card.hurray' | transloco}}
+    </mat-card-title>
+  </mat-card-header>
   <mat-card-content class="text-center">
     {{'user.msg.reg_completd1' | transloco}}<br>
     <span *ngIf="createdUserId!='1'">{{'user.msg.reg_completd2' | transloco}}</span><br>

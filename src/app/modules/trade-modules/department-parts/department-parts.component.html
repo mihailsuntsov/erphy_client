@@ -1,7 +1,7 @@
 <mat-card appearance="outlined" class="card" *transloco="let t">
     <mat-card-header>
         <mat-card-title class="flex">
-            <div class="card-name">{{actionType=='create'?('modules.card.dep_part_create' | transloco):('modules.card.dep_part_edit' | transloco)}}</div>
+            <div class="card-name">{{actionType=='create'?('modules.card.dep_part_create' | transloco):('modules.card.dep_part' | transloco)}}</div>
             <button 
                 mat-raised-button 
                 *ngIf="+formBaseInformation.get('id').value==0"
@@ -244,7 +244,7 @@
                                         <mat-card-title>
                                             <div class="flex card">
                                                 <div style="width:100%;">
-                                                    {{t('docs.card.employee_services')}}
+                                                    {{t('docs.card.deppart_services')}}
                                                 </div>
                                             </div>
                                         </mat-card-title>

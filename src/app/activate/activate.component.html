@@ -1,25 +1,27 @@
 
   
   <mat-card appearance="outlined" class="login-mat-card">
-    <div class="lang-select"
-        [matMenuTriggerFor]="addDocMenu">
-        <span>{{language}}</span><div class="arrow-wrap"><i class="material-icons" style="font-size: 18px;">arrow_drop_down</i></div>
-    </div>
-    <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
-        <button mat-menu-item (click)="setLanguage('en')">
-            <span>English</span>
-        </button>
-        <button mat-menu-item (click)="setLanguage('ru')">
-            <span>Русский</span>
-        </button>
-        <button mat-menu-item (click)="setLanguage('sr')">
-            <span>Српски</span>
-        </button>
-    </mat-menu>
-    
-    <mat-card-title style="text-align: center;">
-      {{'user.card.activation' | transloco}}
-    </mat-card-title>
+    <mat-card-header>
+      <div class="lang-select"
+          [matMenuTriggerFor]="addDocMenu">
+          <span>{{language}}</span><div class="arrow-wrap"><i class="material-icons" style="font-size: 18px;">arrow_drop_down</i></div>
+      </div>
+      <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
+          <button mat-menu-item (click)="setLanguage('en')">
+              <span>English</span>
+          </button>
+          <button mat-menu-item (click)="setLanguage('ru')">
+              <span>Русский</span>
+          </button>
+          <button mat-menu-item (click)="setLanguage('sr')">
+              <span>Српски</span>
+          </button>
+      </mat-menu>
+      
+      <mat-card-title style="text-align: center;">
+        {{'user.card.activation' | transloco}}
+      </mat-card-title>
+    </mat-card-header>
     <mat-card-content class="text-center">
 
 

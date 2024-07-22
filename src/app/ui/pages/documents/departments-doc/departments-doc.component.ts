@@ -498,7 +498,7 @@ export class DepartmentsDocComponent implements OnInit {
       data:
       { 
         head:   translate('docs.msg.del_dep_part'),
-        query:  translate('docs.msg.del_dep_part_questn'),
+        query:  translate('docs.msg.del_query'),
         warning:translate(''),
       },
     });

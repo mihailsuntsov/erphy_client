@@ -399,8 +399,8 @@
                                                             </td>
                                                         </ng-container>             
                                                         <!-- paid -->
-                                                        <ng-container matColumnDef="paid" [formArrayName]="'breaks'">
-                                                            <th mat-header-cell *matHeaderCellDef class="table-cell-width">{{t('modules.col.paid')}}</th>
+                                                        <!-- <ng-container matColumnDef="paid" [formArrayName]="'breaks'">
+                                                            <th mat-header-cell *matHeaderCellDef class="table-cell-width">{{t('modules.col.paiding')}}</th>
                                                             <td mat-cell *matCellDef="let row; let i = index"  class="table-cell-width" [formGroupName]="i"> 
                                                                 <mat-form-field id="toggle"
                                                                     class="mat-form-field-100" 
@@ -414,9 +414,9 @@
                                                                     <input matInput hidden/>
                                                                 </mat-form-field>
                                                             </td>
-                                                        </ng-container>             
+                                                        </ng-container>              -->
                                                         <!-- precent -->
-                                                        <ng-container matColumnDef="precent" [formArrayName]="'breaks'">
+                                                        <!-- <ng-container matColumnDef="precent" [formArrayName]="'breaks'">
                                                             <th mat-header-cell *matHeaderCellDef class="table-cell-width">Break payment, %</th>
                                                             <td mat-cell *matCellDef="let row; let i = index"
                                                             class="table-cell-width"
@@ -432,7 +432,6 @@
                                                                 type="number" min="0" max="100"
                                                                 formControlName="precent"
                                                             />
-                                                            <!-- <mat-hint align="start" >**{{getControlTablefield().controls[i].get('precent').value}}*</mat-hint> -->
                                                             <control-messages  class="table-form-invalid" [control]="getControlTablefield().controls[i].get('precent')"></control-messages>
                                                             <mat-hint align="start" >
                                                                 <i *ngIf="  getControlTablefield().controls[i].get('precent').value !='' && 
@@ -443,7 +442,7 @@
                                                                 <i *ngIf="getControlTablefield().controls[i].get('precent').invalid && (getControlTablefield().controls[i].get('precent').value >100 || getControlTablefield().controls[i].get('precent').value<0)" class="table-form-invalid"><br>{{t('docs.error.k_accept_nimber',{num1:0,num2:100})}}</i>
                                                             </mat-hint>
                                                             </td>
-                                                        </ng-container>
+                                                        </ng-container> -->
                                                         <!-- Delete Column -->
                                                         <ng-container matColumnDef="delete" [formArrayName]="'breaks'">
                                                             <th mat-header-cell 
@@ -609,11 +608,11 @@
                                                     </div>
                                                     <div class="col-xl-3 col-lg-6 col-md-12">
                                                         <mat-form-field class="date-range mat-form-field-100">
-                                                            <mat-label>{{t('menu.top.date_range')}}</mat-label>
+                                                            <mat-label>{{t('docs.field.date_range')}}</mat-label>
                                                             <mat-date-range-input [rangePicker]="picker">
-                                                                <input  
+                                                                <input  (dateChange)="afterChangeFiltersApiCalls()" 
                                                                     matStartDate formControlName="dateFrom" placeholder="{{t('menu.top.date_from')}}">
-                                                                <input  
+                                                                <input   (dateChange)="afterChangeFiltersApiCalls()"
                                                                     matEndDate formControlName="dateTo" placeholder="{{t('menu.top.date_to')}}">
                                                             </mat-date-range-input>
                                                             <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
@@ -630,7 +629,7 @@
                                                             <mat-select  
                                                             formControlName="departments"
                                                             [disabled]="!editability"
-                                                            (selectionChange)="uncheckPlacesOfWork()"
+                                                            (selectionChange)="uncheckPlacesOfWork();afterChangeFiltersApiCalls()"
                                                             multiple>
                                                             <div class="button-row">
                                                                 <button 
@@ -662,6 +661,7 @@
                                                             <mat-select
                                                                 panelClass="department-list"
                                                                 formControlName="jobtitles"
+                                                                (selectionChange)="afterChangeFiltersApiCalls()"
                                                                 [disabled]="!editability"
                                                                 #select
                                                                 multiple>
@@ -699,7 +699,7 @@
                                                         <button
                                                             class="filter-button"
                                                             matTooltip="{{t('menu.tip.apply_filters')}}"
-                                                            (click)="clickApplyFilters()"  
+                                                            (click)="afterChangeFiltersApiCalls()"  
                                                             type="submit"
                                                             matSuffix mat-icon-button>
                                                             <mat-icon>refresh</mat-icon>
@@ -818,7 +818,7 @@
                                                                                     (click)="deleteRecord(i,col_index,'workshift')" 
                                                                                     matTooltip="{{t('menu.top.btn_delete')}}"
                                                                                     *ngIf=(editability)>
-                                                                            close
+                                                                                    close
                                                                     </mat-icon>
                                                                     <!-- -{{scheduleData[i].days[col_index+(col_index+1>scheduleData[i].days.length?(+1):(+0))].workshift}}- -->
                                                                     <span style="display: table-cell; vertical-align: middle;">{{getDayData(i,col_index,'workshift')}}</span>
@@ -863,6 +863,6 @@
     </mat-card-content>
     <!-- <code><pre>{{queryForm.value | json}}</pre></code> -->
     <!-- <code><pre>{{workShiftForm.value | json}}</pre></code> -->
-    <code><pre>{{scheduleData | json}}</pre></code>
+    <!-- <code><pre>{{scheduleData | json}}</pre></code> -->
     
 </mat-card>
