@@ -40,7 +40,7 @@
 .clear-button{
     position: relative;
     right: 0px;
-    top: 6px;
+    top: -9px;
     flex: 0 0 0%;
     color: black;
     z-index: 1000;

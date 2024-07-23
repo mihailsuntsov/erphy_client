@@ -5,11 +5,17 @@
     <div class="cal-day-headers" role="row">
       <div
         class="cal-header"
+        style="height: 45px;"
         *ngFor="let user of users; trackBy: trackByUserId"
         tabindex="0"
         role="columnheader"
       >
-        <b>{{ user.name }}</b>
+        <div class="user-fio-container">
+         {{ user.name }}
+        </div>
+        <div class="user-jobtitle">
+          {{ user.jobtitle }}
+        </div>
       </div>
     </div>
     
@@ -277,7 +283,7 @@
       <!-- End of Columns with events and breaks block -->
     </div>   
     <!-- End of Main block with bar of hours and columns contained users events  -->
-    <!-- <code><pre>{{users | json}}</pre></code>-->
+    <code><pre>{{users | json}}</pre></code>
     <!-- <code><pre>{{breaks | json}}</pre></code> -->
     <!-- <code><pre>{{days | json}}</pre></code>  -->
   </div>

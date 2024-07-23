@@ -1,5 +1,5 @@
 ::ng-deep .cal-time-events{
-    margin-top: 30px;
+    margin-top: 45px;
 }
 
 .spinner{
@@ -58,4 +58,18 @@ button.status-button {
 .cal-event-title{
   line-height: 26px;
   cursor: default;
+}
+
+.user-fio-container{
+  height: 20px;
+  font-weight: 600;
+}
+.user-jobtitle{
+  width: 100%;
+  text-align: center;
+  height: 15px;
+  color: rgb(121, 121, 121);
+  /* font-style: italic; */
+  line-height: 1;
+  font-size: 14px;
 }

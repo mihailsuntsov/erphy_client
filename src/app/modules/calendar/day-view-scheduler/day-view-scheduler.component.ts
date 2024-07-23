@@ -36,6 +36,7 @@ import {StatusInterface} from 'src/app/ui/pages/documents/calendar/calendar.comp
 export interface User {
   id: number;
   name: string;
+  jobtitle: string;
   color: EventColor;
 }
 export interface Break {

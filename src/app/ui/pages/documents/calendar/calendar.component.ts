@@ -569,6 +569,15 @@ export class CalendarComponent implements OnInit {
       }, 1);
     }
   }
+  getJobtitleNameOfUser(employeeId:number){
+    let result = '';
+    this.receivedJobtitlesWithEmployeesList.map(jobtitle=>{
+      jobtitle.employees.map(employee=>{
+        if(employee.id==employeeId) result = jobtitle.name;
+      });
+    })
+    return result;
+  }
   afterLoadData(){
     // console.log('afterLoadData')
     // составляем объединенный список пользователей, которые присутствуют в списке записей и перерывов
@@ -576,10 +585,12 @@ export class CalendarComponent implements OnInit {
         this.users = [];
         // this.breaks = [];
         this.usersOfEvents.map(user=>{
+          user.jobtitle=this.getJobtitleNameOfUser(user.id);
           if(user.id && this.users.find((obj) => obj.id === user.id) == undefined)
             this.users.push(user);
         })
         this.usersOfBreaks.map(user=>{
+          user.jobtitle=this.getJobtitleNameOfUser(user.id);
           if(user.id && this.users.find((obj) => obj.id === user.id) == undefined)
             this.users.push(user);
         })
@@ -595,6 +606,7 @@ export class CalendarComponent implements OnInit {
               this.users.push({
                 "id": employee.id,
                 "name": employee.name,
+                "jobtitle":jobtitle.name,
                 "color": {
                   "primary": "#008000",
                   "secondary": "#FDF1BA"
@@ -612,6 +624,7 @@ export class CalendarComponent implements OnInit {
               "user": {
                   "id": user.id,
                   "name": user.name,
+                  "jobtitle": user.jobtitle,
                   "color": user.color
               },
               "start": moment(this.queryForm.get('dateFrom').value, 'DD.MM.YYYY').format('YYYY-MM-DD')+"T00:00:00Z",
