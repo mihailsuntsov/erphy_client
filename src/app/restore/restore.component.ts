@@ -61,7 +61,7 @@ export class RestoreComponent implements OnInit {
         let result = data as any;
         switch(result){
           case null:{
-            this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('user.msg.error'),message:translate('user.msg.pwd_rep_error')}});
+            this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('user.msg.error'),message:translate('user.error.pwd_rep_error')}});
             break;
           }
           case -100:{

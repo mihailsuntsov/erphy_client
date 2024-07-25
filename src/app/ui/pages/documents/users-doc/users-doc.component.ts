@@ -211,7 +211,7 @@ export class UsersDocComponent implements OnInit {
       username: new UntypedFormControl ({ value: '', disabled: (+this.id>0)},[Validators.required,Validators.minLength(4),Validators.maxLength(20),Validators.pattern('^[a-zA-Z][a-zA-Z0-9-_\.]{1,20}$')]),
       email: new UntypedFormControl ({ value: '', disabled: (+this.id>0)},[Validators.required,Validators.email]),
       password: new UntypedFormControl ({ value: '', disabled: (+this.id>0)},[Validators.required,Validators.minLength(6),Validators.maxLength(20),Validators.pattern('^[a-zA-Z][a-zA-Z0-9-_\.]{1,20}$')]),
-      fio_family: new UntypedFormControl      ('',[Validators.required]),
+      fio_family: new UntypedFormControl      ('',[]),
       fio_name: new UntypedFormControl      ('',[Validators.required]),
       fio_otchestvo: new UntypedFormControl      ('',[]),
       sex: new UntypedFormControl      ('',[]),
@@ -293,6 +293,25 @@ export class UsersDocComponent implements OnInit {
     if(parameterValue)
       this.formBaseInformation.get(parameterName).setValue(parameterValue);
   }
+  get additionalChecksValid(){
+    return(
+      (!this.formBaseInformation.get('is_employee').value || 
+        (
+          this.formBaseInformation.get('is_employee').value && 
+          +this.formBaseInformation.get('job_title_id').value>0
+        )
+      )
+    ) &&
+    (
+      (+this.formBaseInformation.get('counterparty_id').value==0 ||
+        (
+          +this.formBaseInformation.get('counterparty_id').value>0 &&
+          +this.formBaseInformation.get('incoming_service_id').value>0
+        )
+      )
+    )
+  }
+
 
   getSpravSysLanguages():void {    
     this.http.get('/api/auth/getSpravSysLanguages')  // 
@@ -523,8 +542,13 @@ export class UsersDocComponent implements OnInit {
 
   updateDocument(){
     this.oneClickSaveControl=true;
-    return this.http.post('/api/auth/updateUser', this.formBaseInformation.value)
-    .subscribe(
+    if(!this.formBaseInformation.get('is_employee').value){
+      this.searchCagentCtrl.setValue('');
+      this.formBaseInformation.get('job_title_id').setValue(null);
+      this.formBaseInformation.get('counterparty_id').setValue(null);
+      this.onClickDeleteIncomingService();
+    }
+    this.http.post('/api/auth/updateUser', this.formBaseInformation.value).subscribe(
       (data) => {let result=data as any;
         switch(result){
           case 1:{this.getData(); this.openSnackBar(translate('docs.msg.doc_sved_suc'),translate('docs.msg.close'));break;} 
@@ -896,6 +920,8 @@ export class UsersDocComponent implements OnInit {
       // this.formBaseInformation.get('job_title_name').setValue('');
       // this.formBaseInformation.get('counterparty_id').setValue(null);
       // this.searchCagentCtrl.setValue('');
+    } else {
+      this.formBaseInformation.get('is_currently_employed').setValue(true);
     }
   }
   // selectAllDepParts(row_id:number){

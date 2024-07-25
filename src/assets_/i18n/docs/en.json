@@ -621,7 +621,8 @@
         "refresh":"Reload document",
         "and_plus":"and {{amnt}} more",
         "clr_empl_scdl":"Clear employee schedule",
-        "reset":"Reset"
+        "reset":"Reset",
+        "empl_incom_service":"A service your company receives from an employee"
         
     },
     "msg":{

@@ -8,7 +8,7 @@
                                         matTooltip="{{t('docs.tip.create')}}"
                                         (click)="onSubmit()" 
                                         *ngIf="allowToCreate && +id==0 "
-                                        [disabled]="!formBaseInformation.valid||oneClickSaveControl" 
+                                        [disabled]="!formBaseInformation.valid||oneClickSaveControl||!additionalChecksValid" 
                                         color="primary"
                                         type="submit"
                                         class="button small-button">
@@ -19,7 +19,7 @@
                                         *ngIf="+id>0 && allowToUpdate && allowToView"
                                         matTooltip="{{t('docs.tip.save')}}"
                                         (click)="updateDocument()"
-                                        [disabled]="!formBaseInformation.valid||oneClickSaveControl" 
+                                        [disabled]="!formBaseInformation.valid||oneClickSaveControl||!additionalChecksValid" 
                                         color="primary"
                                         type="button"
                                         class="button small-button">
@@ -69,26 +69,31 @@
                                                             placeholder="id"
                                                             formControlName="id"/>
                                                 </mat-form-field>
-    
-                                                <mat-form-field>
-                                                    <mat-label>{{t('docs.field.name_')}} <span *ngIf="formBaseInformation.get('fio_name').value==''||formBaseInformation.get('fio_name').value==null" class="star">*</span></mat-label>
-                                                    <input  matInput
-                                                            formControlName="fio_name"
-                                                            [ngClass]="{'is-invalid':formBaseInformation.get('fio_name').touched && formBaseInformation.get('fio_name').invalid}"/>
-                                                    <mat-hint *ngIf="formBaseInformation.get('fio_name').touched && formBaseInformation.get('fio_name').invalid" class="invalid-feedback">
-                                                        <i class="form-invalid" *ngIf="formBaseInformation.get('fio_name').errors.required">{{t('docs.error.field_miss')}}</i>
-                                                    </mat-hint>
-                                                </mat-form-field>
-                                                <mat-form-field>
-                                                    <mat-label>{{t('docs.field.surname')}} <span *ngIf="formBaseInformation.get('fio_family').value==''||formBaseInformation.get('fio_family').value==null" class="star">*</span></mat-label>
-                                                    <input  matInput
-                                                            formControlName="fio_family"
-                                                            [ngClass]="{'is-invalid':formBaseInformation.get('fio_family').touched && formBaseInformation.get('fio_family').invalid}"/>
-                                                    <mat-hint *ngIf="formBaseInformation.get('fio_family').touched && formBaseInformation.get('fio_family').invalid" class="invalid-feedback">
-                                                        <i class="form-invalid" *ngIf="formBaseInformation.get('fio_family').errors.required">{{t('docs.error.field_miss')}}</i>
-                                                    </mat-hint>
-                                                </mat-form-field>                                                
-                                                <mat-form-field>
+                                                <div class="row">
+                                                    <div class="col-lg-6 col-sm-12">
+                                                        <mat-form-field class="mat-form-field-100"  >
+                                                            <mat-label>{{t('docs.field.name_')}} <span *ngIf="formBaseInformation.get('fio_name').value==''||formBaseInformation.get('fio_name').value==null" class="star">*</span></mat-label>
+                                                            <input  matInput
+                                                                    formControlName="fio_name"
+                                                                    [ngClass]="{'is-invalid':formBaseInformation.get('fio_name').touched && formBaseInformation.get('fio_name').invalid}"/>
+                                                            <mat-hint *ngIf="formBaseInformation.get('fio_name').touched && formBaseInformation.get('fio_name').invalid" class="invalid-feedback">
+                                                                <i class="form-invalid" *ngIf="formBaseInformation.get('fio_name').errors.required">{{t('docs.error.field_miss')}}</i>
+                                                            </mat-hint>
+                                                        </mat-form-field>
+                                                    </div>
+                                                    <div class="col-lg-6 col-sm-12">
+                                                        <mat-form-field class="mat-form-field-100">
+                                                            <mat-label>{{t('docs.field.surname')}} <span *ngIf="formBaseInformation.get('fio_family').value==''||formBaseInformation.get('fio_family').value==null" class="star">*</span></mat-label>
+                                                            <input  matInput
+                                                                    formControlName="fio_family"
+                                                                    [ngClass]="{'is-invalid':formBaseInformation.get('fio_family').touched && formBaseInformation.get('fio_family').invalid}"/>
+                                                            <mat-hint *ngIf="formBaseInformation.get('fio_family').touched && formBaseInformation.get('fio_family').invalid" class="invalid-feedback">
+                                                                <i class="form-invalid" *ngIf="formBaseInformation.get('fio_family').errors.required">{{t('docs.error.field_miss')}}</i>
+                                                            </mat-hint>
+                                                        </mat-form-field>
+                                                    </div>
+                                                </div>
+                                                <mat-form-field class="mat-form-field-100">
                                                     <mat-label>{{t('docs.field.middle_name')}} </mat-label> 
                                                     <input  matInput
                                                             formControlName="fio_otchestvo"
@@ -96,59 +101,61 @@
                                                     <mat-hint *ngIf="formBaseInformation.get('fio_otchestvo').touched && formBaseInformation.get('fio_otchestvo').invalid" class="invalid-feedback">
                                                     </mat-hint>
                                                 </mat-form-field>
-                                                <mat-form-field>
-                                                    <mat-label>{{t('docs.field.show_name_as')}} <span *ngIf="formBaseInformation.get('name').value==''||formBaseInformation.get('name').value==null" class="star">*</span></mat-label>
-                                                    <input  matInput
-                                                            formControlName="name"
-                                                            [ngClass]="{'is-invalid':formBaseInformation.get('name').touched && formBaseInformation.get('name').invalid}"/>
-                                                    <mat-hint *ngIf="formBaseInformation.get('name').touched && formBaseInformation.get('name').invalid" class="invalid-feedback">
-                                                        <i class="form-invalid" *ngIf="formBaseInformation.get('name').errors.required">{{t('docs.error.field_miss')}}</i>
-                                                    </mat-hint>
-                                                </mat-form-field>
-                                                <mat-form-field>
-                                                    <mat-label>{{t('docs.field.date_of_birth')}} </mat-label> 
-                                                    <input  matInput 
-                                                            placeholder="{{t('docs.field.date_of_birth')}}"
-                                                            formControlName="date_birthday"
-                                                            [ngClass]="{'is-invalid':formBaseInformation.get('date_birthday').touched && formBaseInformation.get('date_birthday').invalid}"
-                                                            [matDatepicker]="dp"/>
-                                                            <mat-datepicker-toggle matSuffix [for]="dp"></mat-datepicker-toggle>
-                                                    <mat-datepicker #dp></mat-datepicker>
-                                                    <mat-hint *ngIf="formBaseInformation.get('date_birthday').touched && formBaseInformation.get('date_birthday').invalid" class="invalid-feedback">
-                                                        <i class="form-invalid">{{t('docs.error.date_format')}}</i>
-                                                    </mat-hint>
-                                                </mat-form-field>
-                                                <mat-form-field>
-                                                    <mat-label>{{t('docs.field.tin')}} </mat-label> 
-                                                    <input  matInput
-                                                            placeholder="{{t('docs.field.tin')}}"
-                                                            maxlength="12"
-                                                            (keypress)="numberOnly($event)"
-                                                            formControlName="vatin"
-                                                            [ngClass]="{'is-invalid':formBaseInformation.get('vatin').touched && formBaseInformation.get('vatin').invalid}"/>
-                                                            <mat-hint  align="start" *ngIf="formBaseInformation.get('vatin').touched && formBaseInformation.get('vatin').invalid">
-                                                                <i class="form-invalid">{{t('docs.error.price_format1',{cnt:12})}}</i>
+                                                <div class="row">
+                                                    <div class="col-lg-6 col-sm-12">
+                                                        <mat-form-field class="mat-form-field-100">
+                                                            <mat-label>{{t('docs.field.show_name_as')}} <span *ngIf="formBaseInformation.get('name').value==''||formBaseInformation.get('name').value==null" class="star">*</span></mat-label>
+                                                            <input  matInput
+                                                                    formControlName="name"
+                                                                    [ngClass]="{'is-invalid':formBaseInformation.get('name').touched && formBaseInformation.get('name').invalid}"/>
+                                                            <mat-hint *ngIf="formBaseInformation.get('name').touched && formBaseInformation.get('name').invalid" class="invalid-feedback">
+                                                                <i class="form-invalid" *ngIf="formBaseInformation.get('name').errors.required">{{t('docs.error.field_miss')}}</i>
                                                             </mat-hint>
-                                                            <mat-hint align="end">{{formBaseInformation.get('vatin').value.length}} / 12</mat-hint>
-                                                </mat-form-field>
-                                                <mat-form-field>
-                                                    <mat-label>{{t('docs.field.sex')}}</mat-label>
-                                                    <mat-select formControlName="sex">
-                                                        <option value="" selected></option>
-                                                        <mat-option value="male">{{t('docs.list.man')}}</mat-option>
-                                                        <mat-option value="female">{{t('docs.list.woman')}}</mat-option>  
-                                                    </mat-select>                                              
-                                                </mat-form-field>
-                                                
-                                                <mat-form-field class="mat-form-field-100">
-                                                    <mat-slide-toggle 
-                                                    #is_employee
-                                                    formControlName="is_employee"
-                                                    (change)="is_employee_toggle($event)"
-                                                    >{{t('docs.field.is_employee')}}</mat-slide-toggle>
-                                                    <input matInput hidden/>
-                                                </mat-form-field>
-                                                   
+                                                        </mat-form-field>
+                                                    </div>
+                                                    <div class="col-lg-6 col-sm-12">
+                                                        <mat-form-field class="mat-form-field-100">
+                                                            <mat-label>{{t('docs.field.date_of_birth')}} </mat-label> 
+                                                            <input  matInput 
+                                                                    placeholder="{{t('docs.field.date_of_birth')}}"
+                                                                    formControlName="date_birthday"
+                                                                    [ngClass]="{'is-invalid':formBaseInformation.get('date_birthday').touched && formBaseInformation.get('date_birthday').invalid}"
+                                                                    [matDatepicker]="dp"/>
+                                                                    <mat-datepicker-toggle matSuffix [for]="dp"></mat-datepicker-toggle>
+                                                            <mat-datepicker #dp></mat-datepicker>
+                                                            <mat-hint *ngIf="formBaseInformation.get('date_birthday').touched && formBaseInformation.get('date_birthday').invalid" class="invalid-feedback">
+                                                                <i class="form-invalid">{{t('docs.error.date_format')}}</i>
+                                                            </mat-hint>
+                                                        </mat-form-field>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-lg-6 col-sm-12">
+                                                        <mat-form-field class="mat-form-field-100">
+                                                            <mat-label>{{t('docs.field.tin')}} </mat-label> 
+                                                            <input  matInput
+                                                                    placeholder="{{t('docs.field.tin')}}"
+                                                                    maxlength="12"
+                                                                    (keypress)="numberOnly($event)"
+                                                                    formControlName="vatin"
+                                                                    [ngClass]="{'is-invalid':formBaseInformation.get('vatin').touched && formBaseInformation.get('vatin').invalid}"/>
+                                                                    <mat-hint  align="start" *ngIf="formBaseInformation.get('vatin').touched && formBaseInformation.get('vatin').invalid">
+                                                                        <i class="form-invalid">{{t('docs.error.price_format1',{cnt:12})}}</i>
+                                                                    </mat-hint>
+                                                                    <mat-hint align="end">{{formBaseInformation.get('vatin').value.length}} / 12</mat-hint>
+                                                        </mat-form-field>
+                                                    </div>
+                                                    <div class="col-lg-6 col-sm-12">
+                                                        <mat-form-field class="mat-form-field-100">
+                                                            <mat-label>{{t('docs.field.sex')}}</mat-label>
+                                                            <mat-select formControlName="sex">
+                                                                <option value="" selected></option>
+                                                                <mat-option value="male">{{t('docs.list.man')}}</mat-option>
+                                                                <mat-option value="female">{{t('docs.list.woman')}}</mat-option>  
+                                                            </mat-select>                                              
+                                                        </mat-form-field>
+                                                    </div>
+                                                </div>
                                                 <mat-form-field>
                                                     <mat-label>{{t('docs.field.additional')}} </mat-label> 
                                                     <textarea   matInput
@@ -396,7 +403,7 @@
 
 
 
-                        <mat-tab  *ngIf="formBaseInformation.get('is_employee').value"  label="{{t('docs.tab.employee')}}">
+                        <mat-tab label="{{t('docs.tab.employee')}}">
                             <div class="container-fluid">
                                 <div class="row">
                                     <div class="col-lg-6 col-xl-6 col-md-12">  
@@ -410,24 +417,36 @@
                                                     <input   matInput
                                                             formControlName="job_title_id"/>
                                                 </mat-form-field>
-                                                <mat-form-field class="mat-form-field-100">
-                                                    <mat-label>{{t('docs.field.job_title')}}</mat-label>
+                                                
+                                                <div class="row">
+                                                    <div class="col-lg-6 col-sm-12">
+                                                        <mat-form-field class="mat-form-field-100">
+                                                            <mat-slide-toggle 
+                                                            #is_employee
+                                                            formControlName="is_employee"
+                                                            (change)="is_employee_toggle($event)"
+                                                            >{{t('docs.field.is_employee')}}</mat-slide-toggle>
+                                                            <input matInput hidden/>
+                                                        </mat-form-field>
+                                                    </div>
+                                                    <div class="col-lg-6 col-sm-12">
+                                                        <mat-form-field class="mat-form-field-100">
+                                                            <mat-slide-toggle 
+                                                            formControlName="is_currently_employed"
+                                                            [disabled]="!formBaseInformation.get('is_employee').value"
+                                                            >{{t('docs.field.curr_employed')}}</mat-slide-toggle>
+                                                            <input matInput hidden/>
+                                                        </mat-form-field>
+                                                    </div>
+                                                </div>
+                                                <mat-form-field class="mat-form-field-100" *ngIf="formBaseInformation.get('is_employee').value">
+                                                    <mat-label>{{t('docs.field.job_title')}} <span *ngIf="formBaseInformation.get('is_employee').value && +formBaseInformation.get('job_title_id').value==0" class="star">*</span></mat-label>
                                                     <input matInput
                                                         type="text"
                                                         formControlName="job_title_name" 
                                                         [matAutocomplete]="jt" 
                                                         (input)="checkEmptyFields('job_title_id','job_title_name');"
                                                         (change)="checkEmptyFields('job_title_id','job_title_name');">
-                                                    <!-- <button
-                                                        *ngIf="formBaseInformation.get('job_title_name').value!==''"
-                                                        type="button"
-                                                        class="clear-button"
-                                                        style="position: relative; right: -10px;"
-                                                        (click)="clearField('job_title_name'); checkEmptyFields('job_title_id','job_title_name');"
-                                                        matTooltip="{{t('modules.tip.clr_srch')}}"
-                                                        matSuffix mat-icon-button>
-                                                        <mat-icon>close</mat-icon>
-                                                    </button> -->
                                                     <mat-icon   
                                                             *ngIf="formBaseInformation.get('job_title_name').value!==''"
                                                             matTooltip="{{t('docs.tip.select')}}"
@@ -444,21 +463,49 @@
                                                     </mat-option>
                                                     </mat-autocomplete>
                                                 </mat-form-field>
-
-                                                <mat-form-field class="mat-form-field-100">
-                                                    <mat-slide-toggle 
-                                                    formControlName="is_currently_employed"
-                                                    [disabled]="!formBaseInformation.get('is_employee').value"
-                                                    >{{t('docs.field.curr_employed')}}</mat-slide-toggle>
-                                                    <input matInput hidden/>
+                                                <mat-form-field style="display: none">
+                                                    <input  matInput
+                                                            placeholder="counterparty_id"
+                                                            formControlName="counterparty_id"/>
+                                                </mat-form-field>
+                                                <mat-form-field class="mat-form-field-100" *ngIf="formBaseInformation.get('is_employee').value"> 
+                                                    <mat-label>{{t('modules.field.counterparty')}}</mat-label>
+                                                    <input  matInput 
+                                                    placeholder="{{formBaseInformation.get('counterparty_id').value==null?t('modules.field.counterparty_srch'):t('modules.field.counterparty')}}"
+                                                    [matAutocomplete]="auto4" 
+                                                    [formControl]="searchCagentCtrl"
+                                                    matTooltip="{{t('docs.tip.employee_cagent')}}"
+                                                    (input)="canCagentAutocompleteQuery=true; checkEmptyCagentField();"
+                                                    (change)="canCagentAutocompleteQuery=false; checkEmptyCagentField();">
+                                                    <mat-icon   
+                                                            *ngIf="+formBaseInformation.get('counterparty_id').value!==0"
+                                                            matTooltip="{{t('docs.tip.select')}}"
+                                                            class="del-file"
+                                                            (click)="searchCagentCtrl.setValue('');formBaseInformation.get('counterparty_id').setValue(null);onClickDeleteIncomingService()"
+                                                            matTooltip="{{t('modules.tip.clr_srch')}}"      >
+                                                            close
+                                                    </mat-icon>
+                                                    <mat-autocomplete #auto4="matAutocomplete">
+                                                    <ng-container *ngIf="!isCagentListLoading" style="width:320px;">
+                                                        <mat-option style="padding:0px" *ngFor="let value of filteredCagents" [value]="value.name">
+                                                        <div (click)="onSelectCagent(value.id,value.name)">
+                                                            <span style="margin:10px;"><b>{{value.name}}</b></span>
+                                                        </div>
+                                                        </mat-option>
+                                                    </ng-container>
+                                                    </mat-autocomplete>
                                                 </mat-form-field>
 
                                                 <mat-form-field class="mat-form-field-100" [ngClass]="{invisible: true}">
                                                     <input  matInput
                                                             formControlName="incoming_service_id">
                                                 </mat-form-field>
-                                                <mat-form-field class="mat-form-field-100">
-                                                    <mat-label>{{t('docs.field.incoming_service')}}</mat-label>
+                                                <mat-form-field 
+                                                    class="mat-form-field-100" 
+                                                    *ngIf="formBaseInformation.get('is_employee').value && +formBaseInformation.get('counterparty_id').value>0">
+                                                    <mat-label>{{t('docs.field.incoming_service')}} 
+                                                        <span *ngIf="+formBaseInformation.get('counterparty_id').value>0 &&+formBaseInformation.get('incoming_service_id').value==0" class="star">*</span>
+                                                    </mat-label>
                                                     <div *ngIf="editability && +formBaseInformation.get('incoming_service_id').value==0" class="add-file">
                                                         <mat-icon   
                                                             matTooltip="{{t('docs.tip.select')}}"
@@ -478,41 +525,19 @@
                                                         </mat-icon>
                                                     </div>
                                                     <input  matInput
+                                                            matTooltip="{{t('docs.tip.empl_incom_service')}}"
                                                             formControlName="incoming_service_name" 
                                                             [readonly]="true">
                                                 </mat-form-field>
 
-                                                <mat-form-field style="display: none">
-                                                    <input  matInput
-                                                            placeholder="counterparty_id"
-                                                            formControlName="counterparty_id"/>
-                                                </mat-form-field>
-                                                <mat-form-field class="mat-form-field-100"> 
-                                                    <mat-label>{{t('modules.field.counterparty')}}</mat-label>
-                                                    <input  matInput 
-                                                    placeholder="{{formBaseInformation.get('counterparty_id').value==null?t('modules.field.counterparty_srch'):t('modules.field.counterparty')}}"
-                                                    [matAutocomplete]="auto4" 
-                                                    [formControl]="searchCagentCtrl"
-                                                    matTooltip="{{t('docs.tip.employee_cagent')}}"
-                                                    (input)="canCagentAutocompleteQuery=true; checkEmptyCagentField();"
-                                                    (change)="canCagentAutocompleteQuery=false; checkEmptyCagentField();">
-                                                    <mat-autocomplete #auto4="matAutocomplete">
-                                                    <ng-container *ngIf="!isCagentListLoading" style="width:320px;">
-                                                        <mat-option style="padding:0px" *ngFor="let value of filteredCagents" [value]="value.name">
-                                                        <div (click)="onSelectCagent(value.id,value.name)">
-                                                            <span style="margin:10px;"><b>{{value.name}}</b></span>
-                                                        </div>
-                                                        </mat-option>
-                                                    </ng-container>
-                                                    </mat-autocomplete>
-                                                </mat-form-field>
+                                                
                                                 <mat-progress-bar *ngIf="isCagentListLoading" mode="indeterminate"></mat-progress-bar>
                                             </mat-card-content>
                                         </mat-card>
                                     </div>
                                     <div class="col-lg-6 col-xl-6 col-md-12">
 
-                                        <mat-card appearance="outlined" class="internal-card">
+                                        <mat-card appearance="outlined" class="internal-card" *ngIf="formBaseInformation.get('is_employee').value">
                                             <mat-card-header>
                                                 <mat-card-title>
                                                     <div class="flex card">

@@ -730,7 +730,7 @@ export class ProductsDocComponent implements OnInit {
             this.formBaseInformation.get('scdl_is_employee_required').value &&
             this.formBaseInformation.get('employees').value.length>0
           )
-        )
+        ) && this.formBaseInformation.get('scdl_srvc_duration_unit_id').value != null
       )   
     )
   }

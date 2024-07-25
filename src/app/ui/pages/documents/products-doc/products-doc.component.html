@@ -769,11 +769,17 @@
                                                                             #scdl_srvc_duration
                                                                             formControlName="scdl_srvc_duration"
                                                                     />
-                                                                    <mat-hint  align="start" *ngIf="formBaseInformation.get('scdl_srvc_duration').touched && formBaseInformation.get('scdl_srvc_duration').invalid && scdl_srvc_duration.value!='0'">
-                                                                        <i class="form-invalid">{{t('docs.error.field_miss')}}</i>
-                                                                    </mat-hint>
-                                                                    <mat-hint  align="start" *ngIf="formBaseInformation.get('scdl_srvc_duration').touched && formBaseInformation.get('scdl_srvc_duration').invalid && scdl_srvc_duration.value=='0'">
-                                                                        <i class="form-invalid">{{t('modules.error.more_than',{num:0})}}</i>
+                                                                    <mat-hint  align="start">
+                                                                        <i 
+                                                                        class="form-invalid"  
+                                                                        *ngIf="formBaseInformation.get('scdl_srvc_duration').touched && formBaseInformation.get('scdl_srvc_duration').invalid && scdl_srvc_duration.value!='0'">
+                                                                        {{t('docs.error.field_miss')}}
+                                                                    </i>
+                                                                        <i 
+                                                                        class="form-invalid" 
+                                                                        *ngIf="formBaseInformation.get('scdl_srvc_duration').touched && formBaseInformation.get('scdl_srvc_duration').invalid && scdl_srvc_duration.value=='0'">
+                                                                        {{t('modules.error.more_than',{num:0})}}
+                                                                    </i>
                                                                     </mat-hint>
                                                             </mat-form-field>
 

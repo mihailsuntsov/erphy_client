@@ -20,7 +20,9 @@ table {width: 100%;}
     margin-top: -10px;
 }
 .card-name{ flex-grow: 1; }
-
+.mat-form-field-100{
+    width:100%
+}
 .button{
     margin-left: 10px;
 }
