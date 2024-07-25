@@ -13,7 +13,7 @@ class="spinner"
                     <button (click)="drawercalendar.toggle()" mat-icon-button class="example-icon" aria-label="Example icon-button with menu icon">
                     <mat-icon>menu</mat-icon>
                     </button>
-                    <span>{{'menu.docs.calendar' | transloco}}</span>
+                    <span>{{cu.cap('menu.docs.calendar' | transloco)}}</span>
                 </div>
 
                 <div class="toolbar-center toolbar-inner-space">                    
@@ -544,8 +544,8 @@ class="spinner"
         </div>
     </div>
     <!-- <code><pre>{{queryForm.value | json}}</pre></code> -->
-    1--<code><pre>{{users | json}}</pre></code>--1
-    usersOfEvents-<code><pre>{{usersOfEvents | json}}</pre></code>
+    <!-- 1--<code><pre>{{users | json}}</pre></code>--1 -->
+    <!-- usersOfEvents-<code><pre>{{usersOfEvents | json}}</pre></code> -->
     <!-- <code><pre>startOfPeriod-{{startOfPeriod}}</pre></code> -->
     <!-- <code><pre>endOfPeriod-{{endOfPeriod}}</pre></code> -->
 </div>

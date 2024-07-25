@@ -264,8 +264,8 @@ export class CalendarComponent implements OnInit {
   // ----- END OF SETTINGS -----
 
   constructor(
-    private _fb: UntypedFormBuilder,
-    private httpService:   LoadSpravService,
+    // private _fb: UntypedFormBuilder,
+    // private httpService:   LoadSpravService,
     private loadSpravService:   LoadSpravService,
     private _snackBar: MatSnackBar,
     public productCategoriesDialog: MatDialog,
@@ -1228,6 +1228,7 @@ export class CalendarComponent implements OnInit {
 
 
   openDialogAppointment(docId: number, date: Date, source:string, transmittedEvent?:CalendarEvent){
+    // alert(11)
     // console.log("locale in calendar = ",this.locale);
     // source:
     // - onEventDragged
@@ -1259,7 +1260,8 @@ export class CalendarComponent implements OnInit {
         locale:               this.locale,
         jobtitles:            this.receivedJobtitlesList, 
         departmentsWithParts: this.receivedDepartmentsWithPartsList,
-        transmittedEvent:     transmittedEvent
+        transmittedEvent:     transmittedEvent,
+        selectedDepparts:     this.queryForm.get('depparts').value
       },
     });
     dialogRef.componentInstance.baseData.subscribe((data) => {

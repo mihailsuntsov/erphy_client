@@ -358,7 +358,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   expandedElement: any | null;
   indivisibleErrorOfProductTable:boolean;// дробное кол-во товара при неделимом товаре в таблице товаров
   gettingAppointmentChildDocsTableData:boolean = false;
-
+  selectedDepparts:number[]=[];// department parts selected in Calendar and sended here in window mode with data.selectedDepparts
   //для построения диаграмм связанности
   tabIndex=0;// индекс текущего отображаемого таба (вкладки)
   // linkedDocsCount:number = 0; // кол-во документов в группе, ЗА ИСКЛЮЧЕНИЕМ текущего
@@ -596,6 +596,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       this.companySettings.booking_doc_name_variation=this.companySettings.booking_doc_name_variation;
       this.id = +this.data.docId;
       this.locale=this.data.locale;
+      this.selectedDepparts=this.data.selectedDepparts;
       this.receivedJobtitlesList=this.data.jobtitles;
       this.receivedDepartmentsWithPartsList=this.data.departmentsWithParts;
       this._adapter.setLocale(this.locale);
@@ -892,15 +893,10 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     else if(+this.id==0) this.setDefaultDepartmentPart();
   }
   setDefaultDepartmentPart(){
-    // console.log("Setting default department part")
-    //если в настройках не было предприятия, и в списке предприятий только одно предприятие - ставим его по дефолту
-    //if(+this.formBaseInformation.get('department_part_id').value==0 && this.receivedDepartmentsWithPartsList.length>0){
-      //this.formBaseInformation.get('department_part_id').setValue(this.receivedDepartmentsWithPartsList[0].parts[0].id);
-    //}
-    //если часть отделения была выбрана (через настройки или же в этом методе) - определяем наименование её отделения (оно будет отправляться в дочерние компоненты)
-    // if(+this.formBaseInformation.get('department_part_id').value>0)
-      // this.formBaseInformation.get('department').setValue(this.getDepartmentNameById(this.getDepartmentIdByDepPartId()));
-    //загрузка типов цен для склада и по умолчанию  
+ 
+    if(this.selectedDepparts.length>0)
+      this.formBaseInformation.get('department_part_id').setValue(this.selectedDepparts[0]);
+
     this.getSetOfTypePrices();
   }
 
@@ -3057,7 +3053,7 @@ deleteFile(id:number){
       dateTo:       this.formBaseInformation.get('date_end').value,
       timeTo:       this.timeTo24h(this.formBaseInformation.get('time_end').value),
       servicesIds:  []/*+this.formBaseInformation.get('product_id').value==0?[]:[this.formBaseInformation.get('product_id').value]*/,
-      depPartsIds:  []/*this.formBaseInformation.get('department_part_id').value==0?[]:[this.formBaseInformation.get('department_part_id').value]*/,
+      depPartsIds:  +this.formBaseInformation.get('department_part_id').value==0?[]:[this.formBaseInformation.get('department_part_id').value],
       jobTitlesIds: []/*this.formBaseInformation.get('jobtitle_id').value==0?[]:[this.formBaseInformation.get('jobtitle_id').value]*/,
       employeesIds: []
     }
