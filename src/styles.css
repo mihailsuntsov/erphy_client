@@ -178,6 +178,7 @@ mat-select[formcontrolname="status_id"] .mat-mdc-select-value{
   border-radius: 8px 8px 8px 8px !important;
   background-color: white;
   border-width: 0px !important;
+  letter-spacing: normal;
   top: 0px;
   white-space: nowrap;
   right: -2px;

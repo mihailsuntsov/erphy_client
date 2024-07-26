@@ -220,7 +220,7 @@ class="spinner"
                                                         [disabled]="!editability"
                                                         [matMenuTriggerFor]="employee_info"
                                                         class="btn-gray-color btn-option-info"
-                                                        (click)="getEmployeeServiceNamesList(employee.id)"
+                                                        (click)="informationButtonClicked=true; getEmployeeServiceNamesList(employee.id)"
                                                     > 
                                                     <mat-icon
                                                         style="border-radius: 50%;
@@ -302,7 +302,7 @@ class="spinner"
                                                         [disabled]="!editability"
                                                         [matMenuTriggerFor]="deppart_info"
                                                         class="btn-gray-color btn-option-info"
-                                                        (click)="getDeppartServicesNamesList(part.id)"
+                                                        (click)="informationButtonClicked=true; getDeppartServicesNamesList(part.id)"
                                                     > 
                                                     <mat-icon
                                                         style="border-radius: 50%;

@@ -214,6 +214,7 @@ export class CalendarComponent implements OnInit {
       name: ''
     }
   ]
+  informationButtonClicked=false;
   oldStatusType:number = 1;
   isUpdatingDraggedOrResizedEvent=false;
   needAgainOfAfterChangeFiltersApiCalls:boolean=false;
@@ -289,7 +290,7 @@ export class CalendarComponent implements OnInit {
       dateTo: new UntypedFormControl(moment().endOf('month'),[]),     // дата По
       timeFrom: new UntypedFormControl('00:00',[]),   // время С
       timeTo: new UntypedFormControl('23:59',[]),     // время По
-      depparts: new UntypedFormControl([],[Validators.required]), // set of department parts
+      depparts: new UntypedFormControl([],[Validators.required]), // department part where customers are getting service(s)
       employees: new UntypedFormControl([],[]), // set of employees
       departments: new UntypedFormControl([],[]), // set of departments IDs
       jobtitles: new UntypedFormControl([],[]), // set of job titles
@@ -324,7 +325,7 @@ export class CalendarComponent implements OnInit {
     // console.log("Parent timeFormat", this.timeFormat=='24'?'HH:mm':'h:mm a');
 
     this.queryForm.controls.employees.valueChanges.subscribe(() => {
-      if(!this.syncEmployeesByDepPartsProcess && !this.initialLoading){
+      if(!this.syncEmployeesByDepPartsProcess && !this.initialLoading && !this.informationButtonClicked){
         this.syncDepPartsByEmployeesProcess=true;
         this.syncDepPartsByEmployees();
         this.afterChangeFiltersApiCalls();
@@ -335,7 +336,7 @@ export class CalendarComponent implements OnInit {
       }
     });
     this.queryForm.controls.depparts.valueChanges.subscribe(() => {
-      if(!this.syncDepPartsByEmployeesProcess && !this.initialLoading){
+      if(!this.syncDepPartsByEmployeesProcess && !this.initialLoading && !this.informationButtonClicked){
         this.syncEmployeesByDepPartsProcess=true;
         this.syncEmployeesByDepParts();
         this.afterChangeFiltersApiCalls();
@@ -765,7 +766,7 @@ export class CalendarComponent implements OnInit {
         this.usersOfBreaks=[];
         this.breaks=data as Break[];
         this.breaks.map(break_=>{
-          if(this.usersOfBreaks.find((obj) => obj.id === break_.user.id) == undefined)
+          if(this.queryForm.get('employees').value.includes(break_.user.id) && this.usersOfBreaks.find((obj) => obj.id === break_.user.id) == undefined)
             this.usersOfBreaks.push(break_.user);
         });
 
@@ -1151,6 +1152,7 @@ export class CalendarComponent implements OnInit {
     // Clicking on anything inside <mat-option> tag will affected on its value. Need to change previous value
     setTimeout(() => { 
       this.queryForm.get('depparts').setValue(currentDepparts);
+      this.informationButtonClicked=false;
     }, 1);
   }
   getAllDeppartsIds():number[]{
@@ -1201,6 +1203,7 @@ export class CalendarComponent implements OnInit {
     // Clicking on anything inside <mat-option> tag will affected on its value. Need to change previous value
     setTimeout(() => { 
       this.queryForm.get('employees').setValue(currentEmployees);
+      this.informationButtonClicked=false;
     }, 1);
   }
 
@@ -1469,9 +1472,10 @@ export class CalendarComponent implements OnInit {
           depPartsIdsNoNeedEmployees.push(deppart.id)
       })
     })
-    //reset DepParts form (only dep. parts with services no employee needed are staying)
+    // reset DepParts form (only dep. parts with services no employee needed are staying)
     // console.log('depPartsIdsNoNeedEmployees', depPartsIdsNoNeedEmployees)
     // this.queryForm.get('depparts').setValue(depPartsIdsNoNeedEmployees);
+
     // collect IDs of services of selected employees
     let servicesIds:number[] = [];
     let resultIds:number[] = depPartsIdsNoNeedEmployees;
@@ -1488,7 +1492,7 @@ export class CalendarComponent implements OnInit {
     this.receivedDepartmentsWithPartsList.map(department=>{
       department.parts.map(deppart=>{
         deppart.deppartProducts.map(service=>{
-          if(servicesIds.includes(service.id)){
+          if(servicesIds.includes(service.id) && !resultIds.includes(deppart.id)){
             resultIds.push(deppart.id)
           }
         })
@@ -1516,7 +1520,7 @@ export class CalendarComponent implements OnInit {
     this.receivedJobtitlesWithEmployeesList.map(jobtitle=>{
       jobtitle.employees.map(employee=>{
         employee.services.map(service=>{
-          if(servicesIds.includes(service.id)){
+          if(servicesIds.includes(service.id) && !resultIds.includes(employee.id)){
             resultIds.push(employee.id)
           }
         })

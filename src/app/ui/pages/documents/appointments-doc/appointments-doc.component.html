@@ -108,15 +108,12 @@
                     class="button small-button">
                     <i class="material-icons">done</i>
                 </button>
-                <!-- <button 
+                <button 
                     mat-raised-button 
                     matTooltip="{{t('docs.tip.complete')}}"
-                    *ngIf=" +id>0 && allowToComplete&& canGetChilds && !is_completed && productSearchAndTableByCustomersComponent"
-                    [disabled]="!childFormValid ||!formBaseInformation.valid||
-                                productSearchAndTableByCustomersComponent.indivisibleErrorOfProductTable ||
-                                (productSearchAndTableByCustomersComponent && productSearchAndTableByCustomersComponent.gettingTableData)||
-                                oneClickSaveControl" 
-                    (click)="completeDocument()" 
+                    *ngIf=" +id>0 && allowToComplete && canGetChilds && !is_completed"
+                    [disabled]="createUpdateButtonDisabled"
+                    (click)="onCreateUpdateDocumentButtonClick('complete')" 
                     type="button"
                     id="complete_btn"
                     color="primary"
@@ -126,14 +123,14 @@
                 <button 
                     matTooltip="{{t('docs.tip.completed')}}"
                     mat-raised-button 
-                    *ngIf=" +id>0 && is_completed && productSearchAndTableByCustomersComponent"
+                    *ngIf=" +id>0 && is_completed"
                     (click)="decompleteDocument()" 
                     type="button"
                     id="completed_btn"
                     color="primary"
                     class="button small-button completed">
                     <i class="material-icons">playlist_add_check</i> 
-                </button> -->
+                </button>
                 <a routerLink="../{{+id>0?'../':''}}appointments" style="text-decoration: none;"> 
                     <button 
                         [matTooltip]="id>0?t('docs.tip.exit'):t('docs.tip.cancel')"
@@ -439,7 +436,6 @@
                                                                             panelClass="department-list"
                                                                             formControlName="jobtitle_id"
                                                                             (selectionChange)="documentChanged=true"
-                                                                            [disabled]="!editability"
                                                                             #selectjt
                                                                         >
                                                                             <mat-option [value]="0" selected *ngIf="receivedJobtitlesList.length==0 || accessibleJobTitlesIdsAll.length>0">---</mat-option>
@@ -516,7 +512,7 @@
                                                                                 error
                                                                         </mat-icon>
                                                                         <mat-icon
-                                                                            *ngIf="+formBaseInformation.get('employeeId').value>0 && accessibleEmployeesIdsAll.length>0"
+                                                                            *ngIf="editability && !is_completed && +formBaseInformation.get('employeeId').value>0 && accessibleEmployeesIdsAll.length>0"
                                                                             matTooltip="{{t('docs.tip.clr_srch')}}" 
                                                                             class="add_circle"
                                                                             (click)="clearEmployeeField();checkEmptyEmployeeField();">
@@ -628,7 +624,7 @@
                                                         <button matTooltip="{{t('docs.tip.p_edit')}}" 
                                                                     mat-mini-fab 
                                                                     color="primary" 
-                                                                    *ngIf="!showSearchCustomerFormFields && editability"
+                                                                    *ngIf="!showSearchCustomerFormFields && editability && !is_completed"
                                                                     (click)="onCustomerAddClick()">
                                                                 <mat-icon>person_add</mat-icon>
                                                         </button>
@@ -697,7 +693,7 @@
                                                                     <mat-form-field  class="mat-form-field-100" *ngIf="customerNotFound()">
                                                                         <mat-label>{{t('docs.field.telephone')}}</mat-label>
                                                                         <input   matInput
-                                                                                [readonly]=!editability
+                                                                                [readonly]=!editability||is_completed
                                                                                 placeholder="{{t('docs.field.telephone')}}"
                                                                                 maxlength="60"
                                                                                 #telephone
@@ -710,7 +706,7 @@
                                                                     <mat-form-field  class="mat-form-field-100">
                                                                         <mat-label>{{t('docs.field.email')}}</mat-label>
                                                                         <input   matInput
-                                                                                [readonly]=!editability
+                                                                                [readonly]=!editability||is_completed
                                                                                 #email
                                                                                 placeholder="{{t('docs.field.email')}}"
                                                                                 maxlength="254"
@@ -835,9 +831,20 @@
                                                     </ng-container> -->
                                                     <!-- Delete Column -->
                                                     <ng-container matColumnDef="delete" [formArrayName]="'customersTable'">
-                                                        <th mat-header-cell *matHeaderCellDef style="width: 20px;"><mat-icon style="cursor: default" (click)="clearCustomersTable()" matTooltip="{{t('docs.tip.del_a_clnts')}}" [matTooltipPosition]="'above'">close</mat-icon></th>
+                                                        <th mat-header-cell 
+                                                            *matHeaderCellDef 
+                                                            style="width: 20px;">
+                                                            <mat-icon 
+                                                                *ngIf="editability&&!is_completed"
+                                                                style="cursor: default" 
+                                                                (click)="clearCustomersTable()" 
+                                                                matTooltip="{{t('docs.tip.del_a_clnts')}}" 
+                                                                [matTooltipPosition]="'above'">close</mat-icon></th>
                                                         <td mat-cell *matCellDef="let row; let i = dataIndex" [formGroupName]="i">
-                                                            <mat-icon style="cursor: pointer" *ngIf="true" matTooltip="{{t('docs.tip.del_clnt')}}" (click)="deleteCustomerRow(row,i)">delete_forever</mat-icon>
+                                                            <mat-icon style="cursor: pointer" 
+                                                            *ngIf="editability&&!is_completed"
+                                                            matTooltip="{{t('docs.tip.del_clnt')}}" 
+                                                            (click)="deleteCustomerRow(row,i)">delete_forever</mat-icon>
                                                         </td>
                                                     </ng-container>
                                                     <ng-container matColumnDef="expandedDetail" [formArrayName]="'customersTable'">
@@ -958,7 +965,7 @@
 
 
                                                                                     <!-- Customer's products search form -->
-                                                                                    <div class="row" *ngIf="editability">     
+                                                                                    <div class="row" *ngIf="editability && !is_completed">     
                                                                                         <div class="col-12">                                                                        
                                                                                             <mat-form-field  class="mat-form-field-100">
                                                                                                 <mat-label>{{t('modules.field.srvc_srch')}}</mat-label>
@@ -1092,13 +1099,13 @@
                                                                                                     mat-cell *matCellDef="let row1; let j = index" 
                                                                                                     style="width: 80px;"
                                                                                                     [formGroupName]="j"
-                                                                                                    [matTooltip]="((getControlTablefield().controls[j].get('product_count').value>(getControlTablefield().controls[j].get('available').value)&&getControlTablefield().controls[j].get('is_material').value) && editability && !(getControlTablefield().controls[j].get('product_count').invalid && getControlTablefield().controls[j].get('product_count').errors.pattern)) ? t('modules.tip.qtt_more_avlb') : ''"
-                                                                                                    [ngStyle]="   ((getControlTablefield().controls[j].get('product_count').value>((getControlTablefield().controls[j].get('available').value))&&getControlTablefield().controls[j].get('is_material').value) && editability && !(getControlTablefield().controls[j].get('product_count').invalid && getControlTablefield().controls[j].get('product_count').errors.pattern))?{'background-color': '#ffe4e1'}:{'background-color': 'white'}">
+                                                                                                    [matTooltip]="((getControlTablefield().controls[j].get('product_count').value>(getControlTablefield().controls[j].get('available').value)&&getControlTablefield().controls[j].get('is_material').value) && editability && !is_completed && !(getControlTablefield().controls[j].get('product_count').invalid && getControlTablefield().controls[j].get('product_count').errors.pattern)) ? t('modules.tip.qtt_more_avlb') : ''"
+                                                                                                    [ngStyle]="   ((getControlTablefield().controls[j].get('product_count').value>((getControlTablefield().controls[j].get('available').value))&&getControlTablefield().controls[j].get('is_material').value) && editability && !is_completed && !(getControlTablefield().controls[j].get('product_count').invalid && getControlTablefield().controls[j].get('product_count').errors.pattern))?{'background-color': '#ffe4e1'}:{'background-color': 'white'}">
                                                                                                         <div style="width:100%" *ngIf="getControlTablefield().controls[j].get('edizm_type_id').value!=7">
                                                                                                             <input matInput 
                                                                                                                 class="table-field-editable quantity-field"
-                                                                                                                [ngClass]="{'table-field-editable':editability}"
-                                                                                                                [readonly]="!editability"
+                                                                                                                [ngClass]="{'table-field-editable':editability&&!is_completed}"
+                                                                                                                [readonly]="!editability||is_completed"
                                                                                                                 style="width: 50px !important;"
                                                                                                                 type="number" min="0"
                                                                                                                 placeholder=""
@@ -1134,12 +1141,12 @@
                                                                                                         </span>
                                                                                                     </th>
                                                                                                     <td mat-cell *matCellDef="let row1; let j = index" [formGroupName]="j"
-                                                                                                    [ngStyle]="   (getControlTablefield().controls[j].get('product_price').value==0&&editability && !(getControlTablefield().controls[j].get('product_price').invalid && !getControlTablefield().controls[j].get('product_price').errors.pattern))?{'background-color': '#ffe4e1'}:{'background-color': 'white'}"
-                                                                                                    [matTooltip]="(getControlTablefield().controls[j].get('product_price').value==0&&editability && !(getControlTablefield().controls[j].get('product_price').invalid && !getControlTablefield().controls[j].get('product_price').errors.pattern))? t('modules.tip.zero_price') : ''">
+                                                                                                    [ngStyle]="   (getControlTablefield().controls[j].get('product_price').value==0&&editability && !is_completed && !(getControlTablefield().controls[j].get('product_price').invalid && !getControlTablefield().controls[j].get('product_price').errors.pattern))?{'background-color': '#ffe4e1'}:{'background-color': 'white'}"
+                                                                                                    [matTooltip]="(getControlTablefield().controls[j].get('product_price').value==0&&editability && !is_completed && !(getControlTablefield().controls[j].get('product_price').invalid && !getControlTablefield().controls[j].get('product_price').errors.pattern))? t('modules.tip.zero_price') : ''">
                                                                                                         <input matInput 
                                                                                                             style="width: 70px;margin-right: 15px;"
-                                                                                                            [ngClass]="{'table-field-editable':editability}"
-                                                                                                            [readonly]=!editability
+                                                                                                            [ngClass]="{'table-field-editable':editability&&!is_completed}"
+                                                                                                            [readonly]=!editability||is_completed
                                                                                                             placeholder=""
                                                                                                             formControlName="product_price"
                                                                                                             (keyup)="onChangeProductPrice(j);documentChanged=true"
@@ -1167,12 +1174,11 @@
                                                                                                             {{t('modules.col.price_type')}}
                                                                                                         </span>
                                                                                                     </th>
-                                                                                                    <td mat-cell *matCellDef="let row1; let j = index" [formGroupName]="j"> 
+                                                                                                    <td mat-cell *matCellDef="let row1; let j = index" [formGroupName]="j">
                                                                                                         <mat-select  
                                                                                                         formControlName="price_type_id"
                                                                                                         (selectionChange)="onChangePriceTypeOfRow(j)"
-                                                                                                        [ngClass]="{'table-field-editable':editability}"
-                                                                                                        [disabled]="!editability"
+                                                                                                        [ngClass]="{'table-field-editable':editability&&!is_completed}"
                                                                                                         style="max-width:  95%;">
                                                                                                             <mat-option  *ngFor="let rdl of receivedPriceTypesList" 
                                                                                                             [value]="rdl.id"
@@ -1187,12 +1193,11 @@
                                                                                                 <ng-container matColumnDef="nds" [formArrayName]="'appointmentsProductTable'">
                                                                                                     <th mat-header-cell *matHeaderCellDef style="min-width: 50px;">{{t('modules.col.tax')}}</th>
                                                                                                     <td mat-cell *matCellDef="let row1; let j = index" [formGroupName]="j"> 
-                                                                                                        <mat-select  
-                                                                                                        formControlName="nds_id" 
-                                                                                                        style="width:  95%;"
-                                                                                                        (selectionChange)="onChangeProductNds()" 
-                                                                                                        [ngClass]="{'table-field-editable':editability}"
-                                                                                                        [disabled]=!editability>                          
+                                                                                                        <mat-select
+                                                                                                            formControlName="nds_id" 
+                                                                                                            style="width:  95%;"
+                                                                                                            (selectionChange)="onChangeProductNds()" 
+                                                                                                            [ngClass]="{'table-field-editable':editability&&!is_completed}">                          
                                                                                                             <mat-option  *ngFor="let rt of spravTaxesSet" [value]="rt.id">
                                                                                                                     {{rt.name}}
                                                                                                             </mat-option> 
@@ -1204,6 +1209,7 @@
                                                                                                     <th mat-header-cell *matHeaderCellDef style="width: 30px;">
                                                                                                         <mat-icon 
                                                                                                             style="cursor: default" 
+                                                                                                            *ngIf="editability&&!is_completed"
                                                                                                             (click)="clearCustomerProductsTable(row)"
                                                                                                             matTooltip="{{t('modules.tip.del_frm_tabl_')}}">
                                                                                                             close
@@ -1211,7 +1217,9 @@
                                                                                                     </th>
                                                                                                     <td mat-cell *matCellDef="let row1; let j = index" [formGroupName]="j">
                                                                                                         <!-- <mat-icon style="cursor: pointer" *ngIf="!(getControlTablefield().controls[j].get('is_main').value)" (click)="deleteProductRow(row,i)">delete_forever</mat-icon> -->
-                                                                                                        <mat-icon style="cursor: pointer" (click)="deleteProductRow(j)">delete_forever</mat-icon>
+                                                                                                        <mat-icon style="cursor: pointer" 
+                                                                                                        *ngIf="editability&&!is_completed" 
+                                                                                                        (click)="deleteProductRow(j)">delete_forever</mat-icon>
                                                                                                         <!-- <span>{{getControlTablefield().controls[j].get('is_main').value}}</span> -->
                                                                                                     </td>
                                                                                                     <td mat-footer-cell *matFooterCellDef></td>
@@ -1306,7 +1314,11 @@
                                                                                                     <th mat-header-cell *matHeaderCellDef style="width: 30px;"></th>
                                                                                                     <td mat-cell *matCellDef="let row1; let j = index">
                                                                                                         <!-- <mat-icon (click)="delAtRow(j)">add</mat-icon> -->
-                                                                                                        <mat-icon matTooltip="{{t('docs.tip.cancl_compl')}}" style="cursor: pointer" [ngStyle]="oneClickSaveControl?{'color':'gray'}:{}" (click)="setAppointmentChildDocumentAsDecompleted(row1,j)">delete_forever</mat-icon>
+                                                                                                        <mat-icon 
+                                                                                                        matTooltip="{{t('docs.tip.cancl_compl')}}" 
+                                                                                                        style="cursor: pointer" [ngStyle]="oneClickSaveControl?{'color':'gray'}:{}"
+                                                                                                        *ngIf="editability&&!is_completed"  
+                                                                                                        (click)="setAppointmentChildDocumentAsDecompleted(row1,j)">delete_forever</mat-icon>
                                                                                                     </td>
                                                                                                     <!-- <td mat-footer-cell *matFooterCellDef></td> -->
                                                                                                 </ng-container>
@@ -1410,7 +1422,7 @@
                                                                 <mat-icon>launch</mat-icon>
                                                             </button>
                                                             <button mat-icon-button
-                                                                    *ngIf="!formBaseInformation.get('is_completed').value"
+                                                                    *ngIf="editability&&!is_completed"  
                                                                     type="button"
                                                                     (click)="clickBtnDeleteFile(i.id)"
                                                                     matTooltip="{{t('docs.tip.del_file')}}"
@@ -1435,37 +1447,43 @@
                         </div>
                     </mat-tab>
                     <mat-tab  *ngIf="+id>0"  label="{{t('docs.tab.about')}}">
-                        <form [formGroup]="formAboutDocument">
-                            <mat-card appearance="outlined" class="internal-card">
-                                <mat-card-content class="input-form">
-                                        <mat-form-field [ngClass]="{invisible: +id>0}">
-                                            <input  matInput
-                                                    placeholder="{{t('docs.field.company')}}"
-                                                    formControlName="company" [readonly]=true/>
-                                        </mat-form-field>
-                                        <mat-form-field [ngClass]="{invisible: +id>0}">
-                                            <input  matInput
-                                                    placeholder="{{t('docs.field.creator')}}"
-                                                    formControlName="creator" [readonly]=true/>
-                                        </mat-form-field>
-                                        <mat-form-field [ngClass]="{invisible: +id>0}">
-                                            <input  matInput
-                                                    placeholder="{{t('docs.field.created')}}"
-                                                    formControlName="date_time_created" [readonly]=true/>
-                                        </mat-form-field>
-                                        <mat-form-field [ngClass]="{invisible: +id>0}">
-                                            <input  matInput
-                                                    placeholder="{{t('docs.field.changer')}}"
-                                                    formControlName="changer" [readonly]=true/>
-                                        </mat-form-field>
-                                        <mat-form-field [ngClass]="{invisible: +id>0}">
-                                            <input  matInput
-                                                    placeholder="{{t('docs.field.changed')}}"
-                                                    formControlName="date_time_changed" [readonly]=true/>
-                                        </mat-form-field>
-                                </mat-card-content>
-                            </mat-card>  
-                        </form>  
+                        <div class="col-xl-5 col-lg-5 col-md-8 col-sm-12">
+                            <div class="container-fluid">
+                                <div class="row">
+                                    <mat-card appearance="outlined" style="margin:10px 0 10px;width:100%;">
+                                        <form [formGroup]="formAboutDocument">
+                                            <mat-card-content class="input-form">
+                                                    <mat-form-field [ngClass]="{invisible: +id==0}">
+                                                        <mat-label>{{t('docs.field.company')}}</mat-label>
+                                                        <input  matInput
+                                                                formControlName="company" [readonly]=true/>
+                                                    </mat-form-field>
+                                                    <mat-form-field [ngClass]="{invisible:  +id==0}">
+                                                        <mat-label>{{t('docs.field.creator')}}</mat-label>
+                                                        <input  matInput
+                                                                formControlName="creator" [readonly]=true/>
+                                                    </mat-form-field>
+                                                    <mat-form-field [ngClass]="{invisible:  +id==0}">
+                                                        <mat-label>{{t('docs.field.created')}}</mat-label>
+                                                        <input  matInput
+                                                                formControlName="date_time_created" [readonly]=true/>
+                                                    </mat-form-field>
+                                                    <mat-form-field [ngClass]="{invisible:  +id==0}">
+                                                        <mat-label>{{t('docs.field.changer')}}</mat-label>
+                                                        <input  matInput
+                                                                formControlName="changer" [readonly]=true/>
+                                                    </mat-form-field>
+                                                    <mat-form-field [ngClass]="{invisible:  +id==0}">
+                                                        <mat-label>{{t('docs.field.changed')}}</mat-label>
+                                                        <input  matInput
+                                                                formControlName="date_time_changed" [readonly]=true/>
+                                                    </mat-form-field>
+                                            </mat-card-content>
+                                        </form>
+                                    </mat-card>  
+                                </div>
+                            </div>
+                        </div>
                     </mat-tab>
             </mat-tab-group>
             

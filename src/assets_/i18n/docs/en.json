@@ -622,7 +622,9 @@
         "and_plus":"and {{amnt}} more",
         "clr_empl_scdl":"Clear employee schedule",
         "reset":"Reset",
-        "empl_incom_service":"A service your company receives from an employee"
+        "empl_incom_service":"A service your company receives from an employee",
+        "select_all_onejt":"Select everyone in this job title",
+        "unselect_all_onejt":"Unselect everyone in this job title"
         
     },
     "msg":{

@@ -80,6 +80,8 @@ export class SettingsCalendarDialogComponent implements OnInit {
           // alert(this.settingsForm.get('timelineStep').value)
           // alert(this.timelineStep_virtualValue)
         }
+        if(+this.settingsForm.get('companyId').value==0)
+          this.settingsForm.get('companyId').setValue(this.data.receivedCompaniesList[0]);
         this.timelineStep_virtualValue = this.setTimelineStep_VirtualValueByTimelineStep();
       },
       error => console.log(error)

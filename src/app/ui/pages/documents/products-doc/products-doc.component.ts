@@ -338,6 +338,7 @@ export class ProductsDocComponent implements OnInit {
   receivedDepartmentsWithPartsList: Department [] = [];
   servicesList: string[] = []; // list of services that will be shown in an information panel of employee or department part
   assignmentsWaysWasSet:boolean = false;
+  accountingCurrency='';// short name of Accounting currency of user's company (e.g. $ or EUR)
 
   //Формы
   formBaseInformation:any;//форма для основной информации, содержащейся в документе
@@ -675,6 +676,7 @@ export class ProductsDocComponent implements OnInit {
     this.getBaseData('myCompanyId');  
     this.getBaseData('companiesList');  
     this.getBaseData('myDepartmentsList');    
+    this.getBaseData('accountingCurrency');   
 
 
     // this.onProductGroupValueChanges();//отслеживание изменений поля "Группа товаров"

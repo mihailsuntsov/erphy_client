@@ -298,7 +298,7 @@
                                                                         </app-balance-cagent>
 
                                                                         <mat-autocomplete #auto4="matAutocomplete">
-                                                                            <mat-label>{{t('docs.field.customer')}}</mat-label>
+                                                                            <!-- <mat-label>{{t('docs.field.customer')}}</mat-label> -->
                                                                             <ng-container *ngIf="!isCagentListLoading" style="width:320px;">
                                                                                 <mat-option style="padding:0px" *ngFor="let value of filteredCagents" [value]="value.name">
                                                                                 <div (click)="onSelectCagent(value.id,value.name)">
