@@ -103,7 +103,8 @@ extends CalendarWeekViewComponent implements OnChanges, OnInit
   // @Output() userChanged = new EventEmitter();
   @Output() refreshView = new EventEmitter();
   @Output() changeDateByHeaderDayClick = new EventEmitter<Date>();
-  @Output() statusClickedToChange = new EventEmitter();
+  @Output() statusClickedToChange = new EventEmitter();  
+  @Output() objectOfCurrentResource = new EventEmitter();
   view: WeekView;
   allDayEventRows: WeekViewAllDayEventRow[]=[];
   oldStatusType = 1;
@@ -227,7 +228,12 @@ extends CalendarWeekViewComponent implements OnChanges, OnInit
   }
 
 
-
+  emitObjectOfDraggingToCreateEvent(resource:any, deppartId:number, segmentWidth:number){
+    console.log('deppartId',deppartId);
+    console.log('segmentWidth',segmentWidth);
+    // console.log('user',JSON.stringify(this.users[i]))
+    this.objectOfCurrentResource.emit({resource:resource, deppartId:deppartId, segmentWidth:segmentWidth});
+  }
 
 
   // Формируем строки событий для каждого ресурса

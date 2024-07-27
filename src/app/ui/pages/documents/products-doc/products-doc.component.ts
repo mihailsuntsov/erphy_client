@@ -1014,7 +1014,7 @@ changeTranslationMode(){if(this.storeTranslationModeOn) this.storeTranslationMod
                   this.formBaseInformation.get('scdl_appointment_atleast_before_unit_id').setValue(documentValues.scdl_appointment_atleast_before_unit_id);
                   this.formBaseInformation.get('scdl_customer_reminders').setValue(documentValues.scdl_customer_reminders);
                   this.formBaseInformation.get('scdl_employee_reminders').setValue(documentValues.scdl_employee_reminders);
-                  this.formBaseInformation.get('scdl_assignments').setValue(documentValues.scdl_assignments);
+                  this.formBaseInformation.get('scdl_assignments').setValue(["customer","manually"]); // until assignments will be in Product. Because now in puns nulls into BD and product can't be searched
                   this.formBaseInformation.get('scdl_srvc_duration_unit_id').setValue(documentValues.scdl_srvc_duration_unit_id);
                   this.formBaseInformation.get('depparts').setValue(documentValues.depparts!=undefined?documentValues.depparts:[]);
                   this.formBaseInformation.get('employees').setValue(documentValues.employees!=undefined?documentValues.employees:[]);                  

@@ -208,6 +208,7 @@ export class CalendarComponent implements OnInit {
   allDayEventRows: WeekViewAllDayEventRow[]=[];
   // dragToCreateActive = false;
   actionsBeforeGetChilds:number=0;// количество выполненных действий, необходимых чтобы загрузить дочерние модули (форму товаров)
+  objectOfDraggingToCreateEvent:any; // object transporteg from a child component DeppartsAndResourcesComponent. Contains selected resource, depPart ID and the width of events container 
   documntsList: IdAndName[] = [
     {
       id: 60,
@@ -1387,13 +1388,17 @@ export class CalendarComponent implements OnInit {
 
   prepareToDragCreate( segment: WeekViewHourSegment,
     mouseDownEvent: any,
-    segmentElement: HTMLElement){
+    segmentElement: HTMLElement,
+    direction: string){
     setTimeout(() => {
-      this.startDragToCreate(segment,mouseDownEvent,segmentElement)
+      if(direction=='vertical')
+        this.startDragToVerticalCreate(segment,mouseDownEvent,segmentElement)
+      else
+        this.startDragToHorizontalCreate(segment,mouseDownEvent,segmentElement)
     }, 1);
   }
 
-  startDragToCreate(
+  startDragToVerticalCreate(
     segment: WeekViewHourSegment,
     mouseDownEvent: any,
     segmentElement: HTMLElement
@@ -1428,7 +1433,7 @@ export class CalendarComponent implements OnInit {
         const minutesDiff = ceilToNearest(
           mouseMoveEvent.clientY - segmentPosition.top,
           (this.hourDuration/this.hourSegments)*(30/this.hourDuration*this.hourSegments) // Подходит для: (hourDuration:number = 30; hourSegments:number = 2;),(hourDuration:number = 60; hourSegments:number = 2;),(hourDuration:number = 60; hourSegments:number = 1;)
-        );                      30/2*30/30*2                                                         // Suitable for: (hourDuration:number = 30; hourSegments:number = 2;),(hourDuration:number = 60; hourSegments:number = 2;),(hourDuration:number = 60; hourSegments:number = 1;)
+        );                    //  30/2*30/30*2                                                         // Suitable for: (hourDuration:number = 30; hourSegments:number = 2;),(hourDuration:number = 60; hourSegments:number = 2;),(hourDuration:number = 60; hourSegments:number = 1;)
         // console.log('minutesDiff',minutesDiff)
         const daysDiff =
           floorToNearest(
@@ -1457,7 +1462,84 @@ export class CalendarComponent implements OnInit {
         } 
       );
   }
+  startDragToHorizontalCreate(
+    segment: WeekViewHourSegment,
+    mouseDownEvent: any,
+    segmentElement: HTMLElement
+  ) {
+    let end = new Date();
+    let koeff = 1;
+    let step = 60;
+    if(this.resourceView == ResourceView.Day){
+      end = moment(segment.date).add(1, 'hour').toDate();
+      koeff = 24*60/(this.objectOfDraggingToCreateEvent.segmentWidth);
+      step = 60;
+    } else {
+      end = moment(segment.date).add(1, 'day').toDate();
+      koeff = 24*60/(this.objectOfDraggingToCreateEvent.segmentWidth);
+      step = 24;
+    }
+    const dragToSelectEvent: CalendarEvent = {
+      id: null,
+      title: '',
+      start: segment.date,      
+      end: end,
+      meta: {
+        tmpEvent: true,
+        "itemResources":[this.objectOfDraggingToCreateEvent.resource],
+        departmentPartId: this.objectOfDraggingToCreateEvent.deppartId
+      },
+    };
+    console.log('dragToSelectEvent.end',dragToSelectEvent.end)
+    
+    console.log('dragToSelectEvent',dragToSelectEvent)
+    if(!dragToSelectEvent.end) // just pressed on a ceil, without dragging down - in this case there is no "end" in event's object
+      dragToSelectEvent.end = moment(dragToSelectEvent.start).add(this.hourDuration/this.hourSegments,"minutes").toDate();
+    this.events = [...this.events, dragToSelectEvent];
+    const segmentPosition = segmentElement.getBoundingClientRect();
+    let oneTimeMouseupControl = true;
+    // this.dragToCreateActive = true;
+    const endOfView = moment(this.viewDate).endOf("month").add(1,"millisecond").toDate();// Чтобы можно было "дотянуть" event до самого конца дня
+    fromEvent(document, 'mousemove')                                                    // So that we can “strech” the event until the very end of the day
+      .pipe(
+        finalize(() => {
+          delete dragToSelectEvent.meta.tmpEvent;
+          // this.dragToCreateActive = false;
+          this.refreshView();
+        }),
+        takeUntil(fromEvent(document, 'mouseup'))
+      )
+      .subscribe((mouseMoveEvent: MouseEvent) => {
+        const minutesDiff = ceilToNearest(
+          (mouseMoveEvent.clientX - segmentPosition.left)*koeff, 60 );                      
+        // console.log('minutesDiff',minutesDiff)
+        // const daysDiff =
+        //   floorToNearest(
+        //     mouseMoveEvent.clientX - segmentPosition.left,
+        //     segmentPosition.width
+        //   ) / segmentPosition.width;
 
+        const newEnd = moment(segment.date).add(minutesDiff/(30/this.hourDuration*this.hourSegments), 'minutes')./*add(daysDiff, 'days').*/toDate();
+        if (newEnd > segment.date && newEnd < endOfView) {
+          dragToSelectEvent.end = newEnd;
+        }
+        dragToSelectEvent.title=moment(dragToSelectEvent.start).format(this.timeFormat=='12'?'hh:mm A':'HH:mm') + ' - ' + moment(dragToSelectEvent.end).format(this.timeFormat=='12'?'hh:mm A':'HH:mm');
+        this.refreshView();
+        
+      });
+      // fromEvent(document, 'mouseup')
+      // .subscribe(() => { 
+      //   alert('111111111111111111') })
+      fromEvent(document, 'mouseup').subscribe(() =>{
+        if(oneTimeMouseupControl){
+          oneTimeMouseupControl=false;
+          // console.log('dragToSelectEvent',dragToSelectEvent);
+          this.openDialogAppointment(null, new Date(), 'onDragToCreateEvent', dragToSelectEvent)
+        }
+          
+        } 
+      );
+  }
   syncDepPartsByEmployees(){
     // collect selected dep. parts with services no employee needed
     let depPartsIdsNoNeedEmployees:number[]=[];
@@ -1532,6 +1614,10 @@ export class CalendarComponent implements OnInit {
   setUserOfDraggingToCreateEvent(user:User) {
     // console.log('UserOnFrontend - ',user)
     this.userOfDraggingToCreateEvent = user;
+  }   
+  setObjectOfDraggingToCreateEvent(object:any){
+    console.log('transmitted resource', object)
+    this.objectOfDraggingToCreateEvent=object;
   }
   changeStatus(docId:number, statusId:number, statusType:number){    
     // console.log('docId',docId)

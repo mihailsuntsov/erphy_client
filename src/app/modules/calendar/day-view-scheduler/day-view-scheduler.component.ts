@@ -316,8 +316,8 @@ export class DayViewSchedulerComponent
   }
 
   emitUserOfDraggingToCreateEvent(i:number){
-    console.log('columnIndex',i);
-    console.log('user',JSON.stringify(this.users[i]))
+    // console.log('columnIndex',i);
+    // console.log('user',JSON.stringify(this.users[i]))
     this.userOfCurrentColumn.emit({user: this.users[i]});
   }
 

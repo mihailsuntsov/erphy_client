@@ -3112,7 +3112,7 @@ deleteFile(id:number){
           this.receivedEmployeesList=data as Employee[];
           this.updateEmployeeValues();
           this.employeesListLoadQtt--;
-          if(this.data && this.data.transmittedEvent && this.data.transmittedEvent.meta.user.id){
+          if(this.data && this.data.transmittedEvent && this.data.transmittedEvent.meta.user && this.data.transmittedEvent.meta.user.id){
             let jobtitleId = null;
             this.formBaseInformation.get('employeeId').setValue(this.data.transmittedEvent.meta.user.id);
             this.receivedEmployeesList.map(empl=>{if(empl.id==this.data.transmittedEvent.meta.user.id) jobtitleId = empl.jobtitle_id})
