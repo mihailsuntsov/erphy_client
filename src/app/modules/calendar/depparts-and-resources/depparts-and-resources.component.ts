@@ -11,6 +11,7 @@ import {
   OnInit,
   Output,
   SimpleChanges,
+  ViewChild,
 } from '@angular/core';
 // import {
 //   addDaysWithExclusions
@@ -51,6 +52,7 @@ import { CalendarView } from '../../../ui/pages/documents/calendar/calendar.comp
 import {StatusInterface} from 'src/app/ui/pages/documents/calendar/calendar.component'
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import moment from 'moment';
 interface WeekViewAllDayEvent {
   event: CalendarEvent;
   offset: number;
@@ -105,6 +107,7 @@ extends CalendarWeekViewComponent implements OnChanges, OnInit
   @Output() changeDateByHeaderDayClick = new EventEmitter<Date>();
   @Output() statusClickedToChange = new EventEmitter();  
   @Output() objectOfCurrentResource = new EventEmitter();
+  @Output() onEventResized = new EventEmitter();
   view: WeekView;
   allDayEventRows: WeekViewAllDayEventRow[]=[];
   oldStatusType = 1;
@@ -122,6 +125,8 @@ extends CalendarWeekViewComponent implements OnChanges, OnInit
   @Input()  viewDate;
   @Input()  viewPeriodName: CalendarView;
   @Input()  timeFormat: string;
+  @ViewChild('segmentElement') segmentElement: HTMLElement;
+  
   eventRowsFilledAtStart = false;
   rollbackEvent:CalendarEvent;
   lastDragEnterDate_: Date;
@@ -228,11 +233,12 @@ extends CalendarWeekViewComponent implements OnChanges, OnInit
   }
 
 
-  emitObjectOfDraggingToCreateEvent(resource:any, deppartId:number, segmentWidth:number){
-    console.log('deppartId',deppartId);
+  emitObjectOfDraggingToCreateEvent(resource:any, deppart:any, segmentWidth:number, date:Date, segmentElement: HTMLElement){
+    console.log('deppartId',deppart.id);
     console.log('segmentWidth',segmentWidth);
     // console.log('user',JSON.stringify(this.users[i]))
-    this.objectOfCurrentResource.emit({resource:resource, deppartId:deppartId, segmentWidth:segmentWidth});
+    if(deppart.is_active)
+      this.objectOfCurrentResource.emit({resource:resource, deppartId:deppart.id, segmentWidth:segmentWidth, date:date, segmentElement:segmentElement });
   }
 
 
@@ -273,7 +279,7 @@ extends CalendarWeekViewComponent implements OnChanges, OnInit
       })
     });
 
-    if(resourcesIds.length>0 && deppartsIds.length>0 && this.events.length>0){
+    if(resourcesIds.length>0 && deppartsIds.length>0/* && this.events.length>0*/){
       // Проходим по всем сочетаниям части отделений и ресурсов, и составляем массив событий для каждого такого сочетания
       // Going through all combinations of some departments and resources, and compose an array of events for each such combination
       deppartsIds.map(depId=>{
@@ -306,7 +312,16 @@ extends CalendarWeekViewComponent implements OnChanges, OnInit
             // if(rows.length<=1 || !this.eventRowsFilledAtStart){
               if(rows.length>0){
                 this.allDayEventRowsByDeppartsAndResourcesId.set(depId+'_'+resId,rows);
-              }
+              } 
+              else { this.allDayEventRowsByDeppartsAndResourcesId.set(depId+'_'+resId,
+                [{id:null,row:[{
+                  event: {start:new Date(), title:'', meta: {statusName:'',statusColor:'black',statusType:1}},
+                  offset: 0,
+                  span: 0,
+                  startsBeforeWeek: false,
+                  endsAfterWeek: false,
+                }]}]              
+              );}
             // } else {
             //    console.log('Not enought resources! rows:',rows);
             //    // restoring the time of moved or resized event
@@ -320,7 +335,7 @@ extends CalendarWeekViewComponent implements OnChanges, OnInit
           // }
         });
       });
-
+      // console.log("MAP",this.allDayEventRowsByDeppartsAndResourcesId)
       if(this.allDayEventRowsByDeppartsAndResourcesId.size>0)
         this.eventRowsFilledAtStart=true;
         
@@ -329,6 +344,7 @@ extends CalendarWeekViewComponent implements OnChanges, OnInit
     }
 
 
+    
 
   }
   
@@ -988,6 +1004,7 @@ extends CalendarWeekViewComponent implements OnChanges, OnInit
       // console.log('allDayEvent.span = ',allDayEvent.span)
 
     }
+
   }
   
   allDayEventResizeEnded(allDayEvent: WeekViewAllDayEvent): void {
@@ -1003,7 +1020,6 @@ extends CalendarWeekViewComponent implements OnChanges, OnInit
       if (allDayEventResizingBeforeStart) {
         daysDiff = Math.round(allDayEvent.offset - currentResize.originalOffset);
         console.log('daysDiff 1 = ',daysDiff);
-
       } else {
 
         daysDiff = Math.round(allDayEvent.span - currentResize.originalSpan);
@@ -1218,4 +1234,6 @@ extends CalendarWeekViewComponent implements OnChanges, OnInit
         },
       });}
       
+  getTimeWIthFormat(date:Date){return moment(date).format(this.timeFormat=='12'?'hh A':'HH')}
+  getDate(date:Date){return moment(date).format('DD')}
 }

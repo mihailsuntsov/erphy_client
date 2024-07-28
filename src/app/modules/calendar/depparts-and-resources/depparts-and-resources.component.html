@@ -1,4 +1,4 @@
-<div class="cal-week-view" role="grid">
+<div class="cal-week-view" role="grid" style="user-select:none">
 
   <!-- Table header with Days -->
   <div class="cal-day-headers">
@@ -42,7 +42,7 @@
           
 
             <div mwldroppable="" class="cal-all-day-events" *ngFor="let resource of deppart.resources; trackBy: trackByResource.bind(this, deppart.id)" [ngClass]="{'not-enought-resources': (isNotEnoughtResources(deppart.id,resource.resource_id,resource.resource_qtt))}">
-              <div #calDayColumns class="cal-day-columns" ><!--style="z-index: 10;"-->
+              <div #calDayColumns class="cal-day-columns"><!--style="z-index: 10;"-->
                 <div class="cal-time-label-column resource-name" 
                  >
                     <span matTooltip="{{resource.name}} ({{resource.resource_qtt}}) {{resource.description}}"
@@ -58,8 +58,8 @@
 
 
                 <!-- 11111111111111 -->
-                <ng-container *ngIf="viewPeriodName!='resources_day'; else resourcesDays1">
-                  <div 
+                <!-- <ng-container *ngIf="viewPeriodName!='resources_day'; else resourcesDays1">
+                  <div #container
                     class="cal-day-column"
                     *ngFor="let day of days; trackBy: trackByResourceDay.bind(this, resource.resource_id)"
                     mwlDroppable
@@ -67,6 +67,16 @@
                     (drop)="eventDropped_($event, day.date, true, deppart.id)"
                     (dragEnter)="dateDragEnter(day.date)"
                   >
+                    <mwl-calendar-week-view-hour-segment
+                      [style.height.px]="hourSegmentHeight"
+                      [segmentHeight]="hourSegmentHeight"
+                      [segment]="day"
+                      [locale]="locale"
+                      [customTemplate]="hourSegmentTemplate"
+                      [isTimeLabel]="true"
+                      (mousedown)="emitObjectOfDraggingToCreateEvent({id: resource.resource_id, name: resource.name, usedQuantity: 1}, deppart, (getDayColumnWidth(container)))"
+                    >
+                    </mwl-calendar-week-view-hour-segment>
                     <hr *ngIf="!deppart.is_active">
                   </div>
                 </ng-container>
@@ -80,10 +90,10 @@
                     [locale]="locale"
                     [customTemplate]="hourSegmentTemplate"
                     [isTimeLabel]="true"
-                    (mousedown)="emitObjectOfDraggingToCreateEvent({id: resource.resource_id, name: resource.name, usedQuantity: 1}, deppart.id, getDayColumnWidth(calDayColumns)-100)"
+                    (mousedown)="emitObjectOfDraggingToCreateEvent({id: resource.resource_id, name: resource.name, usedQuantity: 1}, deppart, getDayColumnWidth(calDayColumns)-100)"
                   >
                   </mwl-calendar-week-view-hour-segment>
-                </ng-template>
+                </ng-template> -->
 
 
 
@@ -169,52 +179,66 @@
               
 
               <!-- <span *ngIf="allDayEventRowsByDeppartsAndResourcesId.size>0">{{allDayEventRowsByDeppartsAndResourcesId.get(deppart.id+'_'+resource.resource_id).length}}</span> -->
-
-
+<!-- 1-{{allDayEventRowsByDeppartsAndResourcesId.get(deppart.id+'_'+resource.resource_id).length}} -->
               <div
               *ngFor="let eventRow of allDayEventRowsByDeppartsAndResourcesId.get(deppart.id+'_'+resource.resource_id); trackBy: trackByRowId"
               #eventRowContainer
               class="cal-events-row"
-              style="display: flex;"
+              style="display: flex; height: 36px;"
               >
+              
+              <!-- /* border:1px solid red; background-color: antiquewhite;" */ -->
 
 
 
 
 
-
-
-              <ng-container *ngIf="viewPeriodName!='resources_day'; else resourcesDays2" >
-                <div 
-                  class="cal-day-column"
-                  *ngFor="let day of days; trackBy: trackByResourceDay.bind(this, resource.resource_id)"
-                  mwlDroppable
-                  dragOverClass="cal-drag-over"
-                  (drop)="eventDropped_($event, day.date, true, deppart.id)"
-                  (dragEnter)="dateDragEnter(day.date)"
-                  
-                  (mousedown)="emitObjectOfDraggingToCreateEvent({id: resource.resource_id, name: resource.name, usedQuantity: 1}, deppart.id, getDayColumnWidth(eventRowContainer))"
-                >
-                  <hr *ngIf="!deppart.is_active">
-                </div>
-              </ng-container>
-              <ng-template 
-                #resourcesDays2 
-                >
-                
-                <mwl-calendar-week-view-hour-segment
-                  class="cal-day-column"
-                  *ngFor="let segment of weekDays; trackBy: trackByHourSegment"
-                  [style.height.px]="hourSegmentHeight"
-                  [segment]="segment"
-                  [segmentHeight]="hourSegmentHeight"
-                  [locale]="locale"
-                  [customTemplate]="hourSegmentTemplate"
-                  [isTimeLabel]="true"
-                  (mousedown)="emitObjectOfDraggingToCreateEvent({id: resource.resource_id, name: resource.name, usedQuantity: 1}, deppart.id, getDayColumnWidth(eventRowContainer))"
-                >
-                </mwl-calendar-week-view-hour-segment>
-              </ng-template>
+                <ng-container *ngIf="viewPeriodName!='resources_day'; else resourcesDays2" >
+                  <div 
+                    class="cal-day-column time-in-cell-wrapper"
+                    style="height: 36px;"
+                    #segmentElement
+                    *ngFor="let day of days; trackBy: trackByResourceDay.bind(this, resource.resource_id)"
+                    mwlDroppable
+                    dragOverClass="cal-drag-over"
+                    (drop)="eventDropped_($event, day.date, true, deppart.id)"
+                    (dragEnter)="dateDragEnter(day.date)"
+                  ><div 
+                    class="time-in-cell"
+                    >{{getDate(day.date)}}</div>
+                    <mwl-calendar-week-view-hour-segment
+                      style="flex-grow: 1; height: 100%;z-index: 10;"
+                      [segment]="day"
+                      [locale]="locale"
+                      [customTemplate]="hourSegmentTemplate"
+                      [isTimeLabel]="true"
+                      (mousedown)="emitObjectOfDraggingToCreateEvent({id: resource.resource_id, name: resource.name, usedQuantity: 1}, deppart, getDayColumnWidth(eventRowContainer), day.date, segmentElement)"
+                    >
+                    </mwl-calendar-week-view-hour-segment>
+                    <hr *ngIf="!deppart.is_active">
+                  </div>
+                </ng-container>
+                <ng-template 
+                  #resourcesDays2 
+                  >
+                  <div 
+                    class="cal-day-column time-in-cell-wrapper" 
+                    *ngFor="let segment of weekDays; trackBy: trackByHourSegment"
+                    #segmentElement>
+                    <div 
+                    class="time-in-cell"
+                    >{{getTimeWIthFormat(segment.date)}}</div>
+                    <mwl-calendar-week-view-hour-segment
+                      style="flex-grow: 1; height: 100%;z-index: 10;"
+                      [segment]="segment"
+                      [locale]="locale"
+                      [customTemplate]="hourSegmentTemplate"
+                      [isTimeLabel]="true"
+                      (mousedown)="emitObjectOfDraggingToCreateEvent({id: resource.resource_id, name: resource.name, usedQuantity: 1}, deppart, getDayColumnWidth(eventRowContainer), segment.date, segmentElement)"
+                    >
+                    </mwl-calendar-week-view-hour-segment>
+                  </div>
+                </ng-template>
 
               
 
@@ -319,8 +343,9 @@
 
 
                   <ng-template #eventTemplate1>
-                    <div class="cal-event" style="
-                    padding-left: 0px;
+                    <div class="cal-event"
+                    style="padding-left: 0px;
+                    margin-top: 2px;
                     cursor: default;
                     overflow: hidden;
                     margin-left: 0;

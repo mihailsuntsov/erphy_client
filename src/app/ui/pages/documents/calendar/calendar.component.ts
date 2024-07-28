@@ -1386,15 +1386,17 @@ export class CalendarComponent implements OnInit {
     this.refreshView();
   }
 
-  prepareToDragCreate( segment: WeekViewHourSegment,
+  prepareToDragCreate( 
+    segment: WeekViewHourSegment,
     mouseDownEvent: any,
     segmentElement: HTMLElement,
     direction: string){
+    console.log('prepareToDragCreate segmentElement',segmentElement)
     setTimeout(() => {
-      if(direction=='vertical')
-        this.startDragToVerticalCreate(segment,mouseDownEvent,segmentElement)
-      else
-        this.startDragToHorizontalCreate(segment,mouseDownEvent,segmentElement)
+      // if(direction=='vertical')
+      this.startDragToVerticalCreate(segment,mouseDownEvent,segmentElement)
+      // else
+        // this.startDragToHorizontalCreate(segment,mouseDownEvent,segmentElement)
     }, 1);
   }
 
@@ -1463,26 +1465,25 @@ export class CalendarComponent implements OnInit {
       );
   }
   startDragToHorizontalCreate(
-    segment: WeekViewHourSegment,
-    mouseDownEvent: any,
+    segmentDate: Date,
     segmentElement: HTMLElement
   ) {
     let end = new Date();
     let koeff = 1;
     let step = 60;
     if(this.resourceView == ResourceView.Day){
-      end = moment(segment.date).add(1, 'hour').toDate();
+      end = moment(segmentDate).add(1, 'hour').toDate();
       koeff = 24*60/(this.objectOfDraggingToCreateEvent.segmentWidth);
       step = 60;
     } else {
-      end = moment(segment.date).add(1, 'day').toDate();
+      end = moment(segmentDate).add(1, 'day').toDate();
       koeff = 24*60/(this.objectOfDraggingToCreateEvent.segmentWidth);
-      step = 24;
+      step = 24*60;
     }
     const dragToSelectEvent: CalendarEvent = {
       id: null,
       title: '',
-      start: segment.date,      
+      start: segmentDate,      
       end: end,
       meta: {
         tmpEvent: true,
@@ -1499,7 +1500,7 @@ export class CalendarComponent implements OnInit {
     const segmentPosition = segmentElement.getBoundingClientRect();
     let oneTimeMouseupControl = true;
     // this.dragToCreateActive = true;
-    const endOfView = moment(this.viewDate).endOf("month").add(1,"millisecond").toDate();// Чтобы можно было "дотянуть" event до самого конца дня
+    const endOfView = moment(this.viewDate).endOf("month").add(1,"day").toDate();// Чтобы можно было "дотянуть" event до самого конца 
     fromEvent(document, 'mousemove')                                                    // So that we can “strech” the event until the very end of the day
       .pipe(
         finalize(() => {
@@ -1511,7 +1512,7 @@ export class CalendarComponent implements OnInit {
       )
       .subscribe((mouseMoveEvent: MouseEvent) => {
         const minutesDiff = ceilToNearest(
-          (mouseMoveEvent.clientX - segmentPosition.left)*koeff, 60 );                      
+          (mouseMoveEvent.clientX - segmentPosition.left)*koeff, step );                      
         // console.log('minutesDiff',minutesDiff)
         // const daysDiff =
         //   floorToNearest(
@@ -1519,8 +1520,8 @@ export class CalendarComponent implements OnInit {
         //     segmentPosition.width
         //   ) / segmentPosition.width;
 
-        const newEnd = moment(segment.date).add(minutesDiff/(30/this.hourDuration*this.hourSegments), 'minutes')./*add(daysDiff, 'days').*/toDate();
-        if (newEnd > segment.date && newEnd < endOfView) {
+        const newEnd = moment(segmentDate).add(minutesDiff, 'minutes')./*add(daysDiff, 'days').*/toDate();
+        if (newEnd > segmentDate && newEnd < endOfView) {
           dragToSelectEvent.end = newEnd;
         }
         dragToSelectEvent.title=moment(dragToSelectEvent.start).format(this.timeFormat=='12'?'hh:mm A':'HH:mm') + ' - ' + moment(dragToSelectEvent.end).format(this.timeFormat=='12'?'hh:mm A':'HH:mm');
@@ -1534,7 +1535,7 @@ export class CalendarComponent implements OnInit {
         if(oneTimeMouseupControl){
           oneTimeMouseupControl=false;
           // console.log('dragToSelectEvent',dragToSelectEvent);
-          this.openDialogAppointment(null, new Date(), 'onDragToCreateEvent', dragToSelectEvent)
+          // this.openDialogAppointment(null, new Date(), 'onDragToCreateEvent', dragToSelectEvent)
         }
           
         } 
@@ -1618,6 +1619,7 @@ export class CalendarComponent implements OnInit {
   setObjectOfDraggingToCreateEvent(object:any){
     console.log('transmitted resource', object)
     this.objectOfDraggingToCreateEvent=object;
+    this.startDragToHorizontalCreate(object.date,object.segmentElement)
   }
   changeStatus(docId:number, statusId:number, statusType:number){    
     // console.log('docId',docId)
