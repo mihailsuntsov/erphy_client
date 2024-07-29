@@ -203,7 +203,8 @@
                     dragOverClass="cal-drag-over"
                     (drop)="eventDropped_($event, day.date, true, deppart.id)"
                     (dragEnter)="dateDragEnter(day.date)"
-                  ><div 
+                  >
+                  <div 
                     class="time-in-cell"
                     >{{getDate(day.date)}}</div>
                     <mwl-calendar-week-view-hour-segment
@@ -347,6 +348,7 @@
                     style="padding-left: 0px;
                     margin-top: 2px;
                     cursor: default;
+                    z-index:100;
                     overflow: hidden;
                     margin-left: 0;
                     margin-right: 0;">

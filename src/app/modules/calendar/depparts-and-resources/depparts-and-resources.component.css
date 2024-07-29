@@ -103,7 +103,7 @@
     width: 16px;
     height: 16px;
     position: absolute;
-    top: 6px;
+    top: 8px;
     left: 7px;
     padding: 0;
   }
@@ -198,13 +198,15 @@
     top: calc(50% - 2px);
     width: 100%;
 }
-.time-in-cell-wrapper{
+ .time-in-cell-wrapper{
   display: flex;
   height: 36px;
   position: relative;
+  z-index:0;
 }
   .time-in-cell-wrapper:hover > .time-in-cell {
     display: block;
+    z-index:0;
   }
 .time-in-cell{
   position: absolute;
@@ -222,4 +224,4 @@
   font-weight: 900;
   z-index:0;
   display:none;
-}
+} 

@@ -979,10 +979,22 @@
                                                                                                 (input)="customer=row;canAutocompleteQuery=true; checkEmptyProductField();"
                                                                                                 (change)="customer=row;canAutocompleteQuery=false; checkEmptyProductField();">
                                                                                                 <mat-autocomplete #auto3="matAutocomplete">
-                                                                                                    <ng-container *ngIf="searchProductCtrl.value && searchProductCtrl.value.length>0 && !isProductListLoading && (filteredProducts.length>1 || (filteredProducts.length==1 && accessibleServicesIdsAll().length==0))" style="width:320px;">
+                                                                                                    <ng-container *ngIf="
+                                                                                                                        (
+                                                                                                                            (searchProductCtrl.value && searchProductCtrl.value.length>0 && !isProductListLoading)
+                                                                                                                            ||
+                                                                                                                            (preloadServicesIds && preloadServicesIds.length>0)
+                                                                                                                        )
+                                                                                                                        && 
+                                                                                                                        (   filteredProducts.length>1 
+                                                                                                                            || 
+                                                                                                                            (filteredProducts.length==1 && accessibleServicesIdsAll.length==0)
+                                                                                                                        )"
+
+                                                                                                                        style="width:320px;">
                                                                                                         <span  *ngFor="let value of filteredProducts"  class="flex" style="border: 0px solid ;margin: 4px 0;">
                                                                                                             <mat-option 
-                                                                                                                [disabled]="value.isServiceByAppointment && !accessibleServicesIdsAll().includes(value.id)"
+                                                                                                                [disabled]="value.isServiceByAppointment && !accessibleServicesIdsAll.includes(value.id)"
                                                                                                                 style="padding:0px 5px; flex-grow: 1;" 
                                                                                                                 [value]="value.name">
                                                                                                                 <!-- <div (click)="onClickProductInSelectList(value)"> -->
@@ -1488,7 +1500,16 @@
             </mat-tab-group>
             
         </mat-card-content>
-        <!-- <code><pre>{{formBaseInformation.value | json}}</pre></code> -->
+        customer-<code><pre>{{this.customer}}</pre></code>
+        <code><pre>{{formBaseInformation.value | json}}</pre></code>
+        accessibleServicesIdsByAccessibleEmployees-<code><pre>{{accessibleServicesIdsByAccessibleEmployees | json}}</pre></code><br>
+        accessibleServicesIdsBySelectedEmployee-<code><pre>{{accessibleServicesIdsBySelectedEmployee | json}}</pre></code><br>
+        accessibleServicesIdsBySelectedDepPart-<code><pre>{{accessibleServicesIdsBySelectedDepPart | json}}</pre></code><br>
+        accessibleServicesIdsByResourcesOfSelectedDepPart-<code><pre>{{accessibleServicesIdsByResourcesOfSelectedDepPart | json}}</pre></code><br>
+        servicesThatNoNeedEmployees-<code><pre>{{servicesThatNoNeedEmployees | json}}</pre></code><br>
+        accessibleServicesIdsAll-<code><pre>{{accessibleServicesIdsAll | json}}</pre></code><br>
+
+
           <!-- <code><pre>{{appointmentChildDocs | json}}</pre></code> -->
 
           
@@ -1503,7 +1524,7 @@
         <!-- <b>{{expandedElement}}</b> -->
         <!-- <code><pre>{{expandedElement?expandedElement.value:'[]' | json}}</pre></code><br> -->
         <!-- <b>accessibleServicesIdsAll ({{accessibleServicesIdsAll.length}})</b>
-        <code><pre>{{accessibleServicesIdsAll | json}}</pre></code><br>  -->
+        <code><pre>{{accessibleServicesIdsAll | json}}</pre></code><br>
         <!-- <b>accessibleDepPartsIdsByResourcesOfSelectedServices ({{accessibleDepPartsIdsByResourcesOfSelectedServices.length}})</b> -->
         <!-- <code><pre>{{accessibleDepPartsIdsByResourcesOfSelectedServices | json}}</pre></code><br>  -->
         <!-- <b>receivedDepartmentsWithPartsList ({{receivedDepartmentsWithPartsList.length}})</b> -->

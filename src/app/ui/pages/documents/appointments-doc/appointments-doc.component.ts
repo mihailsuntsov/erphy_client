@@ -304,6 +304,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   myCompanyId:number=0;
   showBalanceModules=true;
   appointmentChildDocs:AppointmentChildDoc[]=[];
+  preloadServicesIds:number[]; // services IDs for preloading services list if document is creating by dragging in Resources screen
   // companySettings:CompanySettings={vat:false,vat_included:true};  
   allFields: any[][] = [];//[номер строки начиная с 0][объект - вся инфо о товаре (id,кол-во, цена... )] - массив товаров
   filesInfo : filesInfo [] = []; //массив для получения информации по прикрепленным к документу файлам 
@@ -779,9 +780,12 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       this.getCompanySettings();
       this.getDepartmentsWithPartsList();
       this.getJobtitleList();
-      this.getSpravSysEdizm(); //загрузка единиц измерения.
+      this.getSpravSysEdizm(); //загрузка единиц измерения
+      if(this.data&&this.data.resourceId)
+        this.getPreloadServicesIdsByResourceId();
   }
-  getCompanySettings(){
+
+    getCompanySettings(){
     this.http.get('/api/auth/getCompanySettings?id='+this.formBaseInformation.get('company_id').value)
       .subscribe(
         data => {         
@@ -794,42 +798,31 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
     );
   }
-  // т.к. всё грузится и обрабатывается асинхронно, до авто-создания документа необходимо чтобы выполнились все нужные для этого действия
-  // necessaryActionsBeforeAutoCreateNewDoc(){
-  //   if(+this.id==0){
-  //     this.actionsBeforeCreateNewDoc++;
-  //     //Если набрано необходимое кол-во действий для создания вручную (по кнопке)
-  //     if(this.actionsBeforeCreateNewDoc==4) this.canCreateNewDoc=true;
-      
-  //     if(
-  //       this.actionsBeforeCreateNewDoc==5 && //Если набрано необходимое кол-во действий для АВТОсоздания
-  //       this.settingsForm.get('autocreateOnStart').value && //и есть автоматическое создание на старте (autocreateOnStart)
-  //       +this.formBaseInformation.get('department_part_id').value>0  // и часть отделения выбрана
-  //     ){
-  //       this.canCreateNewDoc=true;
-  //       this.createNewDocument();
-  //     }
-  //   }
-  // }
 
-  // necessaryActionsBeforeGetChilds(){
-  //   this.actionsBeforeGetChilds++;
-  //   // Если набрано необходимое кол-во действий - все остальные справочники загружаем тут, т.к. 
-  //   // нужно чтобы сначала определилось предприятие, его id нужен для загрузки
-  //   if(this.actionsBeforeGetChilds==4 && +this.id==0){
-  //     console.log("Can get second part!")
-  //     this.canGetChilds=true;
-  //     this.getPriceTypesList();
-  //     this.getSpravTaxes();
-  //     this.getSetOfTypePrices();//загрузка типов цен для покупателя, склада и по умолчанию  
-  //     this.getDepartmentsList();
-  //     this.getStatusesList(); 
-  //     this.getCompanySettings(); // because at this time companySettings loads only the info that needs on creation document stage (when document id=0)
-  //     this.getDepartmentsWithPartsList();
-  //     this.getJobtitleList();
-  //     this.getSpravSysEdizm(); //загрузка единиц измерения. 
-  //   }
-  // }
+  getPreloadServicesIdsByResourceId(){
+    this.http.get('/api/auth/getPreloadServicesIdsByResourceId?resource_id='+this.data.resourceId) .subscribe(
+        data => {         
+          this.preloadServicesIds = data as number[];
+          if(this.preloadServicesIds.length>0){
+            try{
+              const body = this.getProductsListQueryBody(); 
+                this.isProductListLoading  = true;
+                this.http.post('/api/auth/getAppointmentServicesSearchList',body).subscribe(
+                  (data) => {
+                    this.filteredProducts = data as AppointmentServiceSearchResponse[];
+                    this.isProductListLoading  = false;
+                  },
+                error => { this.isProductListLoading  = false; console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
+            } catch (e) {
+              this.isProductListLoading  = false;
+            }
+          }
+        },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+    );
+  }
+
+
 
   getMyId(){
     if(+this.myId==0)
@@ -900,7 +893,8 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
  
     // if(this.selectedDepparts.length>0)
     //   this.formBaseInformation.get('department_part_id').setValue(this.selectedDepparts[0]);
-
+    if(this.data&&this.data.transmittedEvent&&this.data.transmittedEvent.meta.departmentPartId)
+      this.formBaseInformation.get('department_part_id').setValue(this.data.transmittedEvent.meta.departmentPartId);
     this.getSetOfTypePrices();
   }
 
@@ -1121,10 +1115,27 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
             this.formCustomerSearch.get('email').setValue(documentValues.email==null?'':documentValues.email);
             this.isCagentValuesLoading=false;
             this.addCustomerRow(documentValues.id,documentValues.name);
+            this.addPreloadServiceToSelectedCustomer();
         },
         error => {this.isCagentValuesLoading=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
     );
   }
+
+  // If document creating by dragging from Resources screen - there is a preloading of services by selected
+  // departmeet part and resource. 
+  // If there is only one service - it will be added automatically to the customers services list.
+  // If there are more than one - they will be displayed in a dropdown list under the services search field
+  addPreloadServiceToSelectedCustomer(){
+    console.log('this.filteredProducts.length>0',this.filteredProducts.length>0)
+    console.log('this.accessibleServicesIdsAll.length==1',this.accessibleServicesIdsAll.length==1)
+    console.log('this.preloadServicesIds.length>0', this.preloadServicesIds.length>0)
+    if(this.filteredProducts.length>0 && this.accessibleServicesIdsAll.length==1 && this.preloadServicesIds.length>0){
+        this.onSelectProductCustomer(this.filteredProducts.filter(product => product.id==this.accessibleServicesIdsAll[0])[0]);
+        this.preloadServicesIds=[];
+        this.filteredProducts=[];  
+      }
+  }
+  
   //--------------------------------------- **** поиск по подстроке для товара  ***** ------------------------------------
   onProductSearchValueChanges(){
     this.searchProductCtrl.valueChanges
@@ -1145,7 +1156,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
         this.filteredProducts = [];
       } else {
         this.filteredProducts = data as AppointmentServiceSearchResponse[];
-        if(this.filteredProducts.length==1 && (this.accessibleServicesIdsAll().includes(this.filteredProducts[0].id)||!this.filteredProducts[0].isServiceByAppointment)){
+        if(this.filteredProducts.length==1 && (this.accessibleServicesIdsAll.includes(this.filteredProducts[0].id)||!this.filteredProducts[0].isServiceByAppointment)){
           this.canAutocompleteQuery=false;
           // this.searchProductCtrl.setValue(this.filteredProducts[0].name);
           this.onSelectProductCustomer(this.filteredProducts[0]);
@@ -1269,11 +1280,11 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
         timeFrom:     this.timeTo24h(this.formBaseInformation.get('time_start').value),
         dateTo:       this.formBaseInformation.get('date_end').value,
         timeTo:       this.timeTo24h(this.formBaseInformation.get('time_end').value),
-        servicesIds:  []/*+this.formBaseInformation.get('product_id').value==0?[]:[this.formBaseInformation.get('product_id').value]*/,
         depPartsIds:  this.formBaseInformation.get('department_part_id').value==0?[]:[this.formBaseInformation.get('department_part_id').value],
         jobTitlesIds: this.formBaseInformation.get('jobtitle_id').value==0?[]:[this.formBaseInformation.get('jobtitle_id').value],
         priceTypeId:  +this.default_type_price_id,
-        querySource:  'manually'
+        querySource:  'manually',
+        servicesIds:  this.preloadServicesIds
       }
   }
 
@@ -1448,7 +1459,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   // }
   
   onSelectProductCustomer(product:AppointmentServiceSearchResponse, customer=this.customer){
-    if(!product.isServiceByAppointment || (product.isServiceByAppointment && this.accessibleServicesIdsAll().includes(product.id))){ // if not [disabled]
+    if(!product.isServiceByAppointment || (product.isServiceByAppointment && this.accessibleServicesIdsAll.includes(product.id))){ // if not [disabled]
       if(!this.isThereProductInTable(customer.row_id, product.id)){
         this.documentChanged=true;
         // console.log(console.log('Selected customer: ',JSON.stringify(customer)));
@@ -1460,6 +1471,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
         setTimeout(() => {this.searchProductCtrl.reset();}, 1);
         this.getTotalSumPrice();
         this.recountEndDateTime();
+        this.preloadServicesIds=[];
         if(control.length>0 && !this.isThereAreServicesInTableWithEmployeeRequired()){ // if there are selected services but no one of selected sevices required employee
           this.formBaseInformation.get('employeeId').setValue(null);
           this.formBaseInformation.get('employeeName').setValue('');
@@ -2609,6 +2621,8 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       this.documentChanged=true;
       const control = <UntypedFormArray>this.formBaseInformation.get('customersTable');
       control.push(row);
+      this.customer = {id:customerId, row_id:this.getCustomerRowId()-1, name:customerName};
+      this.addPreloadServiceToSelectedCustomer();
     }
     
     
@@ -4206,6 +4220,8 @@ deleteFile(id:number){
   }
   onDepartmentPartSelect(part_id:number, department_id:number){
     // this.formBaseInformation.get('department').setValue(this.getDepartmentNameById(this.getDepartmentIdByDepPartId()));
+    this.preloadServicesIds=[];
+    if(this.data) this.data.resourceId=null;
     this.getSetOfTypePrices();
     if(this.accessibleEmployeesIdsAll.length==1 && !this.settingsForm.get('hideEmployeeField').value){
       // alert(!this.settingsForm.get('hideEmployeeField').value)
@@ -4217,12 +4233,13 @@ deleteFile(id:number){
   }
 
   // *** Services ***
-  accessibleServicesIdsAll():number[]{
+  get accessibleServicesIdsAll():number[]{
     let data = [this.accessibleServicesIdsByAccessibleEmployees, 
                 this.accessibleServicesIdsBySelectedEmployee,
                 this.accessibleServicesIdsBySelectedDepPart,
                 this.accessibleServicesIdsByResourcesOfSelectedDepPart,
                 this.servicesThatNoNeedEmployees,
+
     /*this.accessibleServicesIdsByResourcesOfAccessibleDepParts*/];
     // console.log('accessibleServicesIdsAll = ',data.reduce((a, b) => a.filter(c => b.includes(c))))
     return data.reduce((a, b) => a.filter(c => b.includes(c)));  //intersection of multiple arrays will be accessible employees at this moment

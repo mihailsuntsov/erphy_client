@@ -223,6 +223,7 @@ export class CalendarComponent implements OnInit {
   isPageReloading:boolean=false; // page refreshing is in process
   isPageReloadingRequest:boolean=false; 
   settingsForm: any; // форма с настройками
+  appointmentSettingsForm: any; // time settings of appointment
   companySettings: CompanySettings = null;
   activeDayIsOpen: boolean = false;
   trackByIndex = (i) => i;
@@ -306,7 +307,13 @@ export class CalendarComponent implements OnInit {
       resourcesScreenScale: new UntypedFormControl      ('month',[]),    // month / week / day
       displayCancelled: new UntypedFormControl          (false,[]),    // display or not cancelled events by default
     });
-  
+    this.appointmentSettingsForm = new UntypedFormGroup({     
+      startTime: new UntypedFormControl          ('current',[]),        // current / set_manually
+      endDateTime: new UntypedFormControl        ('sum_all_length',[]), // no_calc / sum_all_length / max_length 
+      startTimeManually: new UntypedFormControl  ('00:00',[]),          // 'HH:mm' if start_time = 'set_manually'
+      endTimeManually: new UntypedFormControl    ('00:01',[]),          // 'HH:mm' if end_time = 'calc_date_but_time'
+      calcDateButTime: new UntypedFormControl    (false ,[]),           // if user wants to calc only dates. Suitable for hotels for checkout time
+    });
     this.getBaseData('myId');    
     this.getBaseData('myCompanyId');  
     this.getBaseData('companiesList');
@@ -315,6 +322,7 @@ export class CalendarComponent implements OnInit {
     this.getBaseData('accountingCurrency');
 
     this.getSetOfAppointmentPermissions(); // to understand whether user change a status of Appointment documents
+    this.getAppointmentSettings(); // to get start and end time settings
     this.getCompaniesList();
     moment.updateLocale(this.locale, {week: {
         dow: this.weekStartsOn, // set start of week to monday instead
@@ -579,6 +587,21 @@ export class CalendarComponent implements OnInit {
       });
     })
     return result;
+  }
+  getAppointmentSettings(){
+    let result:any;
+    this.http.get('/api/auth/getSettingsAppointment').subscribe
+    (data => 
+      { 
+        result=data as any;
+          this.appointmentSettingsForm.get('startTime').setValue(result.startTime);
+          this.appointmentSettingsForm.get('endDateTime').setValue(result.endDateTime);
+          this.appointmentSettingsForm.get('startTimeManually').setValue(result.startTimeManually);
+          this.appointmentSettingsForm.get('endTimeManually').setValue(result.endTimeManually);
+          this.appointmentSettingsForm.get('calcDateButTime').setValue(result.calcDateButTime);
+      },
+      error => console.log(error)
+    );
   }
   afterLoadData(){
     // console.log('afterLoadData')
@@ -1231,7 +1254,7 @@ export class CalendarComponent implements OnInit {
 // -------------------------------------------------------------------------------------
 
 
-  openDialogAppointment(docId: number, date: Date, source:string, transmittedEvent?:CalendarEvent){
+  openDialogAppointment(docId: number, date: Date, source:string, transmittedEvent?:CalendarEvent, resourceId?:number){
     // alert(11)
     // console.log("locale in calendar = ",this.locale);
     // source:
@@ -1265,7 +1288,8 @@ export class CalendarComponent implements OnInit {
         jobtitles:            this.receivedJobtitlesList, 
         departmentsWithParts: this.receivedDepartmentsWithPartsList,
         transmittedEvent:     transmittedEvent,
-        selectedDepparts:     this.queryForm.get('depparts').value
+        selectedDepparts:     this.queryForm.get('depparts').value,
+        resourceId:           resourceId
       },
     });
     dialogRef.componentInstance.baseData.subscribe((data) => {
@@ -1464,26 +1488,27 @@ export class CalendarComponent implements OnInit {
         } 
       );
   }
+
   startDragToHorizontalCreate(
     segmentDate: Date,
-    segmentElement: HTMLElement
   ) {
-    let end = new Date();
+    let start = this.getAppointmentTime('start',segmentDate);
+    let end =   this.getAppointmentTime('end',segmentDate);
+    console.log('END time',end);
     let koeff = 1;
     let step = 60;
+    let mouseStartX=0;
     if(this.resourceView == ResourceView.Day){
-      end = moment(segmentDate).add(1, 'hour').toDate();
       koeff = 24*60/(this.objectOfDraggingToCreateEvent.segmentWidth);
       step = 60;
     } else {
-      end = moment(segmentDate).add(1, 'day').toDate();
       koeff = 24*60/(this.objectOfDraggingToCreateEvent.segmentWidth);
       step = 24*60;
     }
     const dragToSelectEvent: CalendarEvent = {
       id: null,
       title: '',
-      start: segmentDate,      
+      start: start,
       end: end,
       meta: {
         tmpEvent: true,
@@ -1491,55 +1516,99 @@ export class CalendarComponent implements OnInit {
         departmentPartId: this.objectOfDraggingToCreateEvent.deppartId
       },
     };
-    console.log('dragToSelectEvent.end',dragToSelectEvent.end)
-    
-    console.log('dragToSelectEvent',dragToSelectEvent)
-    if(!dragToSelectEvent.end) // just pressed on a ceil, without dragging down - in this case there is no "end" in event's object
-      dragToSelectEvent.end = moment(dragToSelectEvent.start).add(this.hourDuration/this.hourSegments,"minutes").toDate();
+
+    // initial put the event on a screen
+    dragToSelectEvent.end = moment(end).add((+moment(dragToSelectEvent.start).format('HH'))<12?0:step, 'minutes').toDate();
+
+    //initial title
+    if(this.resourceView == ResourceView.Day) dragToSelectEvent.title=moment(dragToSelectEvent.start).format(this.timeFormat=='12'?'hh:mm A':'HH:mm') + '−' + moment(dragToSelectEvent.end).format(this.timeFormat=='12'?'hh:mm A':'HH:mm');
+    else dragToSelectEvent.title=moment(dragToSelectEvent.start).format('DD') + '−' + moment(dragToSelectEvent.end).format('DD MMMM YYYY');
+    // add on screen and refresh
     this.events = [...this.events, dragToSelectEvent];
-    const segmentPosition = segmentElement.getBoundingClientRect();
+    this.refreshView();
+
+
     let oneTimeMouseupControl = true;
-    // this.dragToCreateActive = true;
-    const endOfView = moment(this.viewDate).endOf("month").add(1,"day").toDate();// Чтобы можно было "дотянуть" event до самого конца 
+    const endOfView = moment(this.viewDate).endOf("year").add(7,"day").toDate();// Чтобы можно было "дотянуть" event до самого конца 
     fromEvent(document, 'mousemove')                                                    // So that we can “strech” the event until the very end of the day
       .pipe(
         finalize(() => {
           delete dragToSelectEvent.meta.tmpEvent;
-          // this.dragToCreateActive = false;
           this.refreshView();
         }),
         takeUntil(fromEvent(document, 'mouseup'))
       )
       .subscribe((mouseMoveEvent: MouseEvent) => {
-        const minutesDiff = ceilToNearest(
-          (mouseMoveEvent.clientX - segmentPosition.left)*koeff, step );                      
+        if(mouseStartX==0) mouseStartX=mouseMoveEvent.clientX;
+        const minutesDiff = ceilToNearest((mouseMoveEvent.clientX - mouseStartX)*koeff, step );
+        // console.log('----------------------------------')
+        // console.log('clientX',mouseMoveEvent.clientX)
+        // console.log('left',mouseStartX)
+        // console.log('clientX-left',mouseMoveEvent.clientX - mouseStartX)
+        // console.log('koeff',koeff)
+        // console.log('step',step)
         // console.log('minutesDiff',minutesDiff)
-        // const daysDiff =
-        //   floorToNearest(
-        //     mouseMoveEvent.clientX - segmentPosition.left,
-        //     segmentPosition.width
-        //   ) / segmentPosition.width;
-
-        const newEnd = moment(segmentDate).add(minutesDiff, 'minutes')./*add(daysDiff, 'days').*/toDate();
-        if (newEnd > segmentDate && newEnd < endOfView) {
+        // console.log('----------------------------------')
+        const newEnd = moment(end).add(minutesDiff, 'minutes').toDate();
+        if (newEnd > start && newEnd < endOfView) {
           dragToSelectEvent.end = newEnd;
+          
+        if(this.resourceView == ResourceView.Day)
+          dragToSelectEvent.title=moment(dragToSelectEvent.start).format(this.timeFormat=='12'?'hh:mm A':'HH:mm') + '−' + moment(dragToSelectEvent.end).format(this.timeFormat=='12'?'hh:mm A':'HH:mm');
+        else
+          dragToSelectEvent.title=moment(dragToSelectEvent.start).format('DD') + '−' + moment(dragToSelectEvent.end).format('DD MMMM YYYY');
+        
         }
-        dragToSelectEvent.title=moment(dragToSelectEvent.start).format(this.timeFormat=='12'?'hh:mm A':'HH:mm') + ' - ' + moment(dragToSelectEvent.end).format(this.timeFormat=='12'?'hh:mm A':'HH:mm');
         this.refreshView();
         
       });
-      // fromEvent(document, 'mouseup')
-      // .subscribe(() => { 
-      //   alert('111111111111111111') })
       fromEvent(document, 'mouseup').subscribe(() =>{
         if(oneTimeMouseupControl){
           oneTimeMouseupControl=false;
           // console.log('dragToSelectEvent',dragToSelectEvent);
-          // this.openDialogAppointment(null, new Date(), 'onDragToCreateEvent', dragToSelectEvent)
-        }
-          
-        } 
-      );
+          this.openDialogAppointment(null, new Date(), 'onDragToCreateEvent', dragToSelectEvent, this.objectOfDraggingToCreateEvent.resource.id)
+        }          
+      } 
+    );
+  }
+
+
+  // startTime: new UntypedFormControl          ('current',[]),        // current / set_manually
+  //     endDateTime: new UntypedFormControl        ('sum_all_length',[]), // no_calc / sum_all_length / max_length 
+  //     startTimeManually: new UntypedFormControl  ('00:00',[]),          // 'HH:mm' if start_time = 'set_manually'
+  //     endTimeManually: new UntypedFormControl    ('00:01',[]),          // 'HH:mm' if end_time = 'calc_date_but_time'
+  //     calcDateButTime: new UntypedFormControl    (false ,[]),           // if user wants to calc only dates. Suitable for hotels for checkout time
+
+
+  getAppointmentTime(kindOfTime:string, segmentDate: Date){
+
+    let startTimeNotDayMode: Date;
+    if(this.appointmentSettingsForm.get('startTime').value=='current')
+      startTimeNotDayMode = segmentDate;
+    else 
+      startTimeNotDayMode =  moment(moment(segmentDate).format('DD.MM.YYYY') + ' ' + this.appointmentSettingsForm.get('startTimeManually').value, 'DD.MM.YYYY HH:mm').toDate();
+    
+    let endTimeNotDayMode: Date;
+    if(this.appointmentSettingsForm.get('calcDateButTime').value)
+      endTimeNotDayMode =  moment(moment(segmentDate).format('DD.MM.YYYY') + ' ' + this.appointmentSettingsForm.get('endTimeManually').value, 'DD.MM.YYYY HH:mm').toDate();
+    else // if user wants to calc only dates. Suitable for hotels for checkout time
+      endTimeNotDayMode = moment(moment(segmentDate).format('DD.MM.YYYY') + ' ' + moment(segmentDate).format('HH:mm'), 'DD.MM.YYYY HH:mm').add(1, 'day').toDate();
+
+    
+    if(kindOfTime=='start'){// initial START date & time
+      if(this.resourceView==ResourceView.Day)
+        return segmentDate;
+      else {
+        return startTimeNotDayMode;
+      }
+    } else { // initial END date & time
+      if(this.resourceView==ResourceView.Day){ // day view of resources screen mode
+        return moment(segmentDate).add(1, 'hour').toDate();
+      } else { // week or month view of resources screen mode
+        return endTimeNotDayMode;
+      }
+    }
+    
   }
   syncDepPartsByEmployees(){
     // collect selected dep. parts with services no employee needed
@@ -1619,7 +1688,7 @@ export class CalendarComponent implements OnInit {
   setObjectOfDraggingToCreateEvent(object:any){
     console.log('transmitted resource', object)
     this.objectOfDraggingToCreateEvent=object;
-    this.startDragToHorizontalCreate(object.date,object.segmentElement)
+    this.startDragToHorizontalCreate(object.date)
   }
   changeStatus(docId:number, statusId:number, statusType:number){    
     // console.log('docId',docId)
