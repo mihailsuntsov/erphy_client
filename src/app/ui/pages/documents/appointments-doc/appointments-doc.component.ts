@@ -304,7 +304,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   myCompanyId:number=0;
   showBalanceModules=true;
   appointmentChildDocs:AppointmentChildDoc[]=[];
-  preloadServicesIds:number[]; // services IDs for preloading services list if document is creating by dragging in Resources screen
+  preloadServicesIds:number[]=[]; // services IDs for preloading services list if document is creating by dragging in Resources screen
   // companySettings:CompanySettings={vat:false,vat_included:true};  
   allFields: any[][] = [];//[номер строки начиная с 0][объект - вся инфо о товаре (id,кол-во, цена... )] - массив товаров
   filesInfo : filesInfo [] = []; //массив для получения информации по прикрепленным к документу файлам 
@@ -345,7 +345,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   waitingOfAfterRecountEndDateTime=false;
   needAgainOfAfterRecountEndDateTime=false;
   applyingInitialTimeSettings=false;
-  isEndDateTimEditing:boolean=false;
+  isEndDateTimEditing:boolean=false; //at the present time the end date is not editing manually
   //печать документов
   gettingTemplatesData: boolean = false; // идёт загрузка шаблонов
   templatesList:TemplatesList[]=[]; // список загруженных шаблонов
@@ -522,7 +522,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     });
     // Форма для отправки при создании связанных документов
     this.formLinkedDocs = new UntypedFormGroup({
-      customers_orders_id: new UntypedFormControl   (null,[]),
+      appointment_id: new UntypedFormControl   (null,[]),
       date_return: new UntypedFormControl           ('',[]),
       summ: new UntypedFormControl                  ('',[]),
       nds: new UntypedFormControl                   ('',[]),
@@ -632,6 +632,8 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       this.oneClickSaveControl||
       !this.childFormValid||
       !this.formBaseInformation.valid||
+      this.isEndDateTimeRecounting||
+      this.isEndDateTimEditing||  
       this.is_completed||
       !this.editability||
       +this.formBaseInformation.get('department_part_id').value==0 ||
@@ -800,7 +802,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   }
 
   getPreloadServicesIdsByResourceId(){
-    this.http.get('/api/auth/getPreloadServicesIdsByResourceId?resource_id='+this.data.resourceId) .subscribe(
+    this.http.get('/api/auth/getPreloadServicesIdsByResourceId?resource_id='+this.data.resourceId+'&deppart_id='+this.data.transmittedEvent.meta.departmentPartId).subscribe(
         data => {         
           this.preloadServicesIds = data as number[];
           if(this.preloadServicesIds.length>0){
@@ -1129,6 +1131,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     console.log('this.filteredProducts.length>0',this.filteredProducts.length>0)
     console.log('this.accessibleServicesIdsAll.length==1',this.accessibleServicesIdsAll.length==1)
     console.log('this.preloadServicesIds.length>0', this.preloadServicesIds.length>0)
+
     if(this.filteredProducts.length>0 && this.accessibleServicesIdsAll.length==1 && this.preloadServicesIds.length>0){
         this.onSelectProductCustomer(this.filteredProducts.filter(product => product.id==this.accessibleServicesIdsAll[0])[0]);
         this.preloadServicesIds=[];
@@ -1322,6 +1325,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     this.http.post('/api/auth/getCalendarEventsList', this.getCalendarEventsQueryBody()).subscribe(
       (data) => {
         if(!data){
+          this.isEndDateTimeRecounting=false;
           this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('docs.msg.c_err_exe_qury')}})
         }
         events=data as CalendarEvent[];
@@ -1333,6 +1337,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
               })
           });
         });
+        this.isEndDateTimeRecounting=false;
       },
       error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}
     );
@@ -2051,7 +2056,8 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
           //Загрузка списка сотрудников / loading employees
           // for employees need the end time, which is geting from the settings.
           // that is because employees are loading after settings
-          this.getEmployeesList(true);
+          if(!this.settingsForm.get('hideEmployeeField').value) 
+            this.getEmployeesList(true);
       },
       error => console.log(error)
     );
@@ -2138,13 +2144,22 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     }
   }
 
-  recountEndDateTime(byUserDemand=false){
-    // If in the settings endDateTime = 'sum_all_length' or 'max_length', and:
-    // (before document has been created and document is creating not by gragging action) or recount by user demand by clicking on "Recount the finish time" button
-    // console.log('recountEndDateTime');
-    if(!this.isEndDateTimEditing && (['sum_all_length','max_length'].includes(this.settingsForm.get('endDateTime').value)) && ((!this.data || (this.data && !this.data.transmittedEvent)) || byUserDemand)){
-      // Can do time recounting
+    recountEndDateTime(){
+    // Automatic END time recounting when:
+    // If at the present time the end date is not editing manually, 
+    // and in the settings endDateTime = 'sum all lengths of services' or 'by max service length',
+    // and event is not created by dragging vertically in day-view-scheduler, because it is implied that a person, when allocating a time period, 
+    // already knows in advance how much time he will need for a given client visit 
 
+
+    // console.log('recountEndDateTime');
+    // console.log('!this.isEndDateTimEditing',!this.isEndDateTimEditing);
+    // console.log('second',(['sum_all_length','max_length'].includes(this.settingsForm.get('endDateTime').value)));
+    // console.log('third',((!this.data || (this.data && !this.data.transmittedEvent)) || byUserDemand));
+
+    if(!this.isEndDateTimEditing && (['sum_all_length','max_length'].includes(this.settingsForm.get('endDateTime').value)) && (!this.data || (this.data && this.data.source!='onDragToCreateEventVert'))){
+      // Can do time recounting
+      console.log('Can do time recounting!!!');
       let sumOfSeconds = 3600; // 3600 is the minimal length if there are no services by Appointment - 1 hour by default
       let thereAreServicesByAppointment:boolean = false;
       this.getControlTablefield().value.map(product=>{
@@ -2178,9 +2193,9 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
         // if(!this.settingsForm.get('calcDateButTime').value)
         this.formBaseInformation.get('time_end').setValue(endTime.format("HH:mm"));
         this.afterRecountEndDateTime();
-        setTimeout(() => { 
-          this.isEndDateTimeRecounting = false;
-          }, 2000);         
+        // setTimeout(() => { 
+        //   this.isEndDateTimeRecounting = false;
+        //   }, 2000);         
       }
     }
   }
@@ -2205,14 +2220,14 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   afterRecountEndDateTime(){
     if(!this.waitingOfAfterRecountEndDateTime){ // если не в режиме отложенного срабатывания / if not in delayed triggering mode
       this.waitingOfAfterRecountEndDateTime=true; // ставим в режим отложенного срабатывания / delayed triggering mode is "ON"
-      console.log('!this.waitingOfAfterRecountEndDateTime before timeOut()')
+      // console.log('!this.waitingOfAfterRecountEndDateTime before timeOut()')
       setTimeout(() => { //ожидание / delayed triggering
         // отложенное срабатывание случилось: / delayed triggering happened:
         // отключаем режим отложенного срабатывания / disable delayed triggering mode
         this.waitingOfAfterRecountEndDateTime=false;        
         if(!this.needAgainOfAfterRecountEndDateTime){ // если повторные запросы во время ожидания больше не "прилетали" / if repeated requests no longer arrived
           //выполняем код, частоту которого нужно ограничить / execute code whose frequency needs to be limited
-          this.getEmployeesList();
+          if(!this.settingsForm.get('hideEmployeeField').value) this.getEmployeesList();
           this.refreshNowUsedResources();
         } else {// если повторные запросы "прилетали" во время ожидания / if repeated requests arrived while waiting
           // сбросили отметку о наличии повторных запросов / cleared the mark for repeated requests
@@ -2802,11 +2817,14 @@ deleteFile(id:number){
 //**********************************************************************************************************************************************/  
 
   //создание связанных документов
-  createLinkedDoc(docname:string, cagentId:number){// принимает аргументы: Return
+  createLinkedDoc(docname:string, row:any){// row - the object of customersTable[]
     let uid = uuidv4();
     let canCreateLinkedDoc:CanCreateLinkedDoc=this.canCreateLinkedDoc(docname); //проверим на возможность создания связанного документа
     if(canCreateLinkedDoc.can){
         
+      this.oneClickSaveControl=true;
+      this.tableNdsRecount();
+
       this.formLinkedDocs.get('department_id').setValue(this.getDepartmentIdByDepPartId());
       this.formLinkedDocs.get('nds').setValue(this.formBaseInformation.get('nds').value);
       this.formLinkedDocs.get('nds_included').setValue(this.formBaseInformation.get('nds_included').value);
@@ -2819,51 +2837,53 @@ deleteFile(id:number){
         this.formLinkedDocs.get('payment_account_id').setValue(null);//id расчтёного счёта      
         this.formLinkedDocs.get('boxoffice_id').setValue(null);
         // !!!*** Следующие параметры нужно вычислять по каждому клиенту, для которого создается Linked document ***!!!
-        // this.formLinkedDocs.get('summ').setValue(this.productSearchAndTableByCustomersComponent.totalProductSumm)
-        // this.formLinkedDocs.get('nds').setValue(this.productSearchAndTableByCustomersComponent.getTotalNds());
+        console.log('totalProductSumm',this.totalProductSumm.get(row.row_id));
+        console.log('totalNds',this.totalNds.get(row.row_id))
+        this.formLinkedDocs.get('summ').setValue(this.totalProductSumm.get(row.row_id))
+        this.formLinkedDocs.get('nds').setValue(this.totalNds.get(row.row_id));
       }
       
       if(docname!=='Paymentin'&&docname!=='Orderin')// для данных документов таблица с товарами не нужна
-          this.getProductsTableLinkedDoc(docname);//формируем таблицу товаров для создаваемого документа
+          this.getProductsTableLinkedDoc(docname, row.row_id);//формируем таблицу товаров для создаваемого документа
 
       this.formLinkedDocs.get('company_id').setValue(this.formBaseInformation.get('company_id').value);
-      this.formLinkedDocs.get('cagent_id').setValue(cagentId);
+      this.formLinkedDocs.get('cagent_id').setValue(row.id);
       this.formLinkedDocs.get('uid').setValue(uid);
       this.formLinkedDocs.get('linked_doc_id').setValue(this.id);//id связанного документа (того, из которого инициируется создание данного документа)
       this.formLinkedDocs.get('parent_uid').setValue(this.formBaseInformation.get('uid').value);// uid исходящего (родительского) документа
       this.formLinkedDocs.get('child_uid').setValue(uid);// uid дочернего документа. Дочерний - не всегда тот, которого создают из текущего документа. Например, при создании из Отгрузки Счёта покупателю - Отгрузка будет дочерней для него.
-      this.formLinkedDocs.get('linked_doc_name').setValue('appointments');//имя (таблицы) связанного документа
+      this.formLinkedDocs.get('linked_doc_name').setValue('scdl_appointments');//имя (таблицы) связанного документа
       this.formLinkedDocs.get('is_completed').setValue(false);
       
       
       // т.к. Розничная продажа проводится по факту ее создания, то мы не можем просто создать ее, как это делаем с другими связанными документами. Нужно только открыть ее страницу и передать туда все данные из Заказа покупателя.
-      if(docname=='RetailSales'){
-        // let retailSalesProductTable: Array <RetailSalesProductTable> =this.getRetailSalesProductsTable();
-        let objToSend: NavigationExtras = //NavigationExtras - спец. объект, в котором можно передавать данные в процессе роутинга
-        {
-          queryParams: {
-            company_id:               this.formBaseInformation.get('company_id').value,
-            department_id:            this.getDepartmentIdByDepPartId(),
-            cagent_id:                cagentId,
-            cagent:                   'Create function getCagentNameById',
-            nds:                      this.formBaseInformation.get('nds').value,
-            nds_included:             this.formBaseInformation.get('nds_included').value,
-            linked_doc_id:            this.id,
-            parent_uid:               this.formBaseInformation.get('uid').value,
-            doc_number:               this.formBaseInformation.get('doc_number').value,
-            child_uid:                uid,
-            linked_doc_name:          'appointments',
-            customers_orders_id:      this.id,
-            uid:                      uid,
-          },
-          skipLocationChange: false,
-          fragment: 'top' 
-        };
+      // if(docname=='RetailSales'){
+      //   // let retailSalesProductTable: Array <RetailSalesProductTable> =this.getRetailSalesProductsTable();
+      //   let objToSend: NavigationExtras = //NavigationExtras - спец. объект, в котором можно передавать данные в процессе роутинга
+      //   {
+      //     queryParams: {
+      //       company_id:               this.formBaseInformation.get('company_id').value,
+      //       department_id:            this.getDepartmentIdByDepPartId(),
+      //       cagent_id:                cagentId,
+      //       cagent:                   'Create function getCagentNameById',
+      //       nds:                      this.formBaseInformation.get('nds').value,
+      //       nds_included:             this.formBaseInformation.get('nds_included').value,
+      //       linked_doc_id:            this.id,
+      //       parent_uid:               this.formBaseInformation.get('uid').value,
+      //       doc_number:               this.formBaseInformation.get('doc_number').value,
+      //       child_uid:                uid,
+      //       linked_doc_name:          'appointments',
+      //       customers_orders_id:      this.id,
+      //       uid:                      uid,
+      //     },
+      //     skipLocationChange: false,
+      //     fragment: 'top' 
+      //   };
 
-        this._router.navigate(['ui/retailsalesdoc'], { 
-          state: { productdetails: objToSend }
-        });
-      }else
+      //   this._router.navigate(['ui/retailsalesdoc'], { 
+      //     state: { productdetails: objToSend }
+      //   });
+      // }else
         this.http.post('/api/auth/insert'+docname, this.formLinkedDocs.value)
         .subscribe(
         (data) => {
@@ -2881,10 +2901,14 @@ deleteFile(id:number){
                         this.openSnackBar(translate('docs.msg.doc_crtd_succ',{name:translate('docs.docs.'+this.commonUtilites.getDocNameByDocAlias(docname))}), translate('docs.msg.close'));
                         // this.getLinkedDocsScheme(true);//обновляем схему этого документа
                         this._router.navigate(['/ui/'+docname.toLowerCase()+'doc', createdDocId]);
+                        
+                        if(this.mode=='window') 
+                          this.dialogRef.close();
                       }
                     }
+                    this.oneClickSaveControl=false;
                   },
-          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
+          error => {this.oneClickSaveControl=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
         );
     } else this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:canCreateLinkedDoc.reason}});
   }
@@ -2931,34 +2955,39 @@ deleteFile(id:number){
   //   return result;
   // }
 // забирает таблицу товаров из дочернего компонента и помещает ее в форму, предназначенную для создания дочерних документов
-  getProductsTableLinkedDoc(docname:string){
-  //   let methodNameProductTable:string;//для маппинга в соответствующие названия сетов в бэкэнде (например private Set<PostingProductForm> postingProductTable;)
-  //   let canAddRow: boolean;
-  //   //Получим название метода для маппинга в соответствующее название сета в бэкэнде (например для аргумента 'Posting' отдаст 'postingProductTable', который замаппится в этоn сет: private Set<PostingProductForm> postingProductTable;)
-  //   methodNameProductTable=this.commonUtilites.getMethodNameByDocAlias(docname);
-  //   const control = <UntypedFormArray>this.formLinkedDocs.get(methodNameProductTable);
-  //   control.clear();
-  //   this.productSearchAndTableByCustomersComponent.getProductTable().forEach(row=>{
-  //     if(this.productSearchAndTableByCustomersComponent.checkedList.length>0){  //если есть выделенные чекбоксами позиции - надо взять только их, иначе берем все позиции
-  //       canAddRow=this.isRowInCheckedList(row.row_id)
-  //     }
-  //     else canAddRow=true;
-  //     if(canAddRow)
-  //         control.push(this.formingProductRowLinkedDoc(row));
-  //   });
-  // }
-  // formingProductRowLinkedDoc(row: AppointmentsProductTable) {
-  //   return this._fb.group({
-  //     product_id: new UntypedFormControl (row.product_id,[]),
-  //     department_id: new UntypedFormControl (row.department_id,[]),
-  //     product_count: new UntypedFormControl ((row.product_count-row.shipped)>=0?row.product_count-row.shipped:0,[]),
-  //     product_price:  new UntypedFormControl (row.product_price,[]),
-  //     price_type_id:  new UntypedFormControl (row.price_type_id,[]),
-  //     is_material:  new UntypedFormControl (row.is_material,[]),
-  //     product_price_of_type_price:  new UntypedFormControl (row.product_price_of_type_price,[]),
-  //     product_sumprice: new UntypedFormControl (((row.product_count)*row.product_price).toFixed(2),[]),
-  //     nds_id:  new UntypedFormControl (row.nds_id,[]),
-  //   });
+  getProductsTableLinkedDoc(docname:string, customerRowId:number){
+    let methodNameProductTable:string;//для маппинга в соответствующие названия сетов в бэкэнде (например private Set<PostingProductForm> postingProductTable;)
+    let canAddRow: boolean;
+    //Получим название метода для маппинга в соответствующее название сета в бэкэнде (например для аргумента 'Posting' отдаст 'postingProductTable', который замаппится в этоn сет: private Set<PostingProductForm> postingProductTable;)
+    methodNameProductTable=this.commonUtilites.getMethodNameByDocAlias(docname);
+    console.log('methodNameProductTable',methodNameProductTable)
+    const control = <UntypedFormArray>this.formLinkedDocs.get(methodNameProductTable);
+    control.clear();
+    this.getControlTablefield().value.map(row=>{
+      
+    console.log('row.customerRowId',row.customerRowId)
+    console.log('customerRowId',customerRowId)
+      if(row.customerRowId==customerRowId){  //если есть выделенные чекбоксами позиции - надо взять только их, иначе берем все позиции
+        
+        console.log('control.push')
+        control.push(this.formingProductRowLinkedDoc(row));
+        console.log('this.formingProductRowLinkedDoc(row)',this.formingProductRowLinkedDoc(row))
+
+      }
+    });
+  }
+  formingProductRowLinkedDoc(row: any) {
+    return this._fb.group({
+      product_id: new UntypedFormControl (row.product_id,[]),
+      department_id: new UntypedFormControl (row.department_id,[]),
+      product_count: new UntypedFormControl (row.product_count,[]),
+      product_price:  new UntypedFormControl (row.product_price,[]),
+      price_type_id:  new UntypedFormControl (row.price_type_id,[]),
+      is_material:  new UntypedFormControl (row.is_material,[]),
+      product_price_of_type_price:  new UntypedFormControl (row.product_price_of_type_price,[]),
+      product_sumprice: new UntypedFormControl (((row.product_count)*row.product_price).toFixed(2),[]),
+      nds_id:  new UntypedFormControl (row.nds_id,[]),
+    });
   }
   // можно ли создать связанный документ (да - если есть товары, подходящие для этого)
   canCreateLinkedDoc(docname:string):CanCreateLinkedDoc{
@@ -3097,8 +3126,8 @@ deleteFile(id:number){
   }
   getEmployeesListQueryBody(isFree:boolean, kindOfNoFree?:string){
     if(isFree){
-      console.log('getAllDeppartsIds()',this.getAllDeppartsIds())
-      console.log('receivedDepartmentsWithPartsList',this.receivedDepartmentsWithPartsList)
+      // // console.log('getAllDeppartsIds()',this.getAllDeppartsIds())
+      // console.log('receivedDepartmentsWithPartsList',this.receivedDepartmentsWithPartsList)
     } 
   return  {
       isAll:        false,               // all or only free/not_free
@@ -3174,17 +3203,15 @@ deleteFile(id:number){
   handleEndOfInitialLoading(){
     if(this.data){
       // In the next cases I need to try automatically save and close window 
-      if(['onEventDragged','onEventResized'].includes(this.data.source)){
-        console.log('onEventDragged!!!');
+      if(['onEventDraggedVert','onEventResizedVert'].includes(this.data.source)){
+        // console.log('onEventDraggedVert!!!');
         if(!this.createUpdateButtonDisabled){
-          console.log('Updating Document');
+          // console.log('Updating Document');
           this.updateDocument(false, true);
         } else {
-          console.log('Emitting expandDialogWindow');
+          // console.log('Emitting expandDialogWindow');
           this.baseData.emit('expandDialogWindow');
         }
-          
-          
       }
     }
   }
@@ -3201,7 +3228,9 @@ deleteFile(id:number){
     if(!this.oneClickSaveControl&&!this.initialLoading&&!this.isMainDataLoading&&(this.isDatesValid||+this.id>0)&&!this.isEndDateTimeRecounting&&!this.applyingInitialTimeSettings){
       this.isEndDateTimEditing=true;
       this.documentChanged=true;
-      this.getEmployeesList();
+      if(!this.settingsForm.get('hideEmployeeField').value)
+        this.getEmployeesList();
+      
       this.refreshNowUsedResources();
       let row_index:number=0;
       let control = this.getControlTablefield();
@@ -3612,7 +3641,7 @@ deleteFile(id:number){
   }  
   getProductTimeQtt(service:AppointmentServiceSearchResponse, currentQtt=1):number{
     let result = currentQtt;
-    console.log(JSON.stringify(service))
+    // console.log(JSON.stringify(service))
     if(service.edizm_type_id==6 && service.edizm_id>0 && service.unitOfMeasureTimeInSeconds>0.001 && this.isDatesValid){//6=time
       let beginningTime = moment(moment(new Date(this.formBaseInformation.get('date_start').value)).format('DD.MM.YYYY')+' '+this.timeTo24h(this.formBaseInformation.get('time_start').value), 'DD.MM.YYYY HH:mm');
       let endTime = moment(moment(new Date(this.formBaseInformation.get('date_end').value)).format('DD.MM.YYYY')+' '+this.timeTo24h(this.formBaseInformation.get('time_end').value), 'DD.MM.YYYY HH:mm');
@@ -4220,15 +4249,17 @@ deleteFile(id:number){
   }
   onDepartmentPartSelect(part_id:number, department_id:number){
     // this.formBaseInformation.get('department').setValue(this.getDepartmentNameById(this.getDepartmentIdByDepPartId()));
-    this.preloadServicesIds=[];
-    if(this.data) this.data.resourceId=null;
-    this.getSetOfTypePrices();
-    if(this.accessibleEmployeesIdsAll.length==1 && !this.settingsForm.get('hideEmployeeField').value){
-      // alert(!this.settingsForm.get('hideEmployeeField').value)
-      this.formBaseInformation.get('employeeId').setValue(this.accessibleEmployeesIdsAll[0]);
-      let employee:Employee = this.getEmployeeById(this.accessibleEmployeesIdsAll[0]);
-      this.formBaseInformation.get('employeeName').setValue(employee.name);
-      this.formBaseInformation.get('jobtitle_id').setValue(employee.jobtitle_id);
+    if(this.accessibleDepPartsIdsAll.includes(part_id) && this.formBaseInformation.get('department_part_id').value != part_id){
+      this.preloadServicesIds=[];
+      if(this.data) this.data.resourceId=null;
+      this.getSetOfTypePrices();
+      if(this.accessibleEmployeesIdsAll.length==1 && !this.settingsForm.get('hideEmployeeField').value){
+        // alert(!this.settingsForm.get('hideEmployeeField').value)
+        this.formBaseInformation.get('employeeId').setValue(this.accessibleEmployeesIdsAll[0]);
+        let employee:Employee = this.getEmployeeById(this.accessibleEmployeesIdsAll[0]);
+        this.formBaseInformation.get('employeeName').setValue(employee.name);
+        this.formBaseInformation.get('jobtitle_id').setValue(employee.jobtitle_id);
+      }
     }
   }
 

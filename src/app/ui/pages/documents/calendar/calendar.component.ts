@@ -836,12 +836,13 @@ export class CalendarComponent implements OnInit {
     event,
     newStart,
     newEnd,
-  }: CalendarEventTimesChangedEvent): void {
+  }: CalendarEventTimesChangedEvent,
+    source:string): void {
     event.start = newStart;
     event.end = newEnd;
     this.events = [...this.events];
     event.meta.user.jobtitle_id = this.getJobtitleOfEmployee(event.meta.user.id);
-    this.openDialogAppointment(event.id as number, null, 'onEventResized', event);
+    this.openDialogAppointment(event.id as number, null, source, event);
   }
   // userChanged({ event, newUser }) {
   //   event.color = newUser.color;
@@ -849,14 +850,14 @@ export class CalendarComponent implements OnInit {
   //   this.events = [...this.events];
   // }
   
-  onEventDragged({ newUser, event }) {
-    console.log('onEventDragged - ', event);
+  onEventDragged({ newUser, event },source:string) {
+    // console.log('onEventDraggedVert - ', event);
     if (newUser && newUser !== event.meta.user) {
       event.meta.user = newUser;
       this.events = [...this.events];
     }
     event.meta.user.jobtitle_id = this.getJobtitleOfEmployee(event.meta.user.id);
-    this.openDialogAppointment(event.id, null, 'onEventDragged', event);
+    this.openDialogAppointment(event.id, null, source, event);
   }
 
   getJobtitleOfEmployee(employeeId:number){
@@ -1258,14 +1259,15 @@ export class CalendarComponent implements OnInit {
     // alert(11)
     // console.log("locale in calendar = ",this.locale);
     // source:
-    // - onEventDragged
-    // - onEventResized
+    // - onEventDraggedVert       - event dragged in mwl-day-view-scheduler
+    // - onEventResizedVert       - event resized in mwl-day-view-scheduler
     // - onDayAddEventBtnClick
     // - onHandleClickedEvent
     // - onMonthViewEventClick
-    // - onDragToCreateEvent  
+    // - onDragToCreateEventVert  - event created in mwl-day-view-scheduler
+    // - onDragToCreateEventHoriz   - event created in mwl-depparts-and-resources
     let appointmentDialogSize = '98';
-    if(['onEventDragged','onEventResized'].includes(source)){
+    if(['onEventDraggedVert','onEventResizedVert'].includes(source)){
       this.isUpdatingDraggedOrResizedEvent=true;
       appointmentDialogSize = '0';
     }
@@ -1482,7 +1484,7 @@ export class CalendarComponent implements OnInit {
         if(oneTimeMouseupControl){
           oneTimeMouseupControl=false;
           // console.log('dragToSelectEvent',dragToSelectEvent);
-          this.openDialogAppointment(null, new Date(), 'onDragToCreateEvent', dragToSelectEvent)
+          this.openDialogAppointment(null, new Date(), 'onDragToCreateEventVert', dragToSelectEvent)
         }
           
         } 
@@ -1566,7 +1568,7 @@ export class CalendarComponent implements OnInit {
         if(oneTimeMouseupControl){
           oneTimeMouseupControl=false;
           // console.log('dragToSelectEvent',dragToSelectEvent);
-          this.openDialogAppointment(null, new Date(), 'onDragToCreateEvent', dragToSelectEvent, this.objectOfDraggingToCreateEvent.resource.id)
+          this.openDialogAppointment(null, new Date(), 'onDragToCreateEventHoriz', dragToSelectEvent, this.objectOfDraggingToCreateEvent.resource.id)
         }          
       } 
     );

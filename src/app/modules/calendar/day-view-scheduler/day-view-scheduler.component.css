@@ -58,6 +58,10 @@ button.status-button {
 .cal-event-title{
   line-height: 26px;
   cursor: default;
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .user-fio-container{

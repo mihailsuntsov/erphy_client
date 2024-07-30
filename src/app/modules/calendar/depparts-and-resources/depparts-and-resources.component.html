@@ -47,11 +47,11 @@
                  >
                     <span matTooltip="{{resource.name}} ({{resource.resource_qtt}}) {{resource.description}}"
                     [ngStyle]="(deppart.is_active)?{}:{'color': 'lightgray'}"
-                    (click)="getResourceServicesList(resource.resource_id)"
+                    (click)="getResourceServicesList(resource.resource_id, deppart.id )"
                     style="cursor:pointer"
                     [matMenuTriggerFor]="resource_services_menu"
                     >{{resource.name}}</span>
-                    <span class="amount-resource" matTooltip="{{'modules.tip.amnt_res' | transloco}}">{{resource.resource_qtt}}</span>
+                    <span class="amount-resource" style="top: -3px;" matTooltip="{{'modules.tip.amnt_res' | transloco}}">{{resource.resource_qtt}}</span>
                 </div>
                 
 
@@ -114,7 +114,9 @@
                         <mat-card class="serviceinfo-card" appearance="outlined">
                           <mat-card-header>
                             <mat-card-title-group>
-                              <mat-card-title>{{service.name}}</mat-card-title>
+                              <mat-card-title>
+                                <a class="service-card-header-name" target="_blank" href="/ui/productsdoc/{{service.id}}">{{service.name}}</a>
+                              </mat-card-title>
                               <mat-card-subtitle [innerHTML]="service.description"></mat-card-subtitle>
                               <img mat-card-sm-image *ngIf="service.imageFile" matTooltip="{{('modules.tip.opn_image' | transloco)}}" (click)="showImage(service.imageFile)" [src]="'/api/public/getFile/'+service.imageFile" width=100%>
                               <img mat-card-sm-image *ngIf="!service.imageFile" src="assets_/images/no_foto.jpg" width=100% style="cursor:default">
@@ -147,7 +149,9 @@
                     <mat-card class="serviceinfo-card" appearance="outlined" *ngIf="resourceServicesList.length==1;">
                       <mat-card-header>
                         <mat-card-title-group>
-                          <mat-card-title>{{resourceServicesList[0].name}}</mat-card-title>
+                          <mat-card-title>
+                            <a class="service-card-header-name" target="_blank" href="/ui/productsdoc/{{resourceServicesList[0].id}}">{{resourceServicesList[0].name}}</a>
+                            </mat-card-title>
                           <mat-card-subtitle [innerHTML]="resourceServicesList[0].description"></mat-card-subtitle>
                           <img mat-card-sm-image *ngIf="resourceServicesList[0].imageFile" matTooltip="{{('modules.tip.opn_image' | transloco)}}" (click)="showImage(resourceServicesList[0].imageFile)" [src]="'/api/public/getFile/'+resourceServicesList[0].imageFile" width=100%>
                           <img mat-card-sm-image *ngIf="!resourceServicesList[0].imageFile" src="assets_/images/no_foto.jpg" width=100% style="cursor:default">
@@ -378,7 +382,7 @@
                         {{allDayEvent.event.title}}
                       </span>
                       
-                      <span class="amount-resource" matTooltip="{{'modules.tip.amnt_res' | transloco}}">{{getAmountOfEventUsedResource(allDayEvent.event.id,resource.resource_id)}}</span>
+                      <span class="amount-resource hidden" matTooltip="{{'modules.tip.amnt_res' | transloco}}">{{getAmountOfEventUsedResource(allDayEvent.event.id,resource.resource_id)}}</span>
 
                     </div>
                   </ng-template>

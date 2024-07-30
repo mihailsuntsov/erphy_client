@@ -77,7 +77,6 @@
     border:1px solid white;
     border-radius: 10px;
     cursor:default;
-    display:none;
 }
 .resource-name{
     justify-content: start!important;
@@ -175,9 +174,12 @@
   .cal-event-title{
     line-height: 26px;
     cursor: default;
-    position: absolute;
-    display: inline-block;
-    left: 27px;
+    position: unset;
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-left: 27px;
   }
   .cal-event-container{
     overflow: hidden;
@@ -208,6 +210,9 @@
     display: block;
     z-index:0;
   }
+  .hidden{
+    display:none;
+  }
 .time-in-cell{
   position: absolute;
   top: 0;
@@ -222,6 +227,11 @@
   color: darkgray;
   font-size: 15px;
   font-weight: 900;
-  z-index:0;
+  z-index:0;  
   display:none;
 } 
+.service-card-header-name{
+  text-decoration: none;
+  cursor:pointer;
+  color: #000 !important;
+}

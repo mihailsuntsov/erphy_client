@@ -1214,10 +1214,10 @@ extends CalendarWeekViewComponent implements OnChanges, OnInit
   //   );
   // }
 
-  getResourceServicesList(resourceId:number){
+  getResourceServicesList(resourceId:number,deppartId:number){
     this.resourceServicesListLoading = true;
     this.resourceServicesList = [];
-    this.http.get('/api/auth/getResourceServicesList?resource_id='+resourceId).subscribe(
+    this.http.get('/api/auth/getResourceServicesList?resource_id='+resourceId+'&deppart_id='+deppartId).subscribe(
         (data) => {
           this.resourceServicesList = data as any;
           this.resourceServicesListLoading = false;

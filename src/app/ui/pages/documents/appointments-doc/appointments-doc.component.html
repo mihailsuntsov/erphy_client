@@ -415,7 +415,7 @@
                                                                                                         toggle_off
                                                                                                         </span>  
                                                                                                     </div>
-                                                                                                    <span style="margin-left: 25px;">{{part.name}} ({{part.id}})</span>
+                                                                                                    <span style="margin-left: 25px;">{{part.name}}</span>
                                                                                                 </div>
                                                                                             </mat-option>
                                                                                             
@@ -896,19 +896,47 @@
                                                                                             <span>{{t('docs.tip.set_prnt_menu')}}</span>
                                                                                         </button>
                                                                                     </mat-menu>
-
-                                                                                    <button matTooltip="{{getAmountOfChildDocs(row.id,'shipment')>0?t('docs.tip.fxd_there_doc_tp'):t('docs.tip.ship_to_customer')}}" 
-                                                                                                mat-raised-button
-                                                                                                *ngIf="+id>0"
-                                                                                                color="primary"
-                                                                                                type="button"
-                                                                                                (submit)="false"
-                                                                                                [disabled]="createUpdateButtonDisabled" 
-                                                                                                id="move_up_services"
-                                                                                                class="button small-button"
-                                                                                                [ngClass]="{'completed':getAmountOfChildDocs(row.id,'shipment')>0}"
-                                                                                                (click)="createShipment(row);">
-                                                                                                <i class="material-icons">move_up</i>
+                                                                                    <button 
+                                                                                        mat-button 
+                                                                                        [matMenuTriggerFor]="addDocMenu"
+                                                                                        mat-raised-button 
+                                                                                        matTooltip="{{t('docs.tip.create_docs')}}"
+                                                                                        [disabled]="createUpdateButtonDisabled" 
+                                                                                        *ngIf="+id>0"
+                                                                                        color="primary"
+                                                                                        (submit)="false"
+                                                                                        type="button"
+                                                                                        id="add_doc_btn"
+                                                                                        class="button small-button">
+                                                                                        <i class="material-icons">add</i>
+                                                                                    </button>
+                                                                                    <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
+                                                                                        <!-- <button mat-menu-item id="new_doc_btn" (click)="goToNewDocument()">
+                                                                                            <span>{{t('docs.docs.c_order')}}</span>
+                                                                                        </button> -->
+                                                                                        <button mat-menu-item id="paymentin_btn" (click)="createLinkedDoc('Paymentin',row)">
+                                                                                            <span>{{t('docs.docs.paymentin')}}</span>
+                                                                                        </button>
+                                                                                        <button mat-menu-item id="orderin_btn" (click)="createLinkedDoc('Orderin',row)">
+                                                                                            <span>{{t('docs.docs.orderin')}}</span>
+                                                                                        </button>
+                                                                                        <button mat-menu-item id="shipment_btn" (click)="createLinkedDoc('Shipment',row)">
+                                                                                            <span>{{t('docs.docs.shipment')}}</span>
+                                                                                        </button>
+                                                                                    </mat-menu>    
+                                                                                    <button 
+                                                                                        matTooltip="{{getAmountOfChildDocs(row.id,'shipment')>0?t('docs.tip.fxd_there_doc_tp'):t('docs.tip.ship_to_customer')}}" 
+                                                                                        mat-raised-button
+                                                                                        *ngIf="+id>0"
+                                                                                        color="primary"
+                                                                                        type="button"
+                                                                                        (submit)="false"
+                                                                                        [disabled]="createUpdateButtonDisabled" 
+                                                                                        id="move_up_services"
+                                                                                        class="button small-button"
+                                                                                        [ngClass]="{'completed':getAmountOfChildDocs(row.id,'shipment')>0}"
+                                                                                        (click)="createShipment(row);">
+                                                                                        <i class="material-icons">move_up</i>
                                                                                     </button>
                                                                                     
                                                                                     <button 

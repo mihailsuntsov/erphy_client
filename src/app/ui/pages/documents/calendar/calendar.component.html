@@ -191,7 +191,7 @@ class="spinner"
                                             </div>
                                             <mat-optgroup 
                                                 *ngFor="let jobtitle of receivedJobtitlesWithEmployeesList;"
-                                            >vv
+                                            >
                                                 <span class="optgroup-name">{{jobtitle.name}}</span>
                                                 <button 
                                                     mat-icon-button 
@@ -525,8 +525,8 @@ class="spinner"
                             [users]="users"
                             [breaks]="breaks"
                             (eventTimesChanged)="eventTimesChanged($event)"
-                            (onEventDragged)="onEventDragged($event)"
-                            (onEventResized)="onEventResized($event)"                                
+                            (onEventDragged)="onEventDragged($event,'onEventResizedVert')"
+                            (onEventResized)="onEventResized($event, 'onEventDraggedVert')"                                
                             [locale]="localeAngular" 
                             [statusesList]="receivedStatusesList"
                             (hourSegmentClicked)="onClickSchedulerHoour($event)"
@@ -551,8 +551,8 @@ class="spinner"
                             [events]="events"
                             [viewPeriodName]="view"
                             (eventTimesChanged)="eventTimesChanged($event)"
-                            (onEventDragged)="onEventDragged($event)"
-                            (onEventResized)="onEventResized($event)"          
+                            (onEventDragged)="onEventDragged($event,'onEventResizedHoriz')"
+                            (onEventResized)="onEventResized($event, 'onEventDraggedHoriz')"          
                             [statusesList]="receivedStatusesList"
                             [viewDate]="viewDate"
                             [startOfPeriod]="startOfPeriod"
