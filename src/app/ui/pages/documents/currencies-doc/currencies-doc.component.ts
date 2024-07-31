@@ -312,7 +312,7 @@ export class CurrenciesDocComponent implements OnInit {
 
   //создание нового документа
   goToNewDocument(){
-    this._router.navigate(['ui/currenciesdoc',0]);
+    this._router.navigate(['ui/currenciesdoc']);
     this.id=0;
     this.formBaseInformation.get('id').setValue(null);
     this.formBaseInformation.get('name_short').setValue('');

@@ -610,7 +610,7 @@
                                                         </mat-card-header>
                                                         <mat-card-content>
                                                             <mat-form-field class="mat-form-field-100">
-                                                                <mat-label>{{t('docs.field.dep_parts')}} <span *ngIf="formBaseInformation.get('depparts').value.length==0" class="star">*</span></mat-label>
+                                                                <mat-label>{{t('docs.field.dep_parts')}} <span *ngIf="formBaseInformation.get('depparts').value?.length==0" class="star">*</span></mat-label>
                                                                 <mat-select
                                                                     panelClass="department-list"
                                                                     formControlName="depparts"

@@ -1956,7 +1956,7 @@ export class CustomersordersDocComponent implements OnInit/*, OnChanges */{
 
   //создание нового документа Заказ покупателя
   goToNewDocument(){
-    this._router.navigate(['ui/customersordersdoc',0]);
+    this._router.navigate(['ui/customersordersdoc']);
     this.id=0;
     this.clearFormSearchAndProductTable();//очистка формы поиска и таблицы с отобранными на продажу товарами
     this.setDefaultStatus();//устанавливаем статус документа по умолчанию

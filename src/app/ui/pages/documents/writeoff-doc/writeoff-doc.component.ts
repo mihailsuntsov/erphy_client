@@ -1050,7 +1050,7 @@ export class WriteoffDocComponent implements OnInit {
 
   //создание нового документа после проведения текущего
   goToNewDocument(){
-    this._router.navigate(['ui/writeoffdoc',0]);
+    this._router.navigate(['ui/writeoffdoc']);
     this.id=0;
 
     this.clearFormSearchAndProductTable();//очистка формы поиска и таблицы с отобранными товарами

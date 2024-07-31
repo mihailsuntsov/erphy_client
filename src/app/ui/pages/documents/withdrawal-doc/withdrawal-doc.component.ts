@@ -716,7 +716,7 @@ export class WithdrawalDocComponent implements OnInit {
 
   //создание нового документа после завершения текущего
   goToNewDocument(){
-      this._router.navigate(['ui/withdrawaldoc',0]);
+      this._router.navigate(['ui/withdrawaldoc']);
       this.id=0;      
       this.form.resetForm();
       this.formBaseInformation.get('id').setValue(0);

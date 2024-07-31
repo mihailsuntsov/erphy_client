@@ -331,7 +331,7 @@ export class PaymentAccountDocComponent implements OnInit {
 
   //создание нового документа
   goToNewDocument(){
-    this._router.navigate(['ui/accountsdoc',0]);
+    this._router.navigate(['ui/accountsdoc']);
     this.id=0;
     this.formBaseInformation.reset();
     this.formBaseInformation.get('id').setValue(null);

@@ -1027,7 +1027,7 @@ export class PaymentoutDocComponent implements OnInit {
 
   //создание нового документа
   goToNewDocument(){
-    this._router.navigate(['ui/paymentoutdoc',0]);
+    this._router.navigate(['ui/paymentoutdoc']);
     this.id=0;
     this.form.resetForm();
     this.formBaseInformation.get('uid').setValue('');

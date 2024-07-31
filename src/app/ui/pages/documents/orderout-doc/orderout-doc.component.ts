@@ -1093,7 +1093,7 @@ export class OrderoutDocComponent implements OnInit {
 
   //создание нового документа
   goToNewDocument(){
-    this._router.navigate(['ui/orderoutdoc',0]);
+    this._router.navigate(['ui/orderoutdoc']);
     this.id=0;
     this.form.resetForm();
     this.formBaseInformation.get('uid').setValue('');

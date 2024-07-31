@@ -8,7 +8,7 @@ class="spinner"
     <mat-card-header>
         <mat-card-title class="flex" style="height: 30px;" *ngIf="mode == 'standart'">
             <div *ngIf="!displayingDeletedDocs" class="emptyspace">{{cu.cap(t('docs.list.'+companySettings.booking_doc_name_variation+'s'))}} </div>
-            <div *ngIf="displayingDeletedDocs" class="card-name"><span style="color: red; font-weight: bold;">{{t('menu.top.deleted')}}</span> {{t('menu.docs.c_orders')}}</div>
+            <div *ngIf="displayingDeletedDocs" class="card-name"><span style="color: red; font-weight: bold;">{{t('menu.top.deleted')}}</span> {{cu.cap(t('docs.list.'+companySettings.booking_doc_name_variation+'s'))}}</div>
             <button 
                 mat-raised-button 
                 style="width: 36px;height: 36px;min-width: 38px;padding: 0px;"

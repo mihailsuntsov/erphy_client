@@ -1204,7 +1204,7 @@ export class OrdersupDocComponent implements OnInit {
 
   //создание нового документа
   goToNewDocument(){
-    this._router.navigate(['ui/ordersupdoc',0]);
+    this._router.navigate(['ui/ordersupdoc']);
     this.id=0;
     this.clearFormSearchAndProductTable();//очистка формы поиска и таблицы с отобранными товарами
     this.form.resetForm();

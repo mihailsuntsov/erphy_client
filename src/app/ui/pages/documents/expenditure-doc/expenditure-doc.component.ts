@@ -320,7 +320,7 @@ export class ExpenditureDocComponent implements OnInit {
 
   //создание нового документа
   goToNewDocument(){
-    this._router.navigate(['ui/expendituredoc',0]);
+    this._router.navigate(['ui/expendituredoc']);
     this.id=0;
     this.formBaseInformation.get('id').setValue(null);
     this.formBaseInformation.get('name').setValue('');

@@ -164,8 +164,8 @@
                                                             </div>
                                                             <div class="col-xl-3 col-lg-1  col-md-12" style="min-width: 110px;">
                                                                 <mat-form-field class="mat-form-field-100">
+                                                                    <mat-label>{{t('modules.field.available')}}{{formSearch.get('edizm').value==''?'':', '}}{{formSearch.get('edizm').value}}</mat-label>
                                                                     <input  matInput 
-                                                                            placeholder="{{t('modules.field.available')}}{{formSearch.get('edizm').value==''?'':', '}}{{formSearch.get('edizm').value}}"
                                                                             formControlName="available"
                                                                             [readonly]=true
                                                                             />
@@ -174,8 +174,8 @@
                                                             </div>
                                                             <div class="col-xl-3 col-lg-1  col-md-12" style="min-width: 110px;">
                                                                 <mat-form-field class="mat-form-field-100">
+                                                                    <mat-label>{{t('modules.field.reserved')}}{{formSearch.get('edizm').value==''?'':', '}}{{formSearch.get('edizm').value}}</mat-label>
                                                                     <input  matInput 
-                                                                            placeholder="{{t('modules.field.reserved')}}{{formSearch.get('edizm').value==''?'':', '}}{{formSearch.get('edizm').value}}"
                                                                             formControlName="reserved"
                                                                             [readonly]=true
                                                                             />
@@ -184,8 +184,8 @@
                                                             </div>
                                                             <div class="col-xl-3 col-lg-1  col-md-12" style="min-width: 110px;">
                                                                 <mat-form-field class="mat-form-field-100">
+                                                                    <mat-label>{{t('modules.field.remains')}}</mat-label>
                                                                     <input  matInput 
-                                                                            placeholder="{{t('modules.field.remains')}}"
                                                                             formControlName="total"
                                                                             [readonly]=true
                                                                             />
@@ -204,8 +204,8 @@
                                                             </div>
                                                             <div class="col-xl-3 col-lg-1  col-md-12" style="min-width: 110px;">
                                                                 <mat-form-field class="mat-form-field-100">
+                                                                    <mat-label>{{t('modules.field.sum')}}</mat-label>
                                                                     <input  matInput 
-                                                                            placeholder="{{t('modules.field.sum')}}"
                                                                             formControlName="product_sumprice"
                                                                             [readonly]=true
                                                                             />

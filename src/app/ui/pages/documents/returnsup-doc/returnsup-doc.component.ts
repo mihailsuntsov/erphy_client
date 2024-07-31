@@ -1392,7 +1392,7 @@ getLinkedDocsScheme(draw?:boolean){
 
   //создание нового документа
   goToNewDocument(){
-    this._router.navigate(['ui/returnsupdoc',0]);
+    this._router.navigate(['ui/returnsupdoc']);
     this.id=0;
     this.clearFormSearchAndProductTable();//очистка формы поиска и таблицы с отобранными товарами
     this.formBaseInformation.get('uid').setValue('');

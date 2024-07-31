@@ -945,7 +945,7 @@ export class OrderinDocComponent implements OnInit {
 
   //создание нового документа
   goToNewDocument(){
-    this._router.navigate(['ui/orderindoc',0]);
+    this._router.navigate(['ui/orderindoc']);
     this.id=0;
     this.form.resetForm();
     this.formBaseInformation.get('uid').setValue('');

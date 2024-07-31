@@ -1276,7 +1276,7 @@ export class RetailsalesDocComponent implements OnInit {
 
   //создание нового документа после завершения текущего
   goToNewDocument(){
-      this._router.navigate(['ui/retailsalesdoc',0]);
+      this._router.navigate(['ui/retailsalesdoc']);
       this.id=0;
       this.clearFormSearchAndProductTable();//очистка формы поиска и таблицы с отобранными товарами
       this.formBaseInformation.get('id').setValue(null);

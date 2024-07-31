@@ -1181,7 +1181,7 @@ error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px
 
   //создание нового документа
   goToNewDocument(){
-    this._router.navigate(['ui/invoiceindoc',0]);
+    this._router.navigate(['ui/invoiceindoc']);
     this.id=0;
     this.clearFormSearchAndProductTable();//очистка формы поиска и таблицы с отобранными товарами
     this.form.resetForm();

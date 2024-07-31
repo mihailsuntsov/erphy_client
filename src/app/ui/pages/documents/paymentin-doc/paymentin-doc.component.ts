@@ -943,7 +943,7 @@ export class PaymentinDocComponent implements OnInit {
 
   //создание нового документа
   goToNewDocument(){
-    this._router.navigate(['ui/paymentindoc',0]);
+    this._router.navigate(['ui/paymentindoc']);
     this.id=0;
     this.form.resetForm();
     this.formBaseInformation.get('uid').setValue('');

@@ -167,8 +167,8 @@
                                                             </div> -->
                                                             <div class="col-xl-2  col-md-12" style="min-width: 112px;">
                                                                 <mat-form-field class="mat-form-field-100">
+                                                                    <mat-label>{{t('modules.field.remains')}}</mat-label>
                                                                     <input  matInput 
-                                                                            placeholder="{{t('modules.field.remains')}}"
                                                                             formControlName="remains"
                                                                             [readonly]=true
                                                                             />
@@ -187,8 +187,8 @@
                                                             </div>
                                                             <div class="col-xl-2  col-md-12" style="min-width: 112px;">
                                                                 <mat-form-field class="mat-form-field-100">
+                                                                    <mat-label>{{t('modules.field.sum')}}</mat-label>
                                                                     <input  matInput 
-                                                                            placeholder="{{t('modules.field.sum')}}"
                                                                             [ngModel]="+formSearch.get('product_id').value==0?'':+((+formSearch.get('product_count').value)*+formSearch.get('product_price').value)"
                                                                             [ngModelOptions]="{standalone: true}"
                                                                             [readonly]=true

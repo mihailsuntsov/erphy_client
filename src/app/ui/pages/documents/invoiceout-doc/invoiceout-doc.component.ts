@@ -1393,7 +1393,7 @@ export class InvoiceoutDocComponent implements OnInit {
 
   //создание нового документа
   goToNewDocument(){
-      this._router.navigate(['ui/invoiceoutdoc',0]);
+      this._router.navigate(['ui/invoiceoutdoc']);
       this.id=0;
       this.clearFormSearchAndProductTable();//очистка формы поиска и таблицы с отобранными на продажу товарами
       this.setDefaultStatus();//устанавливаем статус документа по умолчанию

@@ -1381,7 +1381,7 @@ export class ReturnDocComponent implements OnInit {
   }
   //создание нового документа
   goToNewDocument(){
-    this._router.navigate(['ui/returndoc',0]);
+    this._router.navigate(['ui/returndoc']);
     this.id=0;
     this.clearFormSearchAndProductTable();//очистка формы поиска и таблицы с отобранными товарами
     this.formBaseInformation.get('uid').setValue('');

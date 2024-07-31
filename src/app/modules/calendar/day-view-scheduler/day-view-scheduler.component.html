@@ -119,7 +119,7 @@
               class="cal-resize-handle cal-resize-handle-before-start"
               *ngIf="
                 timeEvent.event?.resizable?.beforeStart &&
-                !timeEvent.startsBeforeDay
+                !timeEvent.startsBeforeDay && !timeEvent.event.meta.completed
               "
               mwlResizeHandle
               [resizeEdges]="{
@@ -142,11 +142,16 @@
                 <button mat-icon-button
                         class="status-button"
                         [matTooltip]="timeEvent.event.meta.statusName"
-                        [style.background-color]="timeEvent.event.meta.statusColor"
                         (click)="oldStatusType = timeEvent.event.meta.statusType" 
-                        [matMenuTriggerFor]="statuses_menu">
+                        [matMenuTriggerFor]="!timeEvent.event.meta.completed?statuses_menu:null">
+                        <mat-icon
+                        [style.color]="timeEvent.event.meta.statusColor"
+                        style="height: 22px; width: 22px;font-size: 22px;"
+                        >{{timeEvent.event.meta.completed?'check_circle':'circle'}}</mat-icon>
                 </button>
-                <mat-icon class="drag-button"
+                <mat-icon 
+                *ngIf="!timeEvent.event.meta.completed"
+                class="drag-button"
                 mwlDraggable
                 dragActiveClass="cal-drag-active"
                 [dropData]="{ event: timeEvent.event, calendarId: calendarId }"
@@ -165,7 +170,6 @@
                 (dragging)="dragMove(timeEvent, $event)"
                 (dragEnd)="dragEnded(timeEvent, $event, dayColumnWidth, true)"
                 >drag_indicator</mat-icon>
-                
                 <span class="cal-event-title"
                 [matTooltip]="(dragActive || timeEventResizes.size > 0)?'':timeEvent.event.title"
                     aria-hidden="true"(click)="eventClicked.emit({
@@ -194,7 +198,7 @@
             <div
               class="cal-resize-handle cal-resize-handle-after-end"
               *ngIf="
-                timeEvent.event?.resizable?.afterEnd && !timeEvent.endsAfterDay
+                timeEvent.event?.resizable?.afterEnd && !timeEvent.endsAfterDay && !timeEvent.event.meta.completed
               "
               mwlResizeHandle
               [resizeEdges]="{
@@ -283,7 +287,7 @@
       <!-- End of Columns with events and breaks block -->
     </div>   
     <!-- End of Main block with bar of hours and columns contained users events  -->
-    <code><pre>{{users | json }}</pre></code>
+    <!-- <code><pre>{{users | json }}</pre></code> -->
     <!-- <code><pre>{{breaks | json}}</pre></code> -->
     <!-- <code><pre>{{days | json}}</pre></code>  -->
   </div>

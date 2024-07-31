@@ -74,6 +74,8 @@ export class SettingsCalendarDialogComponent implements OnInit {
           this.settingsForm.get('dayEndMinute').setValue(result.dayEndMinute);
           this.settingsForm.get('resourcesScreenScale').setValue(result.resourcesScreenScale);
           this.settingsForm.get('displayCancelled').setValue(result.displayCancelled);
+          // console.log('company list',this.receivedCompaniesList)
+          // console.log('result.companyId',result.companyId)
         if(this.isCompanyInList(+result.companyId)){
           //данная группа настроек зависит от предприятия
           this.settingsForm.get('companyId').setValue(result.companyId);
@@ -81,7 +83,7 @@ export class SettingsCalendarDialogComponent implements OnInit {
           // alert(this.timelineStep_virtualValue)
         }
         if(+this.settingsForm.get('companyId').value==0)
-          this.settingsForm.get('companyId').setValue(this.data.receivedCompaniesList[0]);
+          this.settingsForm.get('companyId').setValue(this.data.receivedCompaniesList[0].id);
         this.timelineStep_virtualValue = this.setTimelineStep_VirtualValueByTimelineStep();
       },
       error => console.log(error)

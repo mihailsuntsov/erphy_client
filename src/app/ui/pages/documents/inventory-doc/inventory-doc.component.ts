@@ -1190,7 +1190,7 @@ export class InventoryDocComponent implements OnInit {
   
   //создание нового документа
   goToNewDocument(){
-    this._router.navigate(['ui/inventorydoc',0]);
+    this._router.navigate(['ui/inventorydoc']);
     this.id=0;
     this.clearFormSearchAndProductTable();//очистка формы поиска и таблицы с отобранными товарами
     this.formBaseInformation.get('uid').setValue('');

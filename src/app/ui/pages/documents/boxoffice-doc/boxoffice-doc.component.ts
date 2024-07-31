@@ -315,7 +315,7 @@ export class BoxofficeDocComponent implements OnInit {
 
   //создание нового документа
   goToNewDocument(){
-    this._router.navigate(['ui/boxofficedoc',0]);
+    this._router.navigate(['ui/boxofficedoc']);
     this.id=0;
     this.formBaseInformation.reset();
     this.formBaseInformation.get('id').setValue(null);

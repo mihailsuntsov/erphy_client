@@ -739,7 +739,8 @@ export class CalendarComponent implements OnInit {
               "statusType": event.meta.statusType, //тип статуса : 1 - обычный; 2 - конечный положительный 3 - конечный отрицательный
                                                   //status type:  1 - normal;  2 - final positive         3 - final negative
               "statusId":event.meta.statusId,
-              "statusColor":event.meta.statusColor
+              "statusColor":event.meta.statusColor,
+              completed:event.meta.completed
             },                                    
             "resizable": {
               "beforeStart": true,
@@ -1302,8 +1303,8 @@ export class CalendarComponent implements OnInit {
           // OPEN = 1
           // CLOSED = 2,
           this.isUpdatingDraggedOrResizedEvent=false;
-          console.log('State before closed', dialogRef.getState())
-          console.log('Updating size to 95%');
+          // console.log('State before closed', dialogRef.getState())
+          // console.log('Updating size to 95%');
           this.getCalendarEventsList();
           if(dialogRef.getState()!=2)
             dialogRef.updateSize("98%")
@@ -1325,7 +1326,7 @@ export class CalendarComponent implements OnInit {
       this.getCalendarEventsList();
       // console.log(`Dialog result: ${result}`);
       // this.getCalendarEventsList();
-      console.log('State after closed', dialogRef.getState())
+      // console.log('State after closed', dialogRef.getState())
       // if(result)
       //   this.addFilesToappointments(result);
     });
@@ -1496,7 +1497,7 @@ export class CalendarComponent implements OnInit {
   ) {
     let start = this.getAppointmentTime('start',segmentDate);
     let end =   this.getAppointmentTime('end',segmentDate);
-    console.log('END time',end);
+    // console.log('END time',end);
     let koeff = 1;
     let step = 60;
     let mouseStartX=0;
@@ -1688,7 +1689,7 @@ export class CalendarComponent implements OnInit {
     this.userOfDraggingToCreateEvent = user;
   }   
   setObjectOfDraggingToCreateEvent(object:any){
-    console.log('transmitted resource', object)
+    // console.log('transmitted resource', object)
     this.objectOfDraggingToCreateEvent=object;
     this.startDragToHorizontalCreate(object.date)
   }

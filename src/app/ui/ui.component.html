@@ -174,15 +174,15 @@
           <li>
             <a class="link-name">
               <span class="unselectable">{{t('sidebar.menu.headers.scdling')}}</span></a>
-          </li>
-          <li *ngIf="hasPermission(704)">
-            <a routerLink="appointments">
-              <span class="unselectable" id="appointments">{{t('sidebar.menu.items.'+companySettings.booking_doc_name_variation+'s')}}</span></a>
-          </li>          
+          </li>      
           <li *ngIf="hasPermission(724)">
             <a routerLink="calendar">
               <span class="unselectable" id="calendar">{{t('sidebar.menu.items.calendar')}}</span></a>
           </li>
+          <li *ngIf="hasPermission(704)">
+            <a routerLink="appointments">
+              <span class="unselectable" id="appointments">{{t('sidebar.menu.items.'+companySettings.booking_doc_name_variation+'s')}}</span></a>
+          </li>    
           <li *ngIf="hasPermission(701)">
             <a routerLink="employeescdl">
               <span class="unselectable" id="employeescdl">{{t('sidebar.menu.items.employeescdl')}}</span></a>

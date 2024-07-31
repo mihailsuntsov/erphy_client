@@ -456,7 +456,7 @@ this.http.get('/api/auth/getStoresList?company_id='+this.formBaseInformation.get
 
   //создание нового документа
   goToNewDocument(){
-    this._router.navigate(['ui/productattributesdoc',0]);
+    this._router.navigate(['ui/productattributesdoc']);
     this.id=0;
     this.formBaseInformation.get('id').setValue(null);
     this.formBaseInformation.get('name').setValue('');

@@ -1468,7 +1468,7 @@ export class ShipmentDocComponent implements OnInit {
 
   //создание нового документа
   goToNewDocument(){
-      this._router.navigate(['ui/shipmentdoc',0]);
+      this._router.navigate(['ui/shipmentdoc']);
       this.id=0;
       this.clearFormSearchAndProductTable();//очистка формы поиска и таблицы с отобранными товарами
       this.formBaseInformation.get('id').setValue(null);

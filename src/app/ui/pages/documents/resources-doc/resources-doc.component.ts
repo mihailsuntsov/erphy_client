@@ -347,7 +347,7 @@ export class ResourcesDocComponent implements OnInit {
 
   //создание нового документа
   goToNewDocument(){
-    this._router.navigate(['ui/resourcesdoc',0]);
+    this._router.navigate(['ui/resourcesdoc']);
     this.id=0;
     this.formBaseInformation.reset();
     this.formBaseInformation.get('departmentPartsTable').clear();

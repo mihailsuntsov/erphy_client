@@ -715,7 +715,7 @@ export class DepositingDocComponent implements OnInit {
 
   //создание нового документа после завершения текущего
   goToNewDocument(){
-      this._router.navigate(['ui/depositingdoc',0]);
+      this._router.navigate(['ui/depositingdoc']);
       this.id=0;      
       this.form.resetForm();
       this.formBaseInformation.get('id').setValue(0);

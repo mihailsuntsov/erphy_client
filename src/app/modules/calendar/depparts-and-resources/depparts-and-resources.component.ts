@@ -234,8 +234,8 @@ extends CalendarWeekViewComponent implements OnChanges, OnInit
 
 
   emitObjectOfDraggingToCreateEvent(resource:any, deppart:any, segmentWidth:number, date:Date, segmentElement: HTMLElement){
-    console.log('deppartId',deppart.id);
-    console.log('segmentWidth',segmentWidth);
+    // console.log('deppartId',deppart.id);
+    // console.log('segmentWidth',segmentWidth);
     // console.log('user',JSON.stringify(this.users[i]))
     if(deppart.is_active)
       this.objectOfCurrentResource.emit({resource:resource, deppartId:deppart.id, segmentWidth:segmentWidth, date:date, segmentElement:segmentElement });

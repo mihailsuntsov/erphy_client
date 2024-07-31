@@ -396,7 +396,7 @@ export class StatusesDocComponent implements OnInit {
 
   //создание нового документа
   goToNewDocument(){
-    this._router.navigate(['ui/statusesdoc',0]);
+    this._router.navigate(['ui/statusesdoc']);
     this.id=0;
     this.formBaseInformation.get('id').setValue(null);
     this.formBaseInformation.get('name').setValue('');

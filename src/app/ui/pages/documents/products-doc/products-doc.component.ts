@@ -1111,7 +1111,7 @@ changeTranslationMode(){if(this.storeTranslationModeOn) this.storeTranslationMod
   }
     //создание нового документа
   goToNewDocument(){
-    this._router.navigate(['ui/productsdoc',0]);
+    this._router.navigate(['ui/productsdoc']);
     this.id=0;
     this.formBaseInformation.reset();
     this.formBaseInformation.get('id').setValue(null);

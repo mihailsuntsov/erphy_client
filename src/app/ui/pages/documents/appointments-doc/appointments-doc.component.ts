@@ -628,6 +628,15 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     else return true;    //чтобы не было ExpressionChangedAfterItHasBeenCheckedError. Т.к. форма создается пустая и с .valid=true, а потом уже при заполнении проверяется еще раз.
   }
   get createUpdateButtonDisabled(){
+    // console.log('oneClickSaveControl',this.oneClickSaveControl);
+    // console.log('!childFormValid',!this.childFormValid);
+    // console.log('!formBaseInformation.valid',!this.formBaseInformation.valid);
+    // console.log('isEndDateTimeRecounting',this.isEndDateTimeRecounting);
+    // console.log('isEndDateTimEditing',this.isEndDateTimEditing);
+    // console.log('is_completed',this.is_completed);
+    // console.log('!editability',!this.editability);
+    // console.log('department_part_id==0',+this.formBaseInformation.get('department_part_id').value==0);
+    // console.log('!isDatesValid',!this.isDatesValid);
     return(
       this.oneClickSaveControl||
       !this.childFormValid||
@@ -742,7 +751,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     
     this.editability=((this.allowToCreate && +this.id==0)||(this.allowToUpdate && this.id>0));
     
-    console.log("refreshPermissions editability - "+this.editability);
+    // console.log("refreshPermissions editability - "+this.editability);
     // console.log("documentOfMyCompany - "+documentOfMyCompany);
     // console.log("allowToView - "+this.allowToView);
     // console.log("allowToUpdate - "+this.allowToUpdate);
@@ -980,8 +989,8 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   }
   refreshEnableDisableFields(){
     // let state:string=(!this.editability || this.is_completed) ? 'disable' : 'enable';
-    console.log('!this.editability',!this.editability)
-    console.log('this.is_completed',this.is_completed)
+    // console.log('!this.editability',!this.editability)
+    // console.log('this.is_completed',this.is_completed)
     let indx=0;
     if(!this.editability || this.is_completed){
       this.formBaseInformation.controls['name'].disable();
@@ -1128,9 +1137,9 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   // If there is only one service - it will be added automatically to the customers services list.
   // If there are more than one - they will be displayed in a dropdown list under the services search field
   addPreloadServiceToSelectedCustomer(){
-    console.log('this.filteredProducts.length>0',this.filteredProducts.length>0)
-    console.log('this.accessibleServicesIdsAll.length==1',this.accessibleServicesIdsAll.length==1)
-    console.log('this.preloadServicesIds.length>0', this.preloadServicesIds.length>0)
+    // console.log('this.filteredProducts.length>0',this.filteredProducts.length>0)
+    // console.log('this.accessibleServicesIdsAll.length==1',this.accessibleServicesIdsAll.length==1)
+    // console.log('this.preloadServicesIds.length>0', this.preloadServicesIds.length>0)
 
     if(this.filteredProducts.length>0 && this.accessibleServicesIdsAll.length==1 && this.preloadServicesIds.length>0){
         this.onSelectProductCustomer(this.filteredProducts.filter(product => product.id==this.accessibleServicesIdsAll[0])[0]);
@@ -1535,7 +1544,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       product_id: new UntypedFormControl (product.id,[]),
       appointment_id: new UntypedFormControl (+this.id,[]),
       name: new UntypedFormControl (product.name,[]),
-      product_count: new UntypedFormControl (this.getProductTimeQtt(product),[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$'), ValidationService.countMoreThanZero]),
+      product_count: new UntypedFormControl (product.isServiceByAppointment?this.getProductTimeQtt(product):1,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,3})?\r?$'), ValidationService.countMoreThanZero]),
       edizm: new UntypedFormControl (product.edizm,[]),
       edizm_id:  new UntypedFormControl (product.edizm_id,[]),
       edizm_type_id:  new UntypedFormControl (product.edizm_type_id,[]),
@@ -2058,6 +2067,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
           // that is because employees are loading after settings
           if(!this.settingsForm.get('hideEmployeeField').value) 
             this.getEmployeesList(true);
+          else this.initialLoading=false;
       },
       error => console.log(error)
     );
@@ -2159,7 +2169,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
 
     if(!this.isEndDateTimEditing && (['sum_all_length','max_length'].includes(this.settingsForm.get('endDateTime').value)) && (!this.data || (this.data && this.data.source!='onDragToCreateEventVert'))){
       // Can do time recounting
-      console.log('Can do time recounting!!!');
+      // console.log('Can do time recounting!!!');
       let sumOfSeconds = 3600; // 3600 is the minimal length if there are no services by Appointment - 1 hour by default
       let thereAreServicesByAppointment:boolean = false;
       this.getControlTablefield().value.map(product=>{
@@ -2446,7 +2456,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   // }
   //создание нового документа Заказ покупателя
   goToNewDocument(){
-    this._router.navigate(['ui/appointmentsdoc',0]);
+    this._router.navigate(['ui/appointmentsdoc']);
     this.id=0;
     // this.clearFormSearchAndProductTable();//очистка формы поиска и таблицы с отобранными на продажу товарами
     this.setDefaultStatus();//устанавливаем статус документа по умолчанию
@@ -2700,7 +2710,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     });
   }
   resetFormCustomerSearch(){
-    console.log('resetFormCustomerSearch')
+    // console.log('resetFormCustomerSearch')
     this.customerHasBeenSearched=false;
     this.formCustomerSearch.get('id').setValue(null);
     this.formCustomerSearch.get('telephone').setValue('');
@@ -3225,6 +3235,14 @@ deleteFile(id:number){
     // on data loading dates and times can be changed and it can 
     // isEndDateTimeRecounting - to deny change date/time in the case of changing services table, because it can produce circular queries
     // applyingInitialTimeSettings - to deny triggering of this function on initial setting the time 
+    // console.log('----------------')
+    // console.log('!this.oneClickSaveControl',!this.oneClickSaveControl);
+    // console.log('!this.initialLoading',!this.initialLoading);
+    // console.log('!this.isMainDataLoading',!this.isMainDataLoading);
+    // console.log('(this.isDatesValid||+this.id>0)',(this.isDatesValid||+this.id>0));
+    // console.log('!this.isEndDateTimeRecounting',!this.isEndDateTimeRecounting);
+    // console.log('!this.applyingInitialTimeSettings',!this.applyingInitialTimeSettings);
+    // console.log('----------------')
     if(!this.oneClickSaveControl&&!this.initialLoading&&!this.isMainDataLoading&&(this.isDatesValid||+this.id>0)&&!this.isEndDateTimeRecounting&&!this.applyingInitialTimeSettings){
       this.isEndDateTimEditing=true;
       this.documentChanged=true;
@@ -3235,7 +3253,7 @@ deleteFile(id:number){
       let row_index:number=0;
       let control = this.getControlTablefield();
       control.value.map(service=>{
-        if(service.edizm_type_id==6){
+        if(service.edizm_type_id==6 && service.isServiceByAppointment){
           control.controls[row_index].get('product_count').setValue(this.getProductTimeQtt(service));
           this.onChangeProductCount(row_index);//->setRowSumPrice(row_index) - пересчёт суммы по товарной позиции
         }
@@ -4455,7 +4473,7 @@ deleteFile(id:number){
   }
   nullToZeroInTableField(row_index:number, fieldName:string){
     const control = this.getControlTablefield();
-    console.log('control.controls[row_index].get(fieldName).value=',control.controls[row_index].get(fieldName).value)
+    // console.log('control.controls[row_index].get(fieldName).value=',control.controls[row_index].get(fieldName).value)
     
     if(control.controls[row_index].get(fieldName).value==null){
       control.controls[row_index].get(fieldName).setValue(0);

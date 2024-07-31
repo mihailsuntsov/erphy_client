@@ -249,10 +249,10 @@ export class AppointmentsComponent implements OnInit {
   getData(){
     if(this.refreshPermissions() && this.allowToView)
     {
-      console.log('department 1 = '+this.sendingQueryForm.departmentId);
+      // console.log('department 1 = '+this.sendingQueryForm.departmentId);
       this.doFilterCompaniesList(); //если нет просмотра по всем предприятиям - фильтруем список предприятий до своего предприятия
       this.doFilterDepartmentsList();//если нет просмотра по свому предприятию - фильтруем список отделений предприятия до своих отделений
-      console.log('department 2 = '+this.sendingQueryForm.departmentId);
+      // console.log('department 2 = '+this.sendingQueryForm.departmentId);
       this.getTableHeaderTitles();
       this.getPagesList();
       this.getTable();
@@ -437,7 +437,7 @@ export class AppointmentsComponent implements OnInit {
   deleteDocs(){
     const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
     this.clearCheckboxSelection();
-    return this.http.post('/api/auth/deleteappointments', body) 
+    return this.http.post('/api/auth/deleteAppointments', body) 
     .subscribe(
     (data) => {
       let result=data as any;
@@ -470,7 +470,7 @@ export class AppointmentsComponent implements OnInit {
   undeleteDocs(){
     const body = {"checked": this.checkedList.join()}; //join переводит из массива в строку
     this.clearCheckboxSelection();
-    return this.http.post('/api/auth/undeleteappointments', body) 
+    return this.http.post('/api/auth/undeleteAppointments', body) 
     .subscribe(
     (data) => {   
       let result=data as any;
@@ -529,10 +529,10 @@ export class AppointmentsComponent implements OnInit {
   }
 
   setDefaultCompany(){
-    console.log("Cookie CompanyId=",+Cookie.get('appointments_companyId'))
-    console.log("this.mode",this.mode)
-    console.log(+Cookie.get('appointments_companyId')==0)
-    console.log("!companyIdInList",!this.companyIdInList(+Cookie.get('appointments_companyId')))
+    // console.log("Cookie CompanyId=",+Cookie.get('appointments_companyId'))
+    // console.log("this.mode",this.mode)
+    // console.log(+Cookie.get('appointments_companyId')==0)
+    // console.log("!companyIdInList",!this.companyIdInList(+Cookie.get('appointments_companyId')))
     if(this.mode=='standart'){
       if(Cookie.get('appointments_companyId')!='undefined' && +Cookie.get('appointments_companyId')!=0){
         if(this.companyIdInList(+Cookie.get('appointments_companyId')))
@@ -663,8 +663,9 @@ export class AppointmentsComponent implements OnInit {
   fillOptionsList(){
     this.optionsIds=[
     {id:1, name:"menu.top.only_del"},
-    {id:2, name:"menu.top.only_exprd_or"},
-    {id:3, name:"menu.top.only_new_ordr"}];
+    // {id:2, name:"menu.top.only_exprd_or"},
+    // {id:3, name:"menu.top.only_new_ordr"}
+    ];
   }
   clickApplyFilters(){
     let showOnlyDeletedCheckboxIsOn:boolean = false; //присутствует ли включенный чекбокс "Показывать только удалённые"

@@ -351,7 +351,7 @@ getSetOfPermissions(){
 
   //создание нового документа
   goToNewDocument(){
-    this._router.navigate(['ui/taxesdoc',0]);
+    this._router.navigate(['ui/taxesdoc']);
     this.id=0;
     this.formBaseInformation.get('id').setValue(0);
     this.formBaseInformation.get('name').setValue('');

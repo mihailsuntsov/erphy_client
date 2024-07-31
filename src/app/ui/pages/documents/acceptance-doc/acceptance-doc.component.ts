@@ -1162,7 +1162,7 @@ export class AcceptanceDocComponent implements OnInit {
 
   //создание нового документа после проведения текущего
   goToNewDocument(){
-    this._router.navigate(['ui/acceptancedoc',0]);
+    this._router.navigate(['ui/acceptancedoc']);
     this.id=0;
     this.clearFormSearchAndProductTable();//очистка формы поиска и таблицы с отобранными товарами
     this.form.resetForm();
