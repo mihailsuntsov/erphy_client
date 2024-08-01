@@ -374,12 +374,21 @@ class="spinner"
                                     <button mat-icon-button
                                             class="status-button"
                                             [matTooltip]="event.meta.statusName"
-                                            [style.background-color]="event.meta.statusColor"
                                             (click)="dayEventClicked=true;oldStatusType = event.meta.statusType" 
-                                            [matMenuTriggerFor]="statuses_menu">
+                                            [matMenuTriggerFor]="!event.meta.completed?statuses_menu:null">
+                                            <mat-icon
+                                        [style.color]="event.meta.statusColor"
+                                        style="    height: 16px;
+                                        width: 16px;
+                                        font-size: 16px;
+                                        color: rgb(0, 0, 0);
+                                        position: absolute;
+                                        top: -1px;
+                                        left: -1px;"
+                                        >{{event.meta.completed?'check_circle':'circle'}}</mat-icon>
                                     </button>
                                     <span 
-                                    class="cal-event-title cut-string"
+                                    class="cal-event-title cut-string" 
                                     (click)="dayAddEventBtnClicked=true; onMonthViewEventClick(event)"
                                     [matTooltip]="event.title"
                                     matTooltipPosition="right"
@@ -416,13 +425,23 @@ class="spinner"
                                     <button mat-icon-button
                                             class="status-button"
                                             [matTooltip]="event.meta.statusName"
-                                            [style.background-color]="event.meta.statusColor"
                                             style="top:4px;"
                                             (click)="dayEventClicked=true;oldStatusType = event.meta.statusType" 
                                             [matMenuTriggerFor]="statuses_menu_lvl2">
+                                            <mat-icon
+                                        [style.color]="event.meta.statusColor"
+                                        style="    height: 16px;
+                                        width: 16px;
+                                        font-size: 16px;
+                                        color: rgb(0, 0, 0);
+                                        position: absolute;
+                                        top: -1px;
+                                        left: -1px;"
+                                        >{{event.meta.completed?'check_circle':'circle'}}</mat-icon>
                                     </button>
                                     <span 
                                     class="cal-event-title cut-string"
+                                    style="position: relative; top: -1px;"
                                     [matTooltip]="event.title"
                                     matTooltipPosition="right"  
                                     (click)="dayAddEventBtnClicked=true; onMonthViewEventClick(event)"

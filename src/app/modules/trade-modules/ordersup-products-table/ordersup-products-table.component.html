@@ -145,9 +145,8 @@
                                                             </div>
                                                             <div class="col-lg-1 col-md-12" style="min-width: 110px;"> 
                                                                 <mat-form-field class="mat-form-field-100">
-                                                                    <mat-label>{{t('modules.field.count')}}</mat-label>
+                                                                    <mat-label>{{t('modules.field.price')}}{{formSearch.get('edizm').value==''?'':' '+t('modules.field.for')+' 1'}}{{formSearch.get('edizm').value}}</mat-label>
                                                                     <input  matInput 
-                                                                            placeholder="{{t('modules.field.price')}}{{formSearch.get('edizm').value==''?'':' '+t('modules.field.for')+' 1'}}{{formSearch.get('edizm').value}}"
                                                                             formControlName="product_price"
                                                                             (input)="checkProductPriceInForm();calcSumPriceOfProduct()"
                                                                             (change)="checkProductPriceInForm();calcSumPriceOfProduct()"

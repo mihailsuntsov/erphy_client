@@ -1076,12 +1076,12 @@ export class EmployeeScdlComponent implements OnInit {
   }
 
         // data type can be: workshift, vacation, undefined
-  onDayClick(row_index:number, col_index:number, data_type:string){
+  onDayClick(row_index:number, col_index:number, data_type:string, automatic=false){
 
-    console.log('row_index',row_index);
-    console.log('col_index',col_index);
-    console.log('data_type',data_type);
-    console.log('isOverlaps',this.isOverlaps);
+    // console.log('row_index',row_index);
+    // console.log('col_index',col_index);
+    // console.log('data_type',data_type);
+    // console.log('isOverlaps',this.isOverlaps);
 
     const sceduleDay: SceduleDay = this.scheduleData[row_index].days[col_index];
 
@@ -1097,7 +1097,7 @@ export class EmployeeScdlComponent implements OnInit {
         this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.error.overlap_shifts_time')}})
     else
       if(data_type=='undefined'){ //  day is empty and user wants to add information into this day
-          this.addInfoToSceduleDay(row_index, col_index);
+          this.addInfoToSceduleDay(row_index, col_index, automatic);
       }else{ // if clicked day is vacation or work shift
         // const sceduleDay: SceduleDay = this.scheduleData[row_index].days[col_index];     
         this.editSceduleDay(row_index, col_index, data_type)
@@ -1180,7 +1180,7 @@ export class EmployeeScdlComponent implements OnInit {
 
 
 
-  addInfoToSceduleDay(row_index:number, col_index:number){
+  addInfoToSceduleDay(row_index:number, col_index:number, automatic=false){
     let employeeDepparts:number[] = [];
     let selectedDepparts:number[] = [];
     let statusOfSelectedDepparts:string='';
@@ -1203,10 +1203,12 @@ export class EmployeeScdlComponent implements OnInit {
         statusOfSelectedDepparts=this.statusOfSelectedDepparts(this.scheduleData[row_index].employee_services);
         switch (statusOfSelectedDepparts) {
           case 'some_of': {
-            this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.warning'),message:translate('docs.msg.some_of_depparts')}})
+            if(!automatic)
+              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.warning'),message:translate('docs.msg.some_of_depparts')}})
             break;}
           case 'none': {
-            this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.warning'),message:translate('docs.msg.none_of_depparts')}})
+            if(!automatic)
+              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.warning'),message:translate('docs.msg.none_of_depparts')}})
             break;}
         }
       } else {
@@ -1342,7 +1344,7 @@ export class EmployeeScdlComponent implements OnInit {
           col_index++;
           if(fillDayMode){
             amount_tick++;
-            this.onDayClick(row_index,col_index,'undefined');
+            this.onDayClick(row_index,col_index,'undefined', true);
             fillDayMode = amount_tick < result.amount || result.step == 0;
             step_tick= 0;
           } else {

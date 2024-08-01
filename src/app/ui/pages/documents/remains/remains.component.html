@@ -115,8 +115,8 @@ class="spinner"
                                                     [(value)]="sendingQueryForm.cagentId"/>
                                         </mat-form-field>
                                         <mat-form-field style="margin-left: 10px; width: 200px;"> 
+                                            <mat-label>{{t('menu.top.supplier')}}</mat-label>
                                             <input  matInput 
-                                            placeholder="{{t('menu.top.supplier')}}"
                                             [matAutocomplete]="auto4" 
                                             [formControl]="searchCagentCtrl"
                                             (input)="canCagentAutocompleteQuery=true; checkEmptyCagentField(true);"

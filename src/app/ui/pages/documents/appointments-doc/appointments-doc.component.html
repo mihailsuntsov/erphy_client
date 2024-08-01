@@ -1150,8 +1150,8 @@
                                                                                                                 type="number" min="0"
                                                                                                                 placeholder=""
                                                                                                                 formControlName="product_count"
-                                                                                                                (change)="onChangeProductCount(j);documentChanged=true;"
-                                                                                                                (keyup)="nullToZeroInTableField(j, 'product_count');onChangeProductCount(j);documentChanged=true;"
+                                                                                                                (change)="onChangeProductCount(j,row1.isServiceByAppointment);documentChanged=true;"
+                                                                                                                (keyup)="nullToZeroInTableField(j, 'product_count');onChangeProductCount(j,row1.isServiceByAppointment);documentChanged=true;"
                                                                                                                 (keypress)="numberOnlyPlusDotAndComma($event);documentChanged=true"
                                                                                                             />
                                                                                                             <span matSuffix>{{row1.edizm}}</span>
@@ -1256,6 +1256,7 @@
                                                                                                         </mat-icon>
                                                                                                     </th>
                                                                                                     <td mat-cell *matCellDef="let row1; let j = index" [formGroupName]="j">
+                                                                                                        <!-- {{editability}}-{{!is_completed}} -->
                                                                                                         <!-- <mat-icon style="cursor: pointer" *ngIf="!(getControlTablefield().controls[j].get('is_main').value)" (click)="deleteProductRow(row,i)">delete_forever</mat-icon> -->
                                                                                                         <mat-icon style="cursor: pointer" 
                                                                                                         *ngIf="editability&&!is_completed" 

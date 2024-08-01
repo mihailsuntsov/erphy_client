@@ -979,18 +979,12 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   }
 
   get isDatesValid():boolean{
-    // if(
-    //   !moment(moment(new Date(this.formBaseInformation.get('date_start').value)).format('DD.MM.YYYY')+' '+this.timeTo24h(this.formBaseInformation.get('time_start').value), 'DD.MM.YYYY HH:mm', true).isValid() ||
-    //   !moment(moment(new Date(this.formBaseInformation.get('date_end').value)).format('DD.MM.YYYY')+' '+this.timeTo24h(this.formBaseInformation.get('time_end').value), 'DD.MM.YYYY HH:mm', true).isValid()
-    // ) return false; else return true;
     var beginningTime = moment(moment(new Date(this.formBaseInformation.get('date_start').value)).format('DD.MM.YYYY')+' '+this.timeTo24h(this.formBaseInformation.get('time_start').value), 'DD.MM.YYYY HH:mm');
     var endTime = moment(moment(new Date(this.formBaseInformation.get('date_end').value)).format('DD.MM.YYYY')+' '+this.timeTo24h(this.formBaseInformation.get('time_end').value), 'DD.MM.YYYY HH:mm');
     if(beginningTime.isBefore(endTime)) return true; else return false;
   }
+  // [disabled] is not working in FormArray with formControlNamesince Angular 14. Need to manage disabled/enabled manually
   refreshEnableDisableFields(){
-    // let state:string=(!this.editability || this.is_completed) ? 'disable' : 'enable';
-    // console.log('!this.editability',!this.editability)
-    // console.log('this.is_completed',this.is_completed)
     let indx=0;
     if(!this.editability || this.is_completed){
       this.formBaseInformation.controls['name'].disable();
@@ -1004,6 +998,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       this.getControlTablefield().value.map(()=>{
         this.getControlTablefield().at(indx).get('nds_id').disable();
         this.getControlTablefield().at(indx).get('price_type_id').disable();
+        indx++;
       });
     } 
     if(this.editability && !this.is_completed){
@@ -1018,6 +1013,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       this.getControlTablefield().value.map(()=>{
         this.getControlTablefield().at(indx).get('nds_id').enable();
         this.getControlTablefield().at(indx).get('price_type_id').enable();
+        indx++;
       });
     }
 
@@ -3255,7 +3251,7 @@ deleteFile(id:number){
       control.value.map(service=>{
         if(service.edizm_type_id==6 && service.isServiceByAppointment){
           control.controls[row_index].get('product_count').setValue(this.getProductTimeQtt(service));
-          this.onChangeProductCount(row_index);//->setRowSumPrice(row_index) - пересчёт суммы по товарной позиции
+          this.onChangeProductCount(row_index,service.isServiceByAppointment);//->setRowSumPrice(row_index) - пересчёт суммы по товарной позиции
         }
         row_index++;
       });
@@ -3589,13 +3585,6 @@ deleteFile(id:number){
     })
     return indx;
   }
-  // [disabled] of slide toggle is not working in FormArray with formControlName. Possibility it is a bug.
-  // so, I am setting it manually
-  // setIsPayerValue(row_id:number, customer_id:number, value){
-  //   console.log('row_id',row_id)
-  //   console.log('getCustomerArrayIndexByRowId(row_id)',this.getCustomerArrayIndexByRowId(row_id))
-  //   this.getControl('customersTable').controls[this.getCustomerArrayIndexByRowId(row_id)].get('is_payer').setValue(value);
-  // }
 
   getTaxMultiplifierBySelectedId(srchId:number):number {
     //возвращает множитель по выбранному НДС. например, для 20% будет 1.2, 0% - 1 и т.д 
@@ -3671,14 +3660,15 @@ deleteFile(id:number){
   }
 //------------------------------------------------- ON CHANGE...
   //при изменении поля Количество в таблице товаров
-  onChangeProductCount(row_index:number){
+  onChangeProductCount(row_index:number,isServiceByAppointment:boolean){
     // this.nullToZeroInTableField(row_index, 'product_count');
     this.commaToDotInTableField(row_index, 'product_count');  // замена запятой на точку
     this.setRowSumPrice(row_index);                           // пересчёт суммы оплаты за данный товар
     this.tableNdsRecount();                                   // пересчёт Суммы оплаты за товар с учётом НДС
     this.finishRecount();                                     // подсчёт TOTALS и отправка суммы в ККМ
     this.checkIndivisibleErrorOfProductTable();               // проверка на неделимость товара
-    this.recountEndDateTime();
+    if(isServiceByAppointment)
+      this.recountEndDateTime();
   }
   //при изменении поля Цена в таблице товаров
   onChangeProductPrice(row_index:number){

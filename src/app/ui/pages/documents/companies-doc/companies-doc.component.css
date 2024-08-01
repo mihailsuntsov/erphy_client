@@ -24,9 +24,17 @@ li {list-style: none;}
 }
 .add_circle {
     cursor: pointer;
+    position: relative;
+    bottom: 3px;
+    right: 0px;
+    color: #585858;
+    z-index: 1000;
+}
+.clear_field {
+    cursor: pointer;
     position: absolute;
-    top: 24px;
-    right: -5px;
+    bottom: 10px;
+    right: 0px;
     color: #585858;
     z-index: 1000;
 }
@@ -131,11 +139,8 @@ flex: 1 1 auto;
 .add-file {/*добавление подписей и печати*/
     cursor: hand;
     position: absolute;
-    top: -21px;
+    bottom: 0px;
     right: 0px;
-    /* width: 20px; */
-    /* height: 20px; */
-    /* color: #585858; */
     z-index: 1000;
 }
 .open-file {
