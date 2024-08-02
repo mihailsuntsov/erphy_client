@@ -297,6 +297,8 @@ export class CalendarComponent implements OnInit {
       departments: new UntypedFormControl([],[]), // set of departments IDs
       jobtitles: new UntypedFormControl([],[]), // set of job titles
       documents: new UntypedFormControl([59],[]), // set of documents to show in calendar
+      ifNoEmployeesThenNoEvents: new UntypedFormControl(true,[]),  // if no selected employees in filters - then no events with employees
+      withCancelledEvents: new UntypedFormControl(true,[]) // with cancelled events
     });
     this.settingsForm = new UntypedFormGroup({
       companyId: new UntypedFormControl                 (null,[]),    // company by default
@@ -740,7 +742,12 @@ export class CalendarComponent implements OnInit {
                                                   //status type:  1 - normal;  2 - final positive         3 - final negative
               "statusId":event.meta.statusId,
               "statusColor":event.meta.statusColor,
-              completed:event.meta.completed
+              "completed":event.meta.completed,
+
+              "sumAll":event.meta.sumAll,
+              "sumShipped":event.meta.sumShipped,
+              "sumPayed":event.meta.sumPayed,
+
             },                                    
             "resizable": {
               "beforeStart": true,
@@ -1721,5 +1728,10 @@ export class CalendarComponent implements OnInit {
   }
   onClickSchedulerHoour($event){
     // console.log('$event - ',$event)
+  }
+  isAllSumEqual(meta:any){
+    console.log('Meta',[meta.sumAll, meta.sumShipped, meta.sumPayed])
+    const allEqual = arr => arr.every(val => val === arr[0]);
+    return allEqual([meta.sumAll, meta.sumShipped, meta.sumPayed]);
   }
 }

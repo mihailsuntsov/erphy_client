@@ -428,4 +428,9 @@ export class DayViewSchedulerComponent
     const newIndex = currentColumnIndex + columnsMoved;
     return this.view.users[newIndex];
   }
+  isAllSumEqual(meta:any){
+    console.log('Meta',[meta.sumAll, meta.sumShipped, meta.sumPayed])
+    const allEqual = arr => arr.every(val => val === arr[0]);
+    return allEqual([/*meta.sumAll, */meta.sumShipped, meta.sumPayed]);
+  }
 }

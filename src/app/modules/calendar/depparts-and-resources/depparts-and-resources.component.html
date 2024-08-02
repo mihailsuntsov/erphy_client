@@ -367,10 +367,37 @@
                       </div>
                       <button mat-icon-button
                               class="status-button"
-                              [matTooltip]="allDayEvent.event.meta.statusName"
-                              [style.background-color]="allDayEvent.event.meta.statusColor"
+                              [matTooltip]="allDayEvent.event.meta.statusName+getAdditionalState(allDayEvent.event.meta)"
                               (click)="oldStatusType = allDayEvent.event.meta.statusType" 
                               [matMenuTriggerFor]="statuses_menu">
+                              <mat-icon
+                              [style.color]="allDayEvent.event.meta.statusColor"
+                              style="height: 22px;
+                              width: 22px;
+                              font-size: 22px;
+                              color: rgb(0, 138, 210);
+                              position: absolute;
+                              top: -1px;
+                              left: -1.5px;"
+                              >{{allDayEvent.event.meta.completed?'check_circle':'circle'}}</mat-icon>
+                              <mat-icon 
+                              *ngIf="showPaidSubicon(allDayEvent.event.meta)"
+                              [ngClass]="{
+                                paid:getPayedClass(allDayEvent.event.meta) == 'paid',
+                                paid_part:getPayedClass(allDayEvent.event.meta) == 'paid_part'
+                              }">
+                              {{getPayedClass(allDayEvent.event.meta) == 'paid'?'arrow_drop_down':'expand_more'}}
+                              </mat-icon>
+                              
+                              <mat-icon 
+                              *ngIf="showShippedSubicon(allDayEvent.event.meta)"
+                              [ngClass]="{
+                                shipped:getShippedClass(allDayEvent.event.meta) == 'shipped',
+                                shipped_part:getShippedClass(allDayEvent.event.meta) == 'shipped_part'
+                              }">
+                              {{getShippedClass(allDayEvent.event.meta) == 'shipped'?'arrow_drop_up':'expand_less'}}
+                                
+                              </mat-icon>
                       </button>
                       
                       <span class="cal-event-title"

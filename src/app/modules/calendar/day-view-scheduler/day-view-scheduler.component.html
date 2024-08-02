@@ -147,7 +147,8 @@
                         <mat-icon
                         [style.color]="timeEvent.event.meta.statusColor"
                         style="height: 22px; width: 22px;font-size: 22px;"
-                        >{{timeEvent.event.meta.completed?'check_circle':'circle'}}</mat-icon>
+                        >{{timeEvent.event.meta.completed?'check_circle':
+                        (isAllSumEqual(timeEvent.event.meta)?'circle':'incomplete_circle')}}</mat-icon>
                 </button>
                 <mat-icon 
                 *ngIf="!timeEvent.event.meta.completed"

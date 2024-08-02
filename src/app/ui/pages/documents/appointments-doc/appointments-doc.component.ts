@@ -426,6 +426,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   @ViewChild("doc_number", {static: false}) doc_number; 
   @ViewChild("form", {static: false}) form; 
   @ViewChild("formBI", {static: false}) formBI; 
+  // @ViewChild("customersSearchFieldValue", {static: false}) customersSearchFieldValue;
   // // @ViewChild(BalanceCagentComponent, {static: false}) public balanceCagentComponent:BalanceCagentComponent;  
   @ViewChild("customersSearchFieldValue", {static: false}) customersSearchFieldValue;
   @ViewChild("productSearchFieldValue", {static: false}) productSearchFieldValue;
@@ -594,7 +595,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       if(this.mode=='window'){this.id=this.data.docId; this.formBaseInformation.get('id').setValue(this.id);}
       this.formBaseInformation.get('company_id').setValue(this.data.companyId);
       this.company=this.data.company;
-      this.companySettings.booking_doc_name_variation=this.companySettings.booking_doc_name_variation;
+      this.companySettings.booking_doc_name_variation=this.data.booking_doc_name_variation;
       this.id = +this.data.docId;
       this.locale=this.data.locale;
       this.selectedDepparts=this.data.selectedDepparts;
@@ -615,6 +616,9 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     
     this.getSetOfPermissions();//
     
+  }
+  ngAfterViewInit() {
+    setTimeout(() => { this.customersSearchFieldValue.nativeElement.focus();}, 1000);
   }
   // ngAfterContentChecked() {
 
@@ -1317,7 +1321,9 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
         dateTo:       this.formBaseInformation.get('date_end').value,
         timeTo:       this.timeTo24h(this.formBaseInformation.get('time_end').value),
         depparts:     [this.formBaseInformation.get('department_part_id').value],
-        employees:    []
+        employees:    [],
+        ifNoEmployeesThenNoEvents:false, // events of all employees and without employees
+        withCancelledEvents:false        // no cancelled events
       }
   }
 
@@ -2824,6 +2830,7 @@ deleteFile(id:number){
 
   //создание связанных документов
   createLinkedDoc(docname:string, row:any){// row - the object of customersTable[]
+
     let uid = uuidv4();
     let canCreateLinkedDoc:CanCreateLinkedDoc=this.canCreateLinkedDoc(docname); //проверим на возможность создания связанного документа
     if(canCreateLinkedDoc.can){
@@ -2997,9 +3004,11 @@ deleteFile(id:number){
   }
   // можно ли создать связанный документ (да - если есть товары, подходящие для этого)
   canCreateLinkedDoc(docname:string):CanCreateLinkedDoc{
-    if(!(this.getControlTablefield && this.getControlTablefield().length>0)){
+    if(!(this.getControlTablefield && this.getControlTablefield().length>0))
       return {can:false, reason:translate('docs.msg.cnt_crt_items',{name:translate('docs.docs.'+this.commonUtilites.getDocNameByDocAlias(docname))})};
-    }else
+    else if(this.documentChanged)
+      return {can:false, reason:translate('docs.msg.save_first')};
+    else
       return {can:true, reason:''};
   }
 

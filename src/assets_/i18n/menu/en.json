@@ -116,7 +116,14 @@
         "ext_access":   "Open for external access",
         "group_do_ctgs":"Actions with category groups",
         "ch_cat_stores":"Сhange online stores for selected categories",
-        "del_ctgrs":    "Delete selected categories with all their child categories"
+        "del_ctgrs":    "Delete selected categories with all their child categories",
+        "paid":"Paid",
+        "paid_part":"Partially paid",
+        "no_paid":"Not paid",
+        "shipped":"Transferred",
+        "shipped_part":"Partially transferred",
+        "no_shipped":"Not transferred",
+        "completed":"Completed"
     },
     "table":{
         "name":         "Name",

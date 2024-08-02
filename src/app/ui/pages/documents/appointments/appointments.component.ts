@@ -537,12 +537,13 @@ export class AppointmentsComponent implements OnInit {
       if(Cookie.get('appointments_companyId')!='undefined' && +Cookie.get('appointments_companyId')!=0){
         if(this.companyIdInList(+Cookie.get('appointments_companyId')))
           this.sendingQueryForm.companyId=+Cookie.get('appointments_companyId');
-        else this.sendingQueryForm.companyId=this.myCompanyId;
+        else {
+          this.sendingQueryForm.companyId=this.myCompanyId;
+          Cookie.set('appointments_companyId', this.myCompanyId.toString(), 30, '/');}
       } else {
         this.sendingQueryForm.companyId=this.myCompanyId;
         Cookie.set('appointments_companyId', this.myCompanyId.toString(), 30, '/');
-      }
-        
+      }        
     }
     this.getDepartmentsList();
     this.getCompanySettings();
