@@ -77,3 +77,35 @@ button.status-button {
   line-height: 1;
   font-size: 14px;
 }
+.paid{
+  width: 22px;
+  font-size: 24px;
+  color: rgb(255, 255, 255);
+  position: absolute;
+  top: 1px;
+  left: -2.5px;
+}
+.shipped{
+  width: 22px;
+  font-size: 24px;
+  color: rgb(255, 255, 255);
+  position: absolute;
+  top: -5px;
+  left: -2.5px;
+}
+.paid_part{
+  width: 22px;
+  font-size: 13px;
+  color: rgb(255, 255, 255);
+  position: absolute;
+  top: 7px;
+  left: -1.5px;
+}
+.shipped_part{
+  width: 22px;
+  font-size: 13px;
+  color: rgb(255, 255, 255);
+  position: absolute;
+  top: 0px;
+  left: -1.5px;
+}

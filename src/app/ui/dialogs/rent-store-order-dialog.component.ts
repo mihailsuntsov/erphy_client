@@ -49,23 +49,24 @@ interface IdAndName {
         [diameter]="50"
         *ngIf="gettingTableData"
         ></mat-spinner>
-
-        <mat-card-title class="top-bar container-fluid" style="margin-bottom: -10px !important;"> 
-            <div class="row" id="topBlock">
-                <div class="card-name">
-                    <span>{{t('docs.card.store_ordering')}}</span>
+        <mat-card-header>
+            <mat-card-title class="top-bar container-fluid" style="margin-bottom: -10px !important;"> 
+                <div class="row" id="topBlock">
+                    <div class="card-name">
+                        <span>{{t('docs.card.store_ordering')}}</span>
+                    </div>
+                    
+                    <button 
+                        mat-raised-button 
+                        color="accent"
+                        (click)="onNoClick()"
+                        class="button small-button"
+                        style="margin-left: 5px! important;">
+                        <i class="material-icons">close</i>
+                    </button>
                 </div>
-                
-                <button 
-                    mat-raised-button 
-                    color="accent"
-                    (click)="onNoClick()"
-                    class="button small-button"
-                    style="margin-left: 5px! important;">
-                    <i class="material-icons">close</i>
-                </button>
-            </div>
-        </mat-card-title>
+            </mat-card-title>
+        </mat-card-header>
         <mat-card-content>
 
 

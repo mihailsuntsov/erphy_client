@@ -16,7 +16,7 @@ import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text
 import { PricesDialogComponent } from 'src/app/ui/dialogs/prices-dialog/prices-dialog.component'
 import { ProductCagentsDialogComponent } from 'src/app/ui/dialogs/product-cagents-dialog/product-cagents-dialog.component'
 import { ProductCategoriesDialogComponent } from 'src/app/ui/dialogs/product-categories-dialog/product-categories-dialog.component'
-import { ProductGroupFieldsDialogComponent } from 'src/app/ui/dialogs/product-group-fields-dialog/product-group-fields-dialog.component'
+// import { ProductGroupFieldsDialogComponent } from 'src/app/ui/dialogs/product-group-fields-dialog/product-group-fields-dialog.component'
 import { RemainsDialogComponent } from 'src/app/ui/dialogs/remains-dialog/remains-dialog.component'
 import { ProductBarcodesDialogComponent } from 'src/app/ui/dialogs/product-barcodes-dialog/product-barcodes-dialog.component'
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component'
@@ -37,7 +37,7 @@ import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
     PricesDialogComponent,
     ProductCagentsDialogComponent,
     ProductCategoriesDialogComponent,
-    ProductGroupFieldsDialogComponent,
+    // ProductGroupFieldsDialogComponent,
     RemainsDialogComponent,
     ProductBarcodesDialogComponent,
     MessageDialog,
@@ -67,7 +67,7 @@ import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
     PricesDialogComponent,
     ProductCagentsDialogComponent,
     ProductCategoriesDialogComponent,
-    ProductGroupFieldsDialogComponent,
+    // ProductGroupFieldsDialogComponent,
     RemainsDialogComponent,
     ProductBarcodesDialogComponent,
     MessageDialog,

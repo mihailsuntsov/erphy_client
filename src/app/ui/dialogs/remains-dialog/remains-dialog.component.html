@@ -1,26 +1,28 @@
 <mat-card appearance="outlined" class="card" *transloco="let t">
-    <mat-card-title class="flex">
-        <div class="card-name">{{data.docName}}</div>
-        <button 
-            mat-raised-button 
-            [disabled]="(!formBaseInformation.valid)"
-            (click)="saveRemains()"
-            matTooltip="{{'docs.tip.save' | transloco}}"
-            color="primary"
-            class="button small-button">
-            <i class="material-icons">save</i> 
-        </button>
-        <button 
-            (click)="onNoClick()"
-            mat-raised-button 
-            color="accent"            
-            matTooltip="{{'modules.tip.close_window' | transloco}}"
-            class="button small-button">
-            <i class="material-icons">close</i>
-        </button>
-    </mat-card-title>
+    <mat-card-header>
+        <mat-card-title class="flex">
+            <div class="card-name">{{data.docName}}</div>
+            <button 
+                mat-raised-button 
+                [disabled]="(!formBaseInformation.valid)"
+                (click)="saveRemains()"
+                matTooltip="{{'docs.tip.save' | transloco}}"
+                color="primary"
+                class="button small-button">
+                <i class="material-icons">save</i> 
+            </button>
+            <button 
+                (click)="onNoClick()"
+                mat-raised-button 
+                color="accent"            
+                matTooltip="{{'modules.tip.close_window' | transloco}}"
+                class="button small-button">
+                <i class="material-icons">close</i>
+            </button>
+        </mat-card-title>
+    </mat-card-header>
     <mat-card-content > 
-        
+    
         <form [formGroup]="formBaseInformation">   
             <mat-form-field  [style.display]="'block'">
                 <input matInput 

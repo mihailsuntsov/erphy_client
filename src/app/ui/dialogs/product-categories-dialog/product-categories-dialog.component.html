@@ -1,47 +1,48 @@
 <mat-card appearance="outlined" *ngIf="data.actionType=='create' || data.actionType=='update'" class="card" style="min-height: 443px;">
-    <mat-card-title class="flex">
-        <div class="card-name">{{data.docName}}</div>
-        <button 
-            *ngIf="formBaseInformation.get('isStoreCategory').value && formBaseInformation.get('storeCategoryTranslations').value.length>0"
-            (click)="changeTranslationMode()"
-            mat-raised-button 
-            matTooltip="{{'docs.tip.transl_mode' | transloco}}"
-            [color]="storeTranslationModeOn?'accent':'primary'"
-            class="button small-button">
-            <i class="material-icons">translate</i>
-        </button>
-        <button 
-            mat-raised-button 
-            [style.display]="data.actionType=='create'?'block':'none'"
-            (click)="clickBtnCreateProductCategory()" 
-            matTooltip="{{'docs.tip.create' | transloco}}"
-            [disabled]="!formBaseInformation.valid" 
-            color="primary"
-            class="button small-button">
-            <i class="material-icons">done</i>
-        </button>
-        <button 
-            mat-raised-button 
-            [style.display]="data.actionType=='update'?'block':'none'"
-            (click)="updateProductCategory()"
-            matTooltip="{{'docs.tip.save' | transloco}}"
-            [disabled]="!formBaseInformation.valid" 
-            color="primary"
-            class="button small-button">
-            <i class="material-icons">save</i>
-        </button>
-        <button 
-            (click)="onNoClick()"
-            mat-raised-button 
-            matTooltip="{{'modules.tip.close_window' | transloco}}"
-            color="accent"
-            class="button small-button">
-            <i class="material-icons">close</i>
-        </button>
-    </mat-card-title>
+    <mat-card-header>
+        <mat-card-title class="flex">
+            <div class="card-name">{{data.docName}}</div>
+            <button 
+                *ngIf="formBaseInformation.get('isStoreCategory').value && formBaseInformation.get('storeCategoryTranslations').value.length>0"
+                (click)="changeTranslationMode()"
+                mat-raised-button 
+                matTooltip="{{'docs.tip.transl_mode' | transloco}}"
+                [color]="storeTranslationModeOn?'accent':'primary'"
+                class="button small-button">
+                <i class="material-icons">translate</i>
+            </button>
+            <button 
+                mat-raised-button 
+                [style.display]="data.actionType=='create'?'flex':'none'"
+                (click)="clickBtnCreateProductCategory()" 
+                matTooltip="{{'docs.tip.create' | transloco}}"
+                [disabled]="!formBaseInformation.valid" 
+                color="primary"
+                class="button small-button">
+                <i class="material-icons">done</i>
+            </button>
+            <button 
+                mat-raised-button 
+                [style.display]="data.actionType=='update'?'flex':'none'"
+                (click)="updateProductCategory()"
+                matTooltip="{{'docs.tip.save' | transloco}}"
+                [disabled]="!formBaseInformation.valid" 
+                color="primary"
+                class="button small-button">
+                <i class="material-icons">save</i>
+            </button>
+            <button 
+                (click)="onNoClick()"
+                mat-raised-button 
+                matTooltip="{{'modules.tip.close_window' | transloco}}"
+                color="accent"
+                class="button small-button">
+                <i class="material-icons">close</i>
+            </button>
+        </mat-card-title>
+    </mat-card-header>  
     <mat-card-content > 
-        
-        
+         
         <mat-tab-group *ngIf = "storeTranslationModeOn" style="margin-top: -14px;">
         <!-- <mat-tab-group> -->
             <mat-tab *ngFor="let translation of formBaseInformation.get('storeCategoryTranslations').controls; let i = index" [formGroup]="translation" [label]="translation.get('langCode').value">

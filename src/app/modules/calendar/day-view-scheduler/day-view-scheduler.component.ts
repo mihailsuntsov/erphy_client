@@ -11,6 +11,7 @@ import {
   Output,
   SimpleChanges,
 } from '@angular/core';
+import { translate } from '@ngneat/transloco';
 // import {
 //   addDaysWithExclusions
 // } from 'angular-calendar/modules/common/util/util'
@@ -428,9 +429,42 @@ export class DayViewSchedulerComponent
     const newIndex = currentColumnIndex + columnsMoved;
     return this.view.users[newIndex];
   }
-  isAllSumEqual(meta:any){
-    console.log('Meta',[meta.sumAll, meta.sumShipped, meta.sumPayed])
-    const allEqual = arr => arr.every(val => val === arr[0]);
-    return allEqual([/*meta.sumAll, */meta.sumShipped, meta.sumPayed]);
+  // isAllSumEqual(meta:any){
+  //   console.log('Meta',[meta.sumAll, meta.sumShipped, meta.sumPayed])
+  //   const allEqual = arr => arr.every(val => val === arr[0]);
+  //   return allEqual([/*meta.sumAll, */meta.sumShipped, meta.sumPayed]);
+  // }
+  getAdditionalState(meta:any){
+    let paid_state = '';
+    let shipped_state = '';
+    let completed_state = '';
+    if(meta.sumPayed>=meta.sumAll) paid_state = 'paid'
+    else if (meta.sumPayed>0 && meta.sumPayed<meta.sumAll) paid_state = 'paid_part'
+    else  paid_state = 'no_paid';
+    if(meta.sumShipped>=meta.sumAll) shipped_state = 'shipped'
+    else if (meta.sumShipped>0 && meta.sumShipped<meta.sumAll) shipped_state = 'shipped_part'
+    else  shipped_state = 'no_shipped';
+    if(meta.completed) completed_state='completed'; else  completed_state='';
+    return '\n'+translate('menu.tip.'+shipped_state)+'\n'+translate('menu.tip.'+paid_state)+(completed_state!=''?('\n'+translate('menu.tip.'+completed_state)):'');
+  }
+  showPaidSubicon(meta:any):boolean{
+    return !meta.completed && (meta.sumPayed>=meta.sumAll || (meta.sumPayed>0 && meta.sumPayed<meta.sumAll))
+  }
+  showShippedSubicon(meta:any):boolean{
+    return !meta.completed && (meta.sumShipped>=meta.sumAll || (meta.sumShipped>0 && meta.sumShipped<meta.sumAll))
+  }
+  getPayedClass(meta:any):string{
+    let result = '';
+    if(meta.sumPayed>=meta.sumAll) result = 'paid';
+    if (meta.sumPayed>0 && meta.sumPayed<meta.sumAll) result = 'paid_part';
+    // console.log('CLASS Shipped', result)
+    return result;
+  }
+  getShippedClass(meta:any):string{
+    let result = '';
+    if(meta.sumShipped>=meta.sumAll) result = 'shipped'
+    else if (meta.sumShipped>0 && meta.sumShipped<meta.sumAll) result = 'shipped_part'
+    // console.log('CLASS Payed', result)
+    return result;
   }
 }

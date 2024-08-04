@@ -139,7 +139,7 @@
 
             <ng-template #eventTemplate1>
               <div class="cal-event" style="padding-left: 25px; cursor:default">
-                <button mat-icon-button
+                <!-- <button mat-icon-button
                         class="status-button"
                         [matTooltip]="timeEvent.event.meta.statusName"
                         (click)="oldStatusType = timeEvent.event.meta.statusType" 
@@ -149,6 +149,39 @@
                         style="height: 22px; width: 22px;font-size: 22px;"
                         >{{timeEvent.event.meta.completed?'check_circle':
                         (isAllSumEqual(timeEvent.event.meta)?'circle':'incomplete_circle')}}</mat-icon>
+                </button> -->
+                <button mat-icon-button
+                  class="status-button"
+                  [matTooltip]="timeEvent.event.meta.statusName+getAdditionalState(timeEvent.event.meta)"
+                  (click)="oldStatusType = timeEvent.event.meta.statusType" 
+                  [matMenuTriggerFor]="statuses_menu">
+                  <mat-icon
+                    [style.color]="timeEvent.event.meta.statusColor"
+                    style="height: 22px;
+                    width: 22px;
+                    font-size: 22px;
+                    color: rgb(0, 138, 210);
+                    position: absolute;
+                    top: -1px;
+                    left: -1.5px;"
+                    >{{timeEvent.event.meta.completed?'check_circle':'circle'}}
+                  </mat-icon>
+                  <mat-icon 
+                    *ngIf="showPaidSubicon(timeEvent.event.meta)"
+                    [ngClass]="{
+                      paid:getPayedClass(timeEvent.event.meta) == 'paid',
+                      paid_part:getPayedClass(timeEvent.event.meta) == 'paid_part'
+                    }">
+                    {{getPayedClass(timeEvent.event.meta) == 'paid'?'arrow_drop_down':'expand_more'}}
+                  </mat-icon>                              
+                  <mat-icon 
+                    *ngIf="showShippedSubicon(timeEvent.event.meta)"
+                    [ngClass]="{
+                      shipped:getShippedClass(timeEvent.event.meta) == 'shipped',
+                      shipped_part:getShippedClass(timeEvent.event.meta) == 'shipped_part'
+                    }">
+                    {{getShippedClass(timeEvent.event.meta) == 'shipped'?'arrow_drop_up':'expand_less'}}                                
+                  </mat-icon>
                 </button>
                 <mat-icon 
                 *ngIf="!timeEvent.event.meta.completed"

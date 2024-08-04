@@ -1237,20 +1237,12 @@ extends CalendarWeekViewComponent implements OnChanges, OnInit
   getTimeWIthFormat(date:Date){return moment(date).format(this.timeFormat=='12'?'hh A':'HH')}
   getDate(date:Date){return moment(date).format('DD')}
   
-  isAllSumEqual(meta:any){
-    console.log('Meta',[meta.sumAll, meta.sumShipped, meta.sumPayed])
-    const allEqual = arr => arr.every(val => val === arr[0]);
-    return allEqual([/*meta.sumAll,*/ meta.sumShipped, meta.sumPayed]);
-  }
+  // isAllSumEqual(meta:any){
+  //   console.log('Meta',[meta.sumAll, meta.sumShipped, meta.sumPayed])
+  //   const allEqual = arr => arr.every(val => val === arr[0]);
+  //   return allEqual([/*meta.sumAll,*/ meta.sumShipped, meta.sumPayed]);
+  // }
   getAdditionalState(meta:any){
-    // Оплата:
-    // - Не оплачен
-    // - Оплачен частично
-    // - Оплачен
-    // Передача:
-    // - Не передан
-    // - Передан частично
-    // - Передан
     let paid_state = '';
     let shipped_state = '';
     let completed_state = '';
@@ -1270,7 +1262,6 @@ extends CalendarWeekViewComponent implements OnChanges, OnInit
   showShippedSubicon(meta:any):boolean{
     return !meta.completed && (meta.sumShipped>=meta.sumAll || (meta.sumShipped>0 && meta.sumShipped<meta.sumAll))
   }
-
   getPayedClass(meta:any):string{
     let result = '';
     if(meta.sumPayed>=meta.sumAll) result = 'paid';
@@ -1278,7 +1269,6 @@ extends CalendarWeekViewComponent implements OnChanges, OnInit
     // console.log('CLASS Shipped', result)
     return result;
   }
-
   getShippedClass(meta:any):string{
     let result = '';
     if(meta.sumShipped>=meta.sumAll) result = 'shipped'

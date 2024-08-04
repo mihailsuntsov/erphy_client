@@ -1,4 +1,4 @@
-:host{
+/* :host{
     flex-grow: 1;
     align-items: center;
     display: flex;
@@ -25,4 +25,4 @@ li {list-style: none;}
 .input-form{
     display: flex;
     flex-direction: column;
-}
+} */
