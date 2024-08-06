@@ -785,7 +785,7 @@
                                                     <ng-container matColumnDef="name" [formArrayName]="'customersTable'">
                                                         <th mat-header-cell *matHeaderCellDef>{{t('modules.col.name')}}</th>
                                                         <td mat-cell *matCellDef="let row; let i = dataIndex" [formGroupName]="i" style="position: relative"> 
-                                                            <a href="/ui/cagentsdoc/{{row.id}}" target="_blank" style="color:rgba(0, 0, 0, 0.87)" *ngIf="row.id>0"><span>{{row.name}}</span></a>
+                                                            <a href="ui/cagentsdoc/{{row.id}}" target="_blank" style="color:rgba(0, 0, 0, 0.87)" *ngIf="row.id>0"><span>{{row.name}}</span></a>
                                                             <span *ngIf="+row.id==0">{{row.name}}</span>
                                                             <app-balance-cagent *ngIf="+row.id>0 && showBalanceModules" style="position: absolute; top: 2px; right: 0;"
                                                                 [company_id]="formBaseInformation.get('company_id').value"
@@ -1120,7 +1120,7 @@
                                                                                                             person
                                                                                                         </mat-icon>
                                                                                                         <!-- <span>j={{j}}</span>,  -->
-                                                                                                        <a  target="_blank" href="/ui/productsdoc/{{row1.product_id}}" style="color:rgba(0, 0, 0, 0.87)"><span 
+                                                                                                        <a  target="_blank" href="ui/productsdoc/{{row1.product_id}}" style="color:rgba(0, 0, 0, 0.87)"><span 
                                                                                                         [ngClass]="{'nameInTableWithIcon':row1.departmentPartsWithResourcesIds.length>0 && !accessibleTableServicesIdsByResourcesOfSelectedDepPart.includes(row1.product_id)} && +formBaseInformation.get('department_part_id').value>0">
                                                                                                         {{row1.name}}</span></a>
                                                                                                     </td>
@@ -1150,7 +1150,7 @@
                                                                                                                 type="number" min="0"
                                                                                                                 placeholder=""
                                                                                                                 formControlName="product_count"
-                                                                                                                (change)="onChangeProductCount(j,row1.isServiceByAppointment);documentChanged=true;"
+                                                                                                                (input)="onChangeProductCount(j,row1.isServiceByAppointment);documentChanged=true;"
                                                                                                                 (keyup)="nullToZeroInTableField(j, 'product_count');onChangeProductCount(j,row1.isServiceByAppointment);documentChanged=true;"
                                                                                                                 (keypress)="numberOnlyPlusDotAndComma($event);documentChanged=true"
                                                                                                             />
@@ -1309,7 +1309,7 @@
                                                                                                 <ng-container matColumnDef="open">
                                                                                                     <th mat-header-cell *matHeaderCellDef>&nbsp;</th>
                                                                                                     <td mat-cell *matCellDef="let row1; let j = index"> 
-                                                                                                        <a class="inactive" href="/ui/{{row1.docName}}doc/{{row1.id}}" target="_blank">
+                                                                                                        <a class="inactive" href="ui/{{row1.docName}}doc/{{row1.id}}" target="_blank">
                                                                                                             <mat-icon>launch</mat-icon>
                                                                                                         </a>
                                                                                                     </td>

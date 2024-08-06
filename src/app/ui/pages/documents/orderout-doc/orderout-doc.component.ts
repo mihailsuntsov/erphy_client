@@ -144,6 +144,12 @@ export class OrderoutDocComponent implements OnInit {
   receivedKassaDepartmentsList: idAndName [] = [];//массив для получения списка отделений
   accountingCurrency='';// short name of Accounting currency of user's company (e.g. $ or EUR)
 
+  // расчет налогов
+  companySettings:any={vat:false,vat_included:false}
+  showVatCalculator=false;
+  spravTaxesSet:any[]=[];
+  vatId:number=null;
+  
   //для загрузки связанных документов
   linkedDocsReturn:LinkedDocs[]=[];
   panelReturnOpenState=false;
@@ -470,6 +476,8 @@ export class OrderoutDocComponent implements OnInit {
     this.formBaseInformation.get('boxoffice_to_id').setValue(null);
     this.getBoxofficesList();
     this.getCompaniesPaymentAccounts();
+    this.getCompanySettings();
+    this.getSpravTaxes();
     this.getStatusesList();
     //если идет стартовая прогрузка - продолжаем цепочку запросов. Если это была, например, просто смена предприятия - продолжать далее текущего метода смысла нет
     if(this.startProcess) {
@@ -546,9 +554,44 @@ export class OrderoutDocComponent implements OnInit {
     this.refreshPermissions();
     this.getCompaniesPaymentAccounts();
     this.getBoxofficesList();
+    this.getCompanySettings();
+    this.getSpravTaxes();
     this.getMovingTypesList();
   }
-  
+  // *********************  Расчет налогов  **********************
+  getCompanySettings(){
+    this.http.get('/api/auth/getCompanySettings?id='+this.formBaseInformation.get('company_id').value)
+      .subscribe(
+        data => {         
+          this.companySettings = data as any;
+        },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+    );
+  }
+  getSpravTaxes(){
+  // Цена товара и сумма это разные вещи. Цена товара может включать или не включать НДС, а сумма всегда уже с НДС
+  // В платеж приходит СУММА. Можно вычленить из нее НДС по формуле 100 * 20 / 120 (где 20 это НДС)
+      this.loadSpravService.getSpravTaxes(this.formBaseInformation.get('company_id').value)
+        .subscribe((data) => {
+          this.spravTaxesSet=data as any[];
+        },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
+  }
+  taxCalculate(){
+    if(+this.vatId>0){
+      let totalNds=0;
+      this.showVatCalculator=false;
+      totalNds = this.getTaxFromPrice(this.formBaseInformation.get('summ').value);
+      this.formBaseInformation.get('nds').setValue(totalNds);
+    }
+  }
+  getTaxFromPrice(price:number):number {
+    // вычисляет налог из цены. Например, для цены 100, уже содержащей в себе налог, и налога 20% вернёт: 100 * 20 / 120 = 16.67
+    let value=0;
+    this.spravTaxesSet.forEach(a=>{if(+a.id == this.vatId) {value=a.value}});
+    return parseFloat((price*value/(100+value)).toFixed(2));
+  }
+ // *********************  Конец Расчета налогов  **********************
   //определяет, есть ли предприятие в загруженном списке предприятий
   isCompanyInList(companyId:number):boolean{
 
@@ -622,6 +665,8 @@ export class OrderoutDocComponent implements OnInit {
                 this.getKassaListByDepId();   // все кассы KKM отеделений, привязанных к кассе препдриятия boxoffice_id
                 this.getCompaniesPaymentAccounts(); //расч счета
                 this.getStatusesList();//статусы документа Расходный ордер
+                this.getCompanySettings();
+                this.getSpravTaxes();
                 this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов              
               } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}})} //+++
               this.refreshPermissions();

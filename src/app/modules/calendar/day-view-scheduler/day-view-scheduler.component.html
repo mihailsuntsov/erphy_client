@@ -154,7 +154,7 @@
                   class="status-button"
                   [matTooltip]="timeEvent.event.meta.statusName+getAdditionalState(timeEvent.event.meta)"
                   (click)="oldStatusType = timeEvent.event.meta.statusType" 
-                  [matMenuTriggerFor]="statuses_menu">
+                  [matMenuTriggerFor]="!timeEvent.event.meta.completed?statuses_menu:null">
                   <mat-icon
                     [style.color]="timeEvent.event.meta.statusColor"
                     style="height: 22px;

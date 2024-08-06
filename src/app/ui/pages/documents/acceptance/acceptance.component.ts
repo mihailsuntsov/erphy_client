@@ -449,7 +449,7 @@ export class AcceptanceComponent implements OnInit {
         case 1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:(translate('menu.msg.error_msg'))}});break;}
         case 2:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.ne_perm')}});break;}
         case 3:{let numbers:string='';
-          for(var i=0;i<result.docs.length;i++){numbers=numbers+' <a href="/ui/acceptancedoc/'+result.docs[i].id+'">'+result.docs[i].doc_number+'</a>';}
+          for(var i=0;i<result.docs.length;i++){numbers=numbers+' <a href="ui/acceptancedoc/'+result.docs[i].id+'">'+result.docs[i].doc_number+'</a>';}
           this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.no_del_childs')+numbers}});break;}
       }
     },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},); //+++

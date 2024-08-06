@@ -115,7 +115,7 @@
                           <mat-card-header>
                             <mat-card-title-group>
                               <mat-card-title>
-                                <a class="service-card-header-name" target="_blank" href="/ui/productsdoc/{{service.id}}">{{service.name}}</a>
+                                <a class="service-card-header-name" target="_blank" href="ui/productsdoc/{{service.id}}">{{service.name}}</a>
                               </mat-card-title>
                               <mat-card-subtitle [innerHTML]="service.description"></mat-card-subtitle>
                               <img mat-card-sm-image *ngIf="service.imageFile" matTooltip="{{('modules.tip.opn_image' | transloco)}}" (click)="showImage(service.imageFile)" [src]="'/api/public/getFile/'+service.imageFile" width=100%>
@@ -150,7 +150,7 @@
                       <mat-card-header>
                         <mat-card-title-group>
                           <mat-card-title>
-                            <a class="service-card-header-name" target="_blank" href="/ui/productsdoc/{{resourceServicesList[0].id}}">{{resourceServicesList[0].name}}</a>
+                            <a class="service-card-header-name" target="_blank" href="ui/productsdoc/{{resourceServicesList[0].id}}">{{resourceServicesList[0].name}}</a>
                             </mat-card-title>
                           <mat-card-subtitle [innerHTML]="resourceServicesList[0].description"></mat-card-subtitle>
                           <img mat-card-sm-image *ngIf="resourceServicesList[0].imageFile" matTooltip="{{('modules.tip.opn_image' | transloco)}}" (click)="showImage(resourceServicesList[0].imageFile)" [src]="'/api/public/getFile/'+resourceServicesList[0].imageFile" width=100%>
@@ -369,7 +369,7 @@
                               class="status-button"
                               [matTooltip]="allDayEvent.event.meta.statusName+getAdditionalState(allDayEvent.event.meta)"
                               (click)="oldStatusType = allDayEvent.event.meta.statusType" 
-                              [matMenuTriggerFor]="statuses_menu">
+                              [matMenuTriggerFor]="!allDayEvent.event.meta.completed?statuses_menu:null">
                               <mat-icon
                                 [style.color]="allDayEvent.event.meta.statusColor"
                                 style="height: 22px;

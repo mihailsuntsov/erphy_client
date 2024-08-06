@@ -329,7 +329,7 @@ class="spinner"
                                         <mat-expansion-panel style="border:0px solid white; box-shadow: unset;margin-top: 20px;">
                                             <mat-expansion-panel-header style="/*height: 20px;*/padding: 2px;">
                                                 <mat-panel-title>
-                                                Additional
+                                                    {{t('docs.tab.advanced')}}
                                                 </mat-panel-title>
                                             </mat-expansion-panel-header>
                                             <mat-form-field class="mat-form-field-100">
@@ -427,7 +427,7 @@ class="spinner"
                                             [matTooltip]="event.meta.statusName"
                                             style="top:4px;"
                                             (click)="dayEventClicked=true;oldStatusType = event.meta.statusType" 
-                                            [matMenuTriggerFor]="statuses_menu_lvl2">
+                                            [matMenuTriggerFor]="!event.meta.completed?statuses_menu_lvl2:null">
                                             <mat-icon
                                         [style.color]="event.meta.statusColor"
                                         style="    height: 16px;

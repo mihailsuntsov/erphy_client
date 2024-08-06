@@ -517,7 +517,7 @@ export class ReceiptsComponent implements OnInit {
 //       case 1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:("В ходе удаления "+(this.checkedList.length>1?"документов":"документа")+" проиошла ошибка")}});break;}
 //       case 2:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:"Недостаточно прав для операции удаления"}});break;}
 //       case 3:{let numbers:string='';
-//         for(var i=0;i<result.docs.length;i++){numbers=numbers+' <a href="/ui/receiptsdoc/'+result.docs[i].id+'">'+result.docs[i].doc_number+'</a>';}
+//         for(var i=0;i<result.docs.length;i++){numbers=numbers+' <a href="ui/receiptsdoc/'+result.docs[i].id+'">'+result.docs[i].doc_number+'</a>';}
 //         this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:'Удаление невозможно - у следующих номеров документов есть производные (связанные с ними дочерние) документы:'+numbers}});break;}
 //     }
 //   },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},);

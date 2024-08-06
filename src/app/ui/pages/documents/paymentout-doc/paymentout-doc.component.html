@@ -416,13 +416,13 @@
                                                             </div>
                                                             <div class="col-12"> 
                                                                 <mat-form-field   class="mat-form-field-100">
-                                                                    <mat-label>{{t('docs.field.sum')}} <span *ngIf="formBaseInformation.get('summ').value==''" class="star">*</span></mat-label>
+                                                                    <mat-label>{{t('docs.field.sum')}}, {{accountingCurrency}} <span *ngIf="formBaseInformation.get('summ').value==''" class="star">*</span></mat-label>
                                                                     <input  matInput
                                                                             [readonly]="this.formBaseInformation.get('is_completed').value"
                                                                             maxlength="15"
                                                                             formControlName="summ"
-                                                                            (input)="commaToDot('summ');"
-                                                                            (change)="commaToDot('summ');"
+                                                                            (input)="commaToDot('summ');taxCalculate()"
+                                                                            (change)="commaToDot('summ');taxCalculate()"
                                                                             (keypress)="numberOnlyPlusDotAndComma($event)"/>
                                                                             <mat-hint  align="start" *ngIf="formBaseInformation.get('summ').touched && formBaseInformation.get('summ').invalid">
                                                                                 <i *ngIf="formBaseInformation.get('summ').errors.pattern" class="form-invalid">{{t('docs.error.price_format',{int:9,fract:2})}}</i>
@@ -432,7 +432,7 @@
                                                             </div>
                                                             <div class="col-12"> 
                                                                 <mat-form-field   class="mat-form-field-100">
-                                                                    <mat-label>{{t('docs.field.including_vat')}} <span *ngIf="formBaseInformation.get('nds').value==null" class="star">*</span></mat-label>
+                                                                    <mat-label>{{t('docs.field.including_vat')}}, {{accountingCurrency}} <span *ngIf="formBaseInformation.get('nds').value==null" class="star">*</span></mat-label>
                                                                     <input  matInput
                                                                             [readonly]="this.formBaseInformation.get('is_completed').value"
                                                                             maxlength="15"
@@ -441,10 +441,30 @@
                                                                             (change)="commaToDot('nds');"
                                                                             (keyup)="setNdsNullIfEmpty();"
                                                                             (keypress)="numberOnlyPlusDotAndComma($event);"/>
+                                                                            <mat-icon
+                                                                                *ngIf="+formBaseInformation.get('summ').value>0 && !this.formBaseInformation.get('is_completed').value"
+                                                                                class="add_circle"
+                                                                                (click)="showVatCalculator=!showVatCalculator">
+                                                                                calculate
+                                                                            </mat-icon>
                                                                             <mat-hint  align="start" *ngIf="formBaseInformation.get('nds').touched && formBaseInformation.get('nds').invalid">
                                                                                 <i *ngIf="formBaseInformation.get('nds').errors.pattern" class="form-invalid">{{t('docs.error.price_format',{int:9,fract:2})}}</i>
                                                                                 <i *ngIf="formBaseInformation.get('nds').value==null" class="form-invalid">{{t('docs.error.field_miss')}}</i>
                                                                             </mat-hint>
+                                                                </mat-form-field>
+                                                            </div>
+                                                            <div class="col-12" *ngIf="showVatCalculator && !this.formBaseInformation.get('is_completed').value && +formBaseInformation.get('summ').value>0">
+                                                                <mat-form-field  class="mat-form-field-100">
+                                                                    <mat-label>{{t('modules.field.tax')}}</mat-label>
+                                                                    <mat-select  
+                                                                        (selectionChange)="taxCalculate()"
+                                                                        [(ngModel)]="vatId"
+                                                                        [ngModelOptions]="{standalone: true}" 
+                                                                    >                                                                                         
+                                                                        <mat-option  *ngFor="let rt of spravTaxesSet" [value]="rt.id">
+                                                                                {{rt.name}}
+                                                                        </mat-option> 
+                                                                    </mat-select>
                                                                 </mat-form-field>
                                                             </div>
                                                         </div>

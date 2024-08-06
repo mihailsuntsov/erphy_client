@@ -140,6 +140,12 @@ export class OrderinDocComponent implements OnInit {
   kassaList:any[]=[];  // список касс ККМ по отделениям, которые привязаны к кассе предприятия boxoffice_id
   accountingCurrency='';// short name of Accounting currency of user's company (e.g. $ or EUR)
 
+  // расчет налогов
+  companySettings:any={vat:false,vat_included:false}
+  showVatCalculator=false;
+  spravTaxesSet:any[]=[];
+  vatId:number=null;
+  
   withdrawalList: any[];             // список выемок, из которых поступили средства
   paymentoutList: any[];             // список исходящих платежей, из которых поступили средства
   orderoutList: any[];               // список расходных ордеров, из которых поступили средства
@@ -473,6 +479,8 @@ export class OrderinDocComponent implements OnInit {
     this.formBaseInformation.get('boxoffice_id').setValue(null);
     this.getBoxofficesList();
     this.getStatusesList();
+    this.getCompanySettings();
+    this.getSpravTaxes();
     this.getCompaniesPaymentAccounts(); // загрузка расч. счетов
     //если идет стартовая прогрузка - продолжаем цепочку запросов. Если это была, например, просто смена предприятия - продолжать далее текущего метода смысла нет
     if(this.startProcess) {
@@ -552,9 +560,44 @@ export class OrderinDocComponent implements OnInit {
     this.getBoxofficesList();  
     this.getCompaniesPaymentAccounts(); // загрузка расч. счетов
     this.getMovingTypesList();  // типы внутреннего перемещения
+    this.getCompanySettings();
+    this.getSpravTaxes();
     this.refreshPermissions();
   }
-  
+  // *********************  Расчет налогов  **********************
+  getCompanySettings(){
+    this.http.get('/api/auth/getCompanySettings?id='+this.formBaseInformation.get('company_id').value)
+      .subscribe(
+        data => {         
+          this.companySettings = data as any;
+        },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+    );
+  }
+  getSpravTaxes(){
+  // Цена товара и сумма это разные вещи. Цена товара может включать или не включать НДС, а сумма всегда уже с НДС
+  // В платеж приходит СУММА. Можно вычленить из нее НДС по формуле 100 * 20 / 120 (где 20 это НДС)
+      this.loadSpravService.getSpravTaxes(this.formBaseInformation.get('company_id').value)
+        .subscribe((data) => {
+          this.spravTaxesSet=data as any[];
+        },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
+  }
+  taxCalculate(){
+    if(+this.vatId>0){
+      let totalNds=0;
+      this.showVatCalculator=false;
+      totalNds = this.getTaxFromPrice(this.formBaseInformation.get('summ').value);
+      this.formBaseInformation.get('nds').setValue(totalNds);
+    }
+  }
+  getTaxFromPrice(price:number):number {
+    // вычисляет налог из цены. Например, для цены 100, уже содержащей в себе налог, и налога 20% вернёт: 100 * 20 / 120 = 16.67
+    let value=0;
+    this.spravTaxesSet.forEach(a=>{if(+a.id == this.vatId) {value=a.value}});
+    return parseFloat((price*value/(100+value)).toFixed(2));
+  }
+ // *********************  Конец Расчета налогов  **********************
   //определяет, есть ли предприятие в загруженном списке предприятий
   isCompanyInList(companyId:number):boolean{
 
@@ -638,6 +681,8 @@ export class OrderinDocComponent implements OnInit {
                   this.getOrderoutListByBoxofficeId(); // загрузка списка расходных ордеров
                   this.getPaymentoutListByAccountId(); // загрузка списка исходящих платежей
                   this.getStatusesList();//статусы документа Приходный ордер
+                  this.getCompanySettings();
+                  this.getSpravTaxes();
                   this.getLinkedDocsScheme(true);//загрузка диаграммы связанных документов
               
                 } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}})} //+++
