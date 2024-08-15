@@ -206,6 +206,7 @@ export class CalendarComponent implements OnInit {
   dayEventClicked=false;
   dayAddEventBtnClicked=false;
   allDayEventRows: WeekViewAllDayEventRow[]=[];
+  clientSearch:string='';
   // dragToCreateActive = false;
   actionsBeforeGetChilds:number=0;// количество выполненных действий, необходимых чтобы загрузить дочерние модули (форму товаров)
   objectOfDraggingToCreateEvent:any; // object transporteg from a child component DeppartsAndResourcesComponent. Contains selected resource, depPart ID and the width of events container 
@@ -762,6 +763,7 @@ export class CalendarComponent implements OnInit {
         });
         this.allEvents=[...this.events];
         this.updateEventsIncludingCanceled();
+        if(this.clientSearch.length>0) this.filterEventsByName();
         // setTimeout(() => { 
         //   this.changeDateMatCalendar(new Date());
         //   this.refreshView();
@@ -1729,9 +1731,30 @@ export class CalendarComponent implements OnInit {
   onClickSchedulerHoour($event){
     // console.log('$event - ',$event)
   }
-  isAllSumEqual(meta:any){
-    console.log('Meta',[meta.sumAll, meta.sumShipped, meta.sumPayed])
-    const allEqual = arr => arr.every(val => val === arr[0]);
-    return allEqual([meta.sumAll, meta.sumShipped, meta.sumPayed]);
+  
+  filterEventsByName(){
+    let clientSearch = this.clientSearch;
+    this.updateEventsIncludingCanceled();// if search string = ''. Also without this one if you will click backspace - results of serach will be the same as before
+    if(this.clientSearch.length>0){      
+      this.events=[...this.events.filter(
+        function (event) {
+          return (event.title.toLowerCase().includes(clientSearch.toLowerCase()))
+        })
+      ]
+    }
+    this.cdr.detectChanges();
+  }
+  getAdditionalState(meta:any){
+    let paid_state = '';
+    let shipped_state = '';
+    let completed_state = '';
+    if(meta.sumAll>0 && meta.sumPayed>=meta.sumAll) paid_state = 'paid'
+    else if (meta.sumPayed>0 && meta.sumPayed<meta.sumAll) paid_state = 'paid_part'
+    else  paid_state = 'no_paid';
+    if(meta.sumAll>0 && meta.sumShipped>=meta.sumAll) shipped_state = 'shipped'
+    else if (meta.sumShipped>0 && meta.sumShipped<meta.sumAll) shipped_state = 'shipped_part'
+    else  shipped_state = 'no_shipped';
+    if(meta.completed) completed_state='completed'; else  completed_state='';
+    return '\n'+translate('menu.tip.'+shipped_state)+'\n'+translate('menu.tip.'+paid_state)+(completed_state!=''?('\n'+translate('menu.tip.'+completed_state)):'');
   }
 }

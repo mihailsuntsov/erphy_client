@@ -517,7 +517,7 @@ table input[readonly="true"] {
 }
 /* Name of optgroup in select lists */
 .optgroup-name{
-  top: -5px;
+  top: 0px;
   position: relative;
   font-size: 20px;
 }

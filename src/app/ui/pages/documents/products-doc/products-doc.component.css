@@ -32,6 +32,22 @@ li {list-style: none;}
     top: 0px;
     right: 0px;
 }
+.jobtitle{
+    color: gray;
+    display: block;
+    position: relative;
+    font-size: 12px;
+    font-style: italic;
+    line-height: 12px;
+    bottom: 18px;
+    left: 50px;
+    width:calc(100% - 50px);
+}
+::ng-deep .employees-list-option .mdc-list-item__primary-text{
+    display: inline-block;
+    margin-top: -15px;
+}
+
 .button{
     margin-left: 10px;
 }
@@ -392,3 +408,4 @@ border: 0px solid black;
 .table-field-editable{
     border-bottom: 1px lightgray dotted;
 }
+

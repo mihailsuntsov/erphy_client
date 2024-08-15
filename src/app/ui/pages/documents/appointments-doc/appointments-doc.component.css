@@ -42,6 +42,12 @@ li {list-style: none;}
     width:100%
 }
 
+::ng-deep button.mat-mdc-menu-item .mdc-list-item__primary-text{
+    line-height: 35pt !important;
+    width: 100%;
+    display: block;
+}
+
 .input-form{
     display: flex;
     flex-direction: column;

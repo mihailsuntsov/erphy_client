@@ -78,6 +78,7 @@ languageId: number;
 localeId: number;
 is_employee: boolean; // Пользователь является сотрудником предприятия // User is employee of company
 is_currently_employed: boolean; // Это действующий сотрудник (не уволен) // Currently employed (not fired)
+is_display_in_employee_list: boolean; // Отображать в списках сотрудников, оказывающих услуги // This user will be displayed in the lists of users who provide services
 job_title_id: number; // Должность // Job title
 job_title_name: number; // Должность // Job title
 counterparty_id: number; // Карточка контрагента // Counteparty card (ID)
@@ -230,6 +231,7 @@ export class UsersDocComponent implements OnInit {
      
       is_employee: new UntypedFormControl    ('',[]), // Пользователь является сотрудником предприятия // User is employee of company
       is_currently_employed: new UntypedFormControl    ('',[]), // Это действующий сотрудник (не уволен) // Currently employed (not fired)
+      is_display_in_employee_list: new UntypedFormControl    ('',[]), //  Отображать в списках сотрудников, оказывающих услуги // This user will be displayed in the lists of users who provide services
       job_title_id:  new UntypedFormControl    (null,[]), // Должность // Job title
       job_title_name:  new UntypedFormControl    ('',[]), // Должность // Job title
       counterparty_id:  new UntypedFormControl    ('',[]), // Карточка контрагента // Counteparty card (ID)
@@ -305,8 +307,8 @@ export class UsersDocComponent implements OnInit {
     (
       (+this.formBaseInformation.get('counterparty_id').value==0 ||
         (
-          +this.formBaseInformation.get('counterparty_id').value>0 &&
-          +this.formBaseInformation.get('incoming_service_id').value>0
+          +this.formBaseInformation.get('counterparty_id').value>0 
+          // && +this.formBaseInformation.get('incoming_service_id').value>0
         )
       )
     )
@@ -592,6 +594,7 @@ export class UsersDocComponent implements OnInit {
                   this.searchCagentCtrl.setValue(documentResponse.counterparty_name); //counterparty_name
                   this.formBaseInformation.get('is_employee').setValue(documentResponse.is_employee);
                   this.formBaseInformation.get('is_currently_employed').setValue(documentResponse.is_currently_employed);
+                  this.formBaseInformation.get('is_display_in_employee_list').setValue(documentResponse.is_display_in_employee_list);                  
                   this.formBaseInformation.get('job_title_id').setValue(documentResponse.job_title_id);
                   this.formBaseInformation.get('job_title_name').setValue(documentResponse.job_title_name);
                   this.formBaseInformation.get('incoming_service_id').setValue(documentResponse.incoming_service_id);
@@ -914,6 +917,8 @@ export class UsersDocComponent implements OnInit {
   is_employee_toggle(event: MatSlideToggleChange) {
     if(!event.checked){
       this.formBaseInformation.get('is_currently_employed').setValue(false);
+      this.formBaseInformation.get('is_display_in_employee_list').setValue(false);
+      
       // this.formBaseInformation.get('incoming_service_id').setValue(null);
       // this.formBaseInformation.get('incoming_service_name').setValue('');
       // this.formBaseInformation.get('job_title_id').setValue(null);
@@ -922,48 +927,53 @@ export class UsersDocComponent implements OnInit {
       // this.searchCagentCtrl.setValue('');
     } else {
       this.formBaseInformation.get('is_currently_employed').setValue(true);
+      this.formBaseInformation.get('is_display_in_employee_list').setValue(true);
     }
   }
-  // selectAllDepParts(row_id:number){
-  //   let depparts = this.getAllDeppartsIds();
-  //   const control = <UntypedFormArray>this.formBaseInformation.get('userProducts');
-  //   control.at(row_id).get('dep_parts_ids').setValue(depparts);
-  // }
-  // selectAllDepPartsOneDep(row_id:number,dep_id:number){
-  //   const depparts = this.getAllDeppartsIdsOfOneDep(dep_id);
-  //   const control = <UntypedFormArray>this.formBaseInformation.get('userProducts');
-  //   const ids_now = control.at(row_id).get('dep_parts_ids').value;
-  //   control.at(row_id).get('dep_parts_ids').setValue(depparts.concat(ids_now));
-  // }
-  // unselectAllDepParts(row_id:number){
-  //   const control = <UntypedFormArray>this.formBaseInformation.get('userProducts');
-  //   control.at(row_id).get('dep_parts_ids').setValue([]);
-  // }
-  // unselectAllDepPartsOneDep(row_id:number,dep_id:number){
-  //   const control = <UntypedFormArray>this.formBaseInformation.get('userProducts');
-  //   const ids_in_deppat = this.getAllDeppartsIdsOfOneDep(dep_id);
-  //   const ids_now = control.at(row_id).get('dep_parts_ids').value;
-  //   control.at(row_id).get('dep_parts_ids').setValue(ids_now.filter(e => !ids_in_deppat.includes(e)));
-  // }
-  // getAllDeppartsIds():number[]{
-  //   let depparts:number[]=[];
-  //   this.receivedDepartmentsWithPartsList.map(department=>{
-  //     department.parts.map(deppart=>{
-  //       depparts.push(deppart.id);
-  //     })
-  //   });
-  //   return depparts;
-  // }  
-  // getAllDeppartsIdsOfOneDep(dep_id:number):number[]{
-  //   let depparts:number[]=[];
-  //   this.receivedDepartmentsWithPartsList.map(department=>{
-  //     if(department.department_id==dep_id)
-  //       department.parts.map(deppart=>{
-  //         depparts.push(deppart.id);
-  //       })
-  //   });
-  //   return depparts;
-  // }
+
+  insertUserCagent(){
+    const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {  
+      width: '400px',
+      data:
+      { 
+        head: translate('docs.tip.crte_usr_cgnt'),
+        warning: translate('docs.msg.crte_usr_cgnt_q'),
+      },
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if(result==1){
+        this.http.post('/api/auth/insertUserCagent',
+          {
+            companyId:+this.formBaseInformation.get('company_id').value,
+            displayName:this.formBaseInformation.get('name').value,
+            name:this.formBaseInformation.get('fio_name').value,
+            surname:this.formBaseInformation.get('fio_family').value,
+            fatherName:this.formBaseInformation.get('fio_otchestvo').value,
+            email:this.formBaseInformation.get('email').value
+          }
+        ).subscribe((data) => {
+          let result:number=data as number;
+          switch(result){
+            case null:{// null возвращает если не удалось создать документ из-за ошибки
+              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.error_of') + (translate('docs.msg._of_save')) + translate('docs.msg._of_doc',{name:translate('docs.docs.shipment')})}});
+              break;
+            }
+            case -1:{//недостаточно прав
+              this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm_oper') + (translate('docs.msg._of_save')) + translate('docs.msg._of_doc',{name:translate('docs.docs.shipment')})}});
+              break;
+            }
+            default:{
+              this.searchCagentCtrl.setValue(this.formBaseInformation.get('name').value);
+              this.formBaseInformation.get('counterparty_id').setValue(result);
+              this.openSnackBar(translate('docs.msg.doc_crtd_suc'),translate('docs.msg.close'));
+            }
+          }
+        },
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
+        );
+      }
+    });     
+  }
 }
 
 

@@ -4,8 +4,19 @@ import { HttpClient } from '@angular/common/http';
 import { UntypedFormGroup, UntypedFormControl } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
 import { LoadSpravService } from '../../../services/loadsprav';
+import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { translate } from '@ngneat/transloco';
 import moment from 'moment';
+
+interface statusInterface{
+  id:number;
+  name:string;
+  status_type:number;//тип статуса: 1 - обычный; 2 - конечный положительный 3 - конечный отрицательный
+  output_order:number;
+  color:string;
+  description:string;
+  is_default:boolean;
+}
 
 @Component({
   selector: 'app-settings-appointment-dialog',
@@ -24,6 +35,8 @@ export class SettingsAppointmentDialogComponent implements OnInit {
   allowToCreateAllCompanies:boolean;
   allowToCreateMyCompany:boolean;
   timelineStep_virtualValue:number = 1;
+  receivedStatusesList: statusInterface [] = []; // массив для получения статусов
+  status_color: string = '';
 
   constructor(private http: HttpClient,
     public SettingsDialog: MatDialogRef<SettingsAppointmentDialogComponent>,
@@ -48,6 +61,7 @@ export class SettingsAppointmentDialogComponent implements OnInit {
       endTimeManually: new UntypedFormControl           ('00:01',[]), // 'HH:mm' if end_time = 'no_calc' || calcDateButTime = 'true'
       hideEmployeeField: new UntypedFormControl         ('false',[]), // If for all services of company employees are not needed
       calcDateButTime: new UntypedFormControl           ('false',[]), // If user wants to calc only dates. Suitable for hotels for checkout time
+      statusIdOnComplete: new UntypedFormControl        (null,[]), // statuss on completion
     });
     this.settingsForm.get('endTimeManually').disable(); // because 'calcDateButTime' is false in the initial settings
     this.updateFields();
@@ -79,9 +93,13 @@ export class SettingsAppointmentDialogComponent implements OnInit {
         this.settingsForm.get('endTimeManually').setValue(result.endTimeManually);
         this.settingsForm.get('hideEmployeeField').setValue(result.hideEmployeeField);
         this.settingsForm.get('calcDateButTime').setValue(result.calcDateButTime);
+        this.settingsForm.get('statusIdOnComplete').setValue(result.statusIdOnComplete);
         //  if(this.isCompanyInList(+result.companyId)){
         //  данная группа настроек зависит от предприятия
         this.settingsForm.get('companyId').setValue(this.data.companyId);
+        if(+this.settingsForm.get('companyId').value>0){
+          this.getStatusesList();
+        }
         this.updateFields();
         // }
       },
@@ -96,12 +114,49 @@ export class SettingsAppointmentDialogComponent implements OnInit {
     return inList;
   }
 
-  onCompanyChange(){}
+  onCompanyChange(){
+    this.settingsForm.get('statusIdOnComplete').setValue(null);
+    this.getStatusesList();
+  }
 
   applySettings(){
     this.SettingsDialog.close(this.settingsForm);
   }
 
-
+  //------------------------------С Т А Т У С Ы-------------------------------------------------
+  getStatusesList(){
+    this.receivedStatusesList=null;
+    this.loadSpravService.getStatusList(this.settingsForm.get('companyId').value,59) //36 - id документа из таблицы documents
+      .subscribe(
+          (data) => 
+          { this.receivedStatusesList=data as statusInterface[];
+            // if(+this.settingsForm.get('statusIdOnComplete').value==0) this.setDefaultStatus();
+            this.setStatusColor();
+          },
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+      );
+           
+  }
+  setDefaultStatus(){
+    if(this.receivedStatusesList.length>0)
+    {
+      this.receivedStatusesList.forEach(a=>{
+          if(a.is_default){
+            this.settingsForm.get('statusIdOnComplete').setValue(a.id);
+          }
+      });
+    }
+  }
+  //устанавливает цвет статуса (используется для цветовой индикации статусов)
+  setStatusColor():void{
+    this.receivedStatusesList.forEach(m=>
+      {
+        if(m.id==+this.settingsForm.get('statusIdOnComplete').value){
+          this.status_color=m.color;
+        }
+      });
+      console.log(' this.status_color = '+ this.status_color);
+  }
+//--------------------------------------------------------------------------------------------------
 
 }

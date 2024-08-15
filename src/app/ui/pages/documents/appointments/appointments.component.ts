@@ -195,6 +195,7 @@ export class AppointmentsComponent implements OnInit {
       endTimeManually: new UntypedFormControl    ('00:01',[]),          // 'HH:mm' if end_time = 'calc_date_but_time'
       hideEmployeeField: new UntypedFormControl  (false ,[]),           // If for all services of company employees are not needed
       calcDateButTime: new UntypedFormControl    (false ,[]),           // if user wants to calc only dates. Suitable for hotels for checkout time
+      statusIdOnComplete: new UntypedFormControl (null ,[]),  
     });
     
       this.getCompaniesList();// 
@@ -607,6 +608,7 @@ export class AppointmentsComponent implements OnInit {
           this.settingsForm.get('endTimeManually').setValue(result.endTimeManually);
           this.settingsForm.get('hideEmployeeField').setValue(result.hideEmployeeField);
           this.settingsForm.get('calcDateButTime').setValue(result.calcDateButTime);
+          this.settingsForm.get('statusIdOnComplete').setValue(result.statusIdOnComplete);
       },
       error => console.log(error)
     );
@@ -633,6 +635,7 @@ export class AppointmentsComponent implements OnInit {
         this.settingsForm.get('endTimeManually').setValue(result.get('endTimeManually').value);
         this.settingsForm.get('hideEmployeeField').setValue(result.get('hideEmployeeField').value);
         this.settingsForm.get('calcDateButTime').setValue(result.get('calcDateButTime').value);
+        this.settingsForm.get('statusIdOnComplete').setValue(result.get('statusIdOnComplete').value);
         this.saveSettingsAppointment();
       }
     });

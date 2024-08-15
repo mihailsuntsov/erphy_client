@@ -28,7 +28,13 @@ li {list-style: none;}
 }
 /**********************/
 .emptyspace{ flex-grow: 1;}
-
+.del-file{
+    cursor: pointer;
+    position: absolute;
+    right: 0px;
+    color: #585858;
+    z-index: 1000;
+}
 .spinner{
     position: fixed;
     top: 50%;

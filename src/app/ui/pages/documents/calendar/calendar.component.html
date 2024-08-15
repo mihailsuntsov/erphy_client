@@ -164,13 +164,30 @@ class="spinner"
                             <div class="row">
                                 <div class="col-12">
                                     <mat-form-field class="mat-form-field-100">
+                                        <mat-label>{{t('docs.field.name')}}</mat-label>
+                                        <input  matInput 
+                                                id="client_search"
+                                                [(ngModel)]="clientSearch"
+                                                [ngModelOptions]="{standalone: true}"
+                                                (input)="filterEventsByName()"
+                                        >
+                                        <mat-icon
+                                            class="del-file"
+                                            *ngIf="clientSearch.length>0"
+                                            (click)="clientSearch=''; updateEventsIncludingCanceled()"
+                                        >
+                                            close
+                                        </mat-icon>
+                                    </mat-form-field>
+                                    <mat-form-field class="mat-form-field-100">
                                         <mat-label>{{t('docs.field.employees')}}</mat-label>
                                         <mat-select
                                             panelClass="department-list"
                                             formControlName="employees"
                                             #mySelect
                                             multiple>
-                                            <div class="button-row">
+                                            <div class="button-row"
+                                            *ngIf="receivedJobtitlesWithEmployeesList.length>1">
                                                 <button 
                                                     mat-icon-button 
                                                     [disabled]="!editability"
@@ -192,8 +209,10 @@ class="spinner"
                                             <mat-optgroup 
                                                 *ngFor="let jobtitle of receivedJobtitlesWithEmployeesList;"
                                             >
-                                                <span class="optgroup-name">{{jobtitle.name}}</span>
+                                                <span class="optgroup-name"
+                                                *ngIf="jobtitle.employees.length>0">{{jobtitle.name}}</span>
                                                 <button 
+                                                    *ngIf="jobtitle.employees.length>1"
                                                     mat-icon-button 
                                                     [disabled]="!editability"
                                                     matTooltip="{{t('docs.tip.select_all_onejt')}}" 
@@ -203,6 +222,7 @@ class="spinner"
                                                 <mat-icon>fact_check</mat-icon>
                                                 </button>
                                                 <button 
+                                                    *ngIf="jobtitle.employees.length>1"
                                                     mat-icon-button 
                                                     [disabled]="!editability"
                                                     matTooltip="{{t('docs.tip.unselect_all_onejt')}}" 
@@ -215,7 +235,7 @@ class="spinner"
                                                     [value]="employee.id"
                                                 >
                                                     {{employee.name}}
-                                                    <button
+                                                    <button 
                                                         mat-icon-button 
                                                         [disabled]="!editability"
                                                         [matMenuTriggerFor]="employee_info"
@@ -250,7 +270,8 @@ class="spinner"
                                             formControlName="depparts"
                                             #mySelect
                                             multiple>
-                                            <div class="button-row">
+                                            <div class="button-row"
+                                            *ngIf="receivedDepartmentsWithPartsList.length>1">
                                                 <button 
                                                     mat-icon-button 
                                                     [disabled]="!editability"
@@ -272,8 +293,10 @@ class="spinner"
                                             <mat-optgroup 
                                                 *ngFor="let department of receivedDepartmentsWithPartsList;"
                                             >
-                                                <span class="optgroup-name">{{department.department_name}}</span>
+                                                <span class="optgroup-name" 
+                                                *ngIf="department.parts.length>0">{{department.department_name}}</span>
                                                 <button 
+                                                    *ngIf="department.parts.length>1"
                                                     mat-icon-button 
                                                     [disabled]="!editability"
                                                     matTooltip="{{t('docs.tip.select_all_onedep')}}" 
@@ -283,6 +306,7 @@ class="spinner"
                                                 <mat-icon>fact_check</mat-icon>
                                                 </button>
                                                 <button 
+                                                    *ngIf="department.parts.length>1"
                                                     mat-icon-button 
                                                     [disabled]="!editability"
                                                     matTooltip="{{t('docs.tip.unselect_all_onedep')}}" 
@@ -373,7 +397,8 @@ class="spinner"
                                     >
                                     <button mat-icon-button
                                             class="status-button"
-                                            [matTooltip]="event.meta.statusName"
+                                            [matTooltip]="event.meta.statusName+getAdditionalState(event.meta)"
+                                            [matTooltipPosition]="'left'"
                                             (click)="dayEventClicked=true;oldStatusType = event.meta.statusType" 
                                             [matMenuTriggerFor]="!event.meta.completed?statuses_menu:null">
                                             <mat-icon
@@ -424,7 +449,8 @@ class="spinner"
                                     >
                                     <button mat-icon-button
                                             class="status-button"
-                                            [matTooltip]="event.meta.statusName"
+                                            [matTooltip]="event.meta.statusName+getAdditionalState(event.meta)"
+                                            [matTooltipPosition]="'left'"
                                             style="top:4px;"
                                             (click)="dayEventClicked=true;oldStatusType = event.meta.statusType" 
                                             [matMenuTriggerFor]="!event.meta.completed?statuses_menu_lvl2:null">

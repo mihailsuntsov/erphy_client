@@ -574,6 +574,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       endTimeManually: new UntypedFormControl    ('00:01',[]),          // 'HH:mm' if end_time = 'calc_date_but_time'
       hideEmployeeField: new UntypedFormControl  (false ,[]),           // If for all services of company employees are not needed
       calcDateButTime: new UntypedFormControl    (false ,[]),           // if user wants to calc only dates. Suitable for hotels for checkout time
+      statusIdOnComplete: new UntypedFormControl (null ,[]),  
     });
 
     this.onCagentSearchValueChanges();//отслеживание изменений поля "Покупатель"
@@ -1956,8 +1957,8 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     if(this.formBaseInformation.get('name').value==''){this.formBaseInformation.get('name').setValue(this.generateName())}
     if(complete){
       this.formBaseInformation.get('is_completed').setValue(true);//если сохранение с завершением - временно устанавливаем true, временно - чтобы это ушло в запросе на сервер, но не повлияло на внешний вид документа, если вернется не true
-      // if(this.settingsForm.get('statusIdOnAutocreateOnCheque').value){// если в настройках есть "Статус при проведении" - временно выставляем его
-      //   this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnAutocreateOnCheque').value);}
+      if(this.settingsForm.get('statusIdOnComplete').value){// если в настройках есть "Статус при проведении" - временно выставляем его
+        this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnComplete').value);}
     }
     if(this.timeFormat=='12') {
       this.formBaseInformation.get('time_start').setValue(this.timeTo24h(this.formBaseInformation.get('time_start').value));
@@ -1969,8 +1970,8 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
           { 
             if(complete){
               this.formBaseInformation.get('is_completed').setValue(false);//если сохранение с завершением - удаляем временную установку признака завершенности, 
-              // if(this.settingsForm.get('statusIdOnAutocreateOnCheque').value)
-              // this.formBaseInformation.get('status_id').setValue(currentStatus);//и возвращаем предыдущий статус
+              if(this.settingsForm.get('statusIdOnComplete').value)
+                this.formBaseInformation.get('status_id').setValue(currentStatus);//и возвращаем предыдущий статус
             }
 
             let response=data as any;
@@ -1991,8 +1992,8 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
                   // this.productSearchAndTableByCustomersComponent.hideOrShowNdsColumn(); //чтобы спрятать столбцы чекбоксов и удаления строк в таблице товаров
                   // this.productSearchAndTableByCustomersComponent.tableNdsRecount();
                 // }
-                // if(this.settingsForm.get('statusIdOnAutocreateOnCheque').value){// если в настройках есть "Статус при завершении" - выставим его
-                //   this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnAutocreateOnCheque').value);}
+                if(this.settingsForm.get('statusIdOnComplete').value){// если в настройках есть "Статус при завершении" - выставим его
+                  this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnComplete').value);}
                 // this.setStatusColor();//чтобы обновился цвет статуса
               }
               // this.productSearchAndTableByCustomersComponent.getProductsTable();
@@ -2063,6 +2064,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
           this.settingsForm.get('endTimeManually').setValue(result.endTimeManually);
           this.settingsForm.get('hideEmployeeField').setValue(result.hideEmployeeField);
           this.settingsForm.get('calcDateButTime').setValue(result.calcDateButTime);
+          this.settingsForm.get('statusIdOnComplete').setValue(result.statusIdOnComplete);
           if(+this.id == 0) this.applyInitialTimeSettings();
           //Загрузка списка сотрудников / loading employees
           // for employees need the end time, which is geting from the settings.
@@ -2096,6 +2098,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
         this.settingsForm.get('endTimeManually').setValue(result.get('endTimeManually').value);
         this.settingsForm.get('hideEmployeeField').setValue(result.get('hideEmployeeField').value);
         this.settingsForm.get('calcDateButTime').setValue(result.get('calcDateButTime').value);
+        this.settingsForm.get('statusIdOnComplete').setValue(result.get('statusIdOnComplete').value);
         this.saveSettingsAppointment();
       }
     });
@@ -3115,27 +3118,32 @@ deleteFile(id:number){
         this.templatesList=data as TemplatesList[];
       },error => {console.log(error);this.gettingTemplatesData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},);
   }
+  
   clickOnTemplate(template:TemplatesList,cagent_id:number){
-    const baseUrl = '/api/auth/appointmentPrint/';
-    this.http.get(baseUrl+ 
-                  "?file_name="+template.file_name+
-                  "&doc_id="+this.id+
-                  "&cagent_id="+cagent_id+
-                  "&tt_id="+template.template_type_id,
-                  { responseType: 'blob' as 'json', withCredentials: false}).subscribe(
-      (response: any) =>{
-          let dataType = response.type;
-          let binaryData = [];
-          binaryData.push(response);
-          let downloadLink = document.createElement('a');
-          downloadLink.href = window.URL.createObjectURL(new Blob(binaryData, {type: dataType}));
-          downloadLink.setAttribute('download', template.file_original_name);
-          document.body.appendChild(downloadLink);
-          downloadLink.click();
-      }, 
-      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
-    );  
+    if(!this.documentChanged){
+    
+      const baseUrl = '/api/auth/'+(template.file_name.includes('.docx')?'appointmentPrintDocx/':'appointmentPrint/');
+      this.http.get(baseUrl+ 
+                    "?file_name="+template.file_name+
+                    "&doc_id="+this.id+
+                    "&cagent_id="+cagent_id+
+                    "&tt_id="+template.template_type_id,
+                    { responseType: 'blob' as 'json', withCredentials: false}).subscribe(
+        (response: any) =>{
+            let dataType = response.type;
+            let binaryData = [];
+            binaryData.push(response);
+            let downloadLink = document.createElement('a');
+            downloadLink.href = window.URL.createObjectURL(new Blob(binaryData, {type: dataType}));
+            downloadLink.setAttribute('download', template.file_original_name);
+            document.body.appendChild(downloadLink);
+            downloadLink.click();
+        }, 
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
+      );  
+    } else this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.save_first')}});
   }
+
   getBaseData(data) {    //+++ emit data to parent component
     this.baseData.emit(data);
   }
@@ -3361,6 +3369,7 @@ deleteFile(id:number){
       } else this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.save_first')}});
     } else this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('docs.msg.alr_there_doc_tp')}});
   }
+
   createPaymentin(row:any){
     if(this.getAmountOfChildDocs(row.id,'orderin')==0 && this.getAmountOfChildDocs(row.id,'paymentin')==0){
       if(!this.documentChanged){
@@ -3553,13 +3562,13 @@ deleteFile(id:number){
   // onSuccesfulChequePrintingHandler(){
   //   //установим статус из настроек при автосоздании перед сохранением
   //   if(this.settingsForm.get('autocreateOnCheque').value) 
-  //     this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnAutocreateOnCheque').value);
+  //     this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnComplete').value);
   //   //потом сохраним:
   //   if(this.updateDocument(true)){
   //     //если стоит чекбокс Автосоздание нового после печати чека:
   //     if(this.settingsForm.get('autocreateOnCheque').value){
   //       this._router.navigate(['ui/appointmentsdoc']);
-  //       this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnAutocreateOnCheque').value);
+  //       this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnComplete').value);
   //     }
   //     this.openSnackBar("Чек был успешно напечатан. Создание нового Заказа покупателя", "Закрыть");
   //   }
@@ -3632,12 +3641,12 @@ deleteFile(id:number){
             if(switcherNDS && !switcherNDSincluded){
             //..к сумме добавляем Налог
               i['product_sumprice']=this.numToPrice(+(+i['product_count']*(+i['product_price'])*multiplifierNDS).toFixed(2),2);
-              this.totalNds.set(i.customerRowId,(this.totalNds.get(i.customerRowId)+this.numToPrice(+(+i['product_count']*(+i['product_price'])*(multiplifierNDS-1)).toFixed(2),2)));//суммируем общий налог
+              this.totalNds.set(i.customerRowId,(+this.totalNds.get(i.customerRowId)+(+(+i['product_count']*(+i['product_price'])*(multiplifierNDS-1)).toFixed(2))));//суммируем общий налог
             }else {
               i['product_sumprice']=this.numToPrice(+((+i['product_count'])*(+i['product_price'])).toFixed(2),2);//..иначе не добавляем, и сумма - это просто произведение количества на цену
               //если включены переключатели "Налог" и "Налог включен" - Налог уже в цене, и нужно вычислить его из неё
               if(switcherNDS && switcherNDSincluded){
-                this.totalNds.set(i.customerRowId,(this.totalNds.get(i.customerRowId)+this.getTaxFromPrice(i['product_sumprice'], i['nds_id'])));
+                this.totalNds.set(i.customerRowId,(+this.totalNds.get(i.customerRowId)+this.getTaxFromPrice(i['product_sumprice'], i['nds_id'])));
               }
             }
           }

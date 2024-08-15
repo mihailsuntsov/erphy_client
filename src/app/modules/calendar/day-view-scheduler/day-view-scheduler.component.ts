@@ -438,20 +438,20 @@ export class DayViewSchedulerComponent
     let paid_state = '';
     let shipped_state = '';
     let completed_state = '';
-    if(meta.sumPayed>=meta.sumAll) paid_state = 'paid'
+    if(meta.sumAll>0 && meta.sumPayed>=meta.sumAll) paid_state = 'paid'
     else if (meta.sumPayed>0 && meta.sumPayed<meta.sumAll) paid_state = 'paid_part'
     else  paid_state = 'no_paid';
-    if(meta.sumShipped>=meta.sumAll) shipped_state = 'shipped'
+    if(meta.sumAll>0 && meta.sumShipped>=meta.sumAll) shipped_state = 'shipped'
     else if (meta.sumShipped>0 && meta.sumShipped<meta.sumAll) shipped_state = 'shipped_part'
     else  shipped_state = 'no_shipped';
     if(meta.completed) completed_state='completed'; else  completed_state='';
     return '\n'+translate('menu.tip.'+shipped_state)+'\n'+translate('menu.tip.'+paid_state)+(completed_state!=''?('\n'+translate('menu.tip.'+completed_state)):'');
   }
   showPaidSubicon(meta:any):boolean{
-    return !meta.completed && (meta.sumPayed>=meta.sumAll || (meta.sumPayed>0 && meta.sumPayed<meta.sumAll))
+    return !meta.completed && meta.sumAll>0 && (meta.sumPayed>=meta.sumAll || (meta.sumPayed>0 && meta.sumPayed<meta.sumAll))
   }
   showShippedSubicon(meta:any):boolean{
-    return !meta.completed && (meta.sumShipped>=meta.sumAll || (meta.sumShipped>0 && meta.sumShipped<meta.sumAll))
+    return !meta.completed && meta.sumAll>0 && (meta.sumShipped>=meta.sumAll || (meta.sumShipped>0 && meta.sumShipped<meta.sumAll))
   }
   getPayedClass(meta:any):string{
     let result = '';
@@ -464,7 +464,6 @@ export class DayViewSchedulerComponent
     let result = '';
     if(meta.sumShipped>=meta.sumAll) result = 'shipped'
     else if (meta.sumShipped>0 && meta.sumShipped<meta.sumAll) result = 'shipped_part'
-    // console.log('CLASS Payed', result)
     return result;
   }
 }

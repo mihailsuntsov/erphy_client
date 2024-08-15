@@ -120,7 +120,7 @@
                         class="button small-button completed">
                         <i class="material-icons">playlist_add_check</i> 
                     </button>
-                    <a routerLink="../writeoff"  [style.display]="(mode=='standart')?'block':'none'">
+                    <a routerLink="../{{+id>0?'../':''}}writeoff"   [style.display]="(mode=='standart')?'block':'none'">
                         <button 
                             mat-raised-button 
                             [matTooltip]="id>0?t('docs.tip.exit'):t('docs.tip.cancel')"

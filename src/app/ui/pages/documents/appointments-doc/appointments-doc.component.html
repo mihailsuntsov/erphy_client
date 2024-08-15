@@ -1141,7 +1141,7 @@
                                                                                                     [formGroupName]="j"
                                                                                                     [matTooltip]="((getControlTablefield().controls[j].get('product_count').value>(getControlTablefield().controls[j].get('available').value)&&getControlTablefield().controls[j].get('is_material').value) && editability && !is_completed && !(getControlTablefield().controls[j].get('product_count').invalid && getControlTablefield().controls[j].get('product_count').errors.pattern)) ? t('modules.tip.qtt_more_avlb') : ''"
                                                                                                     [ngStyle]="   ((getControlTablefield().controls[j].get('product_count').value>((getControlTablefield().controls[j].get('available').value))&&getControlTablefield().controls[j].get('is_material').value) && editability && !is_completed && !(getControlTablefield().controls[j].get('product_count').invalid && getControlTablefield().controls[j].get('product_count').errors.pattern))?{'background-color': '#ffe4e1'}:{'background-color': 'white'}">
-                                                                                                        <div style="width:100%" *ngIf="getControlTablefield().controls[j].get('edizm_type_id').value!=7">
+                                                                                                        <div style="width:100%">
                                                                                                             <input matInput 
                                                                                                                 class="table-field-editable quantity-field"
                                                                                                                 [ngClass]="{'table-field-editable':editability&&!is_completed}"
@@ -1165,9 +1165,9 @@
                                                                                                                 <i *ngIf="getControlTablefield().controls[j].get('product_count').invalid && getControlTablefield().controls[j].get('product_count').errors.pattern" class="table-form-invalid">{{t('modules.error.price_format',{int:7,fract:3})}}</i>
                                                                                                             </mat-hint>
                                                                                                         </div>
-                                                                                                        <div style="width:100%" *ngIf="getControlTablefield().controls[j].get('edizm_type_id').value==7">
+                                                                                                        <!-- <div style="width:100%" *ngIf="getControlTablefield().controls[j].get('edizm_type_id').value==7">
                                                                                                             {{getControlTablefield().controls[j].get('product_count').value}}&nbsp;{{row1.edizm}}
-                                                                                                        </div>
+                                                                                                        </div> -->
                                                                                                     </td>
                                                                                                     <td mat-footer-cell *matFooterCellDef></td>
                                                                                                 </ng-container>

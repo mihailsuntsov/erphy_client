@@ -52,7 +52,7 @@ table {width: 100%;}
 .add_circle {
     cursor: pointer;
     position: absolute;
-    top: 44px;
+    bottom: 10px;
     right: 0px;
     color: #585858;
     z-index: 1000;

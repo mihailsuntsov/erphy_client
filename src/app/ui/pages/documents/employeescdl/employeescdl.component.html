@@ -136,7 +136,8 @@
                                                                         formControlName="depparts"
                                                                         #mySelect
                                                                         multiple>
-                                                                        <div class="button-row">
+                                                                        <div class="button-row"
+                                                                        *ngIf="receivedDepartmentsWithPartsList.length>1">
                                                                             <button 
                                                                                 mat-icon-button 
                                                                                 [disabled]="!editability"
@@ -158,8 +159,10 @@
                                                                         <mat-optgroup 
                                                                             *ngFor="let department of receivedDepartmentsWithPartsList;"
                                                                         >
-                                                                            <span class="optgroup-name">{{department.department_name}}</span>
+                                                                            <span class="optgroup-name"
+                                                                            *ngIf="department.parts.length>0">{{department.department_name}}</span>
                                                                             <button 
+                                                                                *ngIf="department.parts.length>1"
                                                                                 mat-icon-button 
                                                                                 [disabled]="!editability"
                                                                                 matTooltip="{{t('docs.tip.select_all_onedep')}}" 
@@ -169,6 +172,7 @@
                                                                             <mat-icon>fact_check</mat-icon>
                                                                             </button>
                                                                             <button 
+                                                                                *ngIf="department.parts.length>1"
                                                                                 mat-icon-button 
                                                                                 [disabled]="!editability"
                                                                                 matTooltip="{{t('docs.tip.unselect_all_onedep')}}" 
@@ -670,7 +674,7 @@
                                                                         mat-icon-button 
                                                                         matTooltip="{{t('docs.tip.select_all')}}" 
                                                                         class="btn-gray-color"
-                                                                        (click)="selectAllCheckList('jobtitles','queryForm')"
+                                                                        (click)="selectAllCheckList('jobtitles','queryForm');afterChangeFiltersApiCalls()"
                                                                     >
                                                                         <mat-icon>fact_check</mat-icon>
                                                                     </button>

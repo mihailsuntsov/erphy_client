@@ -131,16 +131,16 @@ class="spinner"
                             <i class="material-icons">add_task</i>&nbsp;&nbsp;{{t('menu.top.btn_actions')}}<i class="material-icons">arrow_drop_down</i>
                         </button>
                         <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
-                            <button mat-menu-item *ngIf="allowToUpdate && selection.selected.length>0 && !sendingQueryForm.trash" (click)="openDialogFileCategoriesSelect()" matTooltip="{{t('menu.tip.ch_cat_prod')}}" matTooltipPosition="left"><mat-icon>rule</mat-icon><span>{{t('menu.menu.categories')}}</span></button>
-                            <button mat-menu-item [matMenuTriggerFor]="shareExMenu" *ngIf="allowToUpdate && selection.selected.length>0 && !sendingQueryForm.trash"><mat-icon>share</mat-icon><span>{{t('menu.menu.share_ex')}}</span></button>
+                            <button mat-menu-item *ngIf="allowToUpdate && selection.selected.length>0 && !sendingQueryForm.trash" (click)="openDialogFileCategoriesSelect()" matTooltip="{{t('menu.tip.ch_cat_prod')}}" matTooltipPosition="left"><mat-icon style="width: 30px;">rule</mat-icon><span>{{t('menu.menu.categories')}}</span></button>
+                            <button mat-menu-item [matMenuTriggerFor]="shareExMenu" *ngIf="allowToUpdate && selection.selected.length>0 && !sendingQueryForm.trash"><mat-icon style="width: 30px;">share</mat-icon><span>{{t('menu.menu.share_ex')}}</span></button>
                             <button 
                                 matTooltip="{{t('menu.tip.delete_to_bin')}}"
                                 matTooltipPosition="left"
-                                [style.display]="(sendingQueryForm.trash || mode!='standart')?'none':'block'"
+                                [style.display]="(sendingQueryForm.trash || mode!='standart')?'none':'flex'"
                                 (click)="clickBtnDelete()" 
                                 *ngIf="allowToDelete && selection.selected.length>0"
                                 mat-menu-item>
-                                <mat-icon>delete_forever</mat-icon><span>{{t('menu.top.btn_delete')}}</span>
+                                <mat-icon style="width: 30px;">delete_forever</mat-icon><span>{{t('menu.top.btn_delete')}}</span>
                             </button>
                         </mat-menu>
                         <mat-menu #shareExMenu="matMenu" yPosition="below" xPosition="before">

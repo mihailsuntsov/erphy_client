@@ -402,6 +402,7 @@
         "quantity":"Quantity",
         "is_employee":"Employee",
         "curr_employed":"Current employee",
+        "displ_empl_lst":"Provides services",
         "incoming_service":"Accepted service",
         "breaks":"Breaks",
         "srvc_appoint":"Service by appointment",
@@ -624,11 +625,13 @@
         "reset":"Reset",
         "empl_incom_service":"A service your company receives from an employee",
         "select_all_onejt":"Select everyone in this job title",
-        "unselect_all_onejt":"Unselect everyone in this job title"
+        "unselect_all_onejt":"Unselect everyone in this job title",
+        "crte_usr_cgnt":"Create a counterparty card for this user"
         
     },
     "msg":{
         "error":        "Error!",
+        "crte_usr_cgnt_q":"Are you sure you want to create a counterparty card for this user?",
         "error_msg":    "An error occurred during the operation",
         "attention":    "Attention!",
         "status_can_ch_doc":"Changing from this status is possible only by editing the document",

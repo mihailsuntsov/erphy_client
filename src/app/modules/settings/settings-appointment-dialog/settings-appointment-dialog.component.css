@@ -104,3 +104,20 @@ mat-slider {
     width:100%;
     /* margin:-8.5px 0 0 0; */
 }
+/*--------------- стили для статуса------------------*/
+/*для цветного круга в статусах*/  
+.circle-in-selected{
+    width: 20px;
+    height: 20px;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    border-radius: 10px;
+    position:absolute;
+    top: 30px;
+	left:9px
+}
+/*название статуса*/
+.status-name {
+    display: inline-block;
+    line-height: 20px;
+}

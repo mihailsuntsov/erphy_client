@@ -554,7 +554,7 @@
                                                                                                         (click)="copyPrice(row.price_value);"
                                                                                                         matTooltip="{{t('docs.tip.p_copy_price')}}"
                                                                                                         matSuffix mat-icon-button 
-                                                                                                        *ngIf="getControl('productPricesTable').value.length>0"
+                                                                                                        *ngIf="getControl('productPricesTable').value.length>1"
                                                                                                         style="padding: 0px;
                                                                                                         min-width: 0px;
                                                                                                         width: 17px;
@@ -564,7 +564,7 @@
                                                                                                         border-radius: 50%;
                                                                                                         position: absolute;
                                                                                                         top: -1px;
-                                                                                                        right: -18px;
+                                                                                                        right: 12px;
                                                                                                         color: #585858;
                                                                                                         z-index: 1000;">
                                                                                             <mat-icon style="    background-repeat: no-repeat;
@@ -616,8 +616,9 @@
                                                                     formControlName="depparts"
                                                                     #mySelect
                                                                     multiple>
-                                                                    <div class="button-row">
-                                                                        <button 
+                                                                    <div class="button-row"
+                                                                    *ngIf="receivedDepartmentsWithPartsList.length>1">
+                                                                        <button
                                                                             mat-icon-button 
                                                                             [disabled]="!editability"
                                                                             matTooltip="{{t('docs.tip.select_all')}}" 
@@ -626,7 +627,7 @@
                                                                         >
                                                                         <mat-icon>fact_check</mat-icon>
                                                                         </button>
-                                                                        <button 
+                                                                        <button
                                                                             mat-icon-button 
                                                                             [disabled]="!editability"
                                                                             matTooltip="{{t('docs.tip.unselect_all')}}" 
@@ -638,8 +639,10 @@
                                                                     <mat-optgroup 
                                                                         *ngFor="let department of receivedDepartmentsWithPartsList;"
                                                                     >
-                                                                        <span class="optgroup-name">{{department.department_name}}</span>
+                                                                        <span class="optgroup-name" 
+                                                                        *ngIf="department.parts.length>0">{{department.department_name}}</span>
                                                                         <button 
+                                                                            *ngIf="department.parts.length>1"
                                                                             mat-icon-button 
                                                                             [disabled]="!editability"
                                                                             matTooltip="{{t('docs.tip.select_all_onedep')}}" 
@@ -649,6 +652,7 @@
                                                                         <mat-icon>fact_check</mat-icon>
                                                                         </button>
                                                                         <button 
+                                                                            *ngIf="department.parts.length>1"
                                                                             mat-icon-button 
                                                                             [disabled]="!editability"
                                                                             matTooltip="{{t('docs.tip.unselect_all_onedep')}}" 
@@ -706,7 +710,7 @@
                                                                 </mat-slide-toggle>
                                                                 <input matInput hidden/>
                                                             </mat-form-field>
-                                                            <mat-form-field *ngIf="formBaseInformation.get('scdl_is_employee_required').value" class="mat-form-field-100">
+                                                            <mat-form-field id="employees_list" *ngIf="formBaseInformation.get('scdl_is_employee_required').value" class="mat-form-field-100">
                                                                 <mat-label>{{t('docs.field.employees')}} <span *ngIf="formBaseInformation.get('employees').value.length==0" class="star">*</span></mat-label>
                                                                 <mat-select
                                                                     panelClass="department-list"
@@ -714,7 +718,8 @@
                                                                     [disabled]="!editability"
                                                                     #select
                                                                     multiple>
-                                                                    <div class="button-row">
+                                                                    <div class="button-row"
+                                                                        *ngIf="receivedEmployeesList.length>1">
                                                                         <button 
                                                                             mat-icon-button 
                                                                             matTooltip="{{t('docs.tip.select_all')}}" 
@@ -731,12 +736,13 @@
                                                                             <mat-icon>ballot</mat-icon>
                                                                         </button>
                                                                     </div>
-                                                                    <mat-option
-                                                                        *ngFor= "let jt of receivedEmployeesList;"
-                                                                        [value]="jt.id"
-                                                                    >
-                                                                        {{jt.name}}
-                                                                    </mat-option>
+                                                                    <ng-container *ngFor= "let jt of receivedEmployeesList;">
+                                                                        <mat-option class="employees-list-option"                                                                       
+                                                                            [value]="jt.id"
+                                                                        >{{jt.name}}                                                                            
+                                                                        </mat-option>
+                                                                        <span class="jobtitle">{{jt.jobtitle_name}}</span>
+                                                                    </ng-container>
                                                                 </mat-select>
                                                                 <mat-hint  align="start" *ngIf="formBaseInformation.get('employees').touched && formBaseInformation.get('scdl_is_employee_required').value && this.formBaseInformation.get('employees').value.length==0">
                                                                     <i class="form-invalid">{{t('docs.error.field_miss')}}</i>

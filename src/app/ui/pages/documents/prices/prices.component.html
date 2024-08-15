@@ -139,8 +139,8 @@ class="spinner"
                                         </mat-form-field>
                                         <div class="flex" *ngIf="sendingQueryForm.selectedNodeName" style="margin-left: 10px; width: 200px;">
                                             <mat-form-field class="emptyspace">
+                                                <mat-label>{{t('menu.top.category')}}</mat-label>
                                                 <input matInput 
-                                                placeholder="{{t('menu.top.category')}}" 
                                                 [(ngModel)]="sendingQueryForm.selectedNodeName" 
                                                 type="text" 
                                                 [readonly]=true

@@ -439,6 +439,17 @@
                                                         </mat-form-field>
                                                     </div>
                                                 </div>
+                                                <div class="row">
+                                                    <div class="col-12">
+                                                        <mat-form-field class="mat-form-field-100">
+                                                            <mat-slide-toggle 
+                                                            #is_display_in_employee_list
+                                                            formControlName="is_display_in_employee_list"
+                                                            >{{t('docs.field.displ_empl_lst')}}</mat-slide-toggle>
+                                                            <input matInput hidden/>
+                                                        </mat-form-field>
+                                                    </div>
+                                                </div>
                                                 <mat-form-field class="mat-form-field-100" *ngIf="formBaseInformation.get('is_employee').value">
                                                     <mat-label>{{t('docs.field.job_title')}} <span *ngIf="formBaseInformation.get('is_employee').value && +formBaseInformation.get('job_title_id').value==0" class="star">*</span></mat-label>
                                                     <input matInput
@@ -478,12 +489,19 @@
                                                     (input)="canCagentAutocompleteQuery=true; checkEmptyCagentField();"
                                                     (change)="canCagentAutocompleteQuery=false; checkEmptyCagentField();">
                                                     <mat-icon   
-                                                            *ngIf="+formBaseInformation.get('counterparty_id').value!==0"
-                                                            matTooltip="{{t('docs.tip.select')}}"
-                                                            class="del-file"
-                                                            (click)="searchCagentCtrl.setValue('');formBaseInformation.get('counterparty_id').setValue(null);onClickDeleteIncomingService()"
-                                                            matTooltip="{{t('modules.tip.clr_srch')}}"      >
-                                                            close
+                                                        *ngIf="editability && +formBaseInformation.get('counterparty_id').value!==0"
+                                                        matTooltip="{{t('docs.tip.select')}}"
+                                                        class="del-file"
+                                                        (click)="searchCagentCtrl.setValue('');formBaseInformation.get('counterparty_id').setValue(null);onClickDeleteIncomingService()"
+                                                        matTooltip="{{t('modules.tip.clr_srch')}}"      >
+                                                        close
+                                                    </mat-icon>                                                    
+                                                    <mat-icon
+                                                        *ngIf="editability && +formBaseInformation.get('counterparty_id').value==0"
+                                                        matTooltip="{{t('docs.tip.crte_usr_cgnt')}}"
+                                                        class="add_circle"
+                                                        (click)="insertUserCagent()">
+                                                        add_circle_outline
                                                     </mat-icon>
                                                     <mat-autocomplete #auto4="matAutocomplete">
                                                     <ng-container *ngIf="!isCagentListLoading" style="width:320px;">
@@ -504,14 +522,14 @@
                                                     class="mat-form-field-100" 
                                                     *ngIf="formBaseInformation.get('is_employee').value && +formBaseInformation.get('counterparty_id').value>0">
                                                     <mat-label>{{t('docs.field.incoming_service')}} 
-                                                        <span *ngIf="+formBaseInformation.get('counterparty_id').value>0 &&+formBaseInformation.get('incoming_service_id').value==0" class="star">*</span>
+                                                        <!-- <span *ngIf="+formBaseInformation.get('counterparty_id').value>0 &&+formBaseInformation.get('incoming_service_id').value==0" class="star">*</span> -->
                                                     </mat-label>
-                                                    <div *ngIf="editability && +formBaseInformation.get('incoming_service_id').value==0" class="add-file">
-                                                        <mat-icon   
+                                                    <div *ngIf="editability && +formBaseInformation.get('incoming_service_id').value==0">
+                                                       <mat-icon   
                                                             matTooltip="{{t('docs.tip.select')}}"
                                                             class="add_circle"
                                                             (click)="onClickSelectIncomingService()">
-                                                            add_circle
+                                                            add_circle_outline
                                                         </mat-icon>
                                                     </div>
                                                     <div style="min-width:70px;">

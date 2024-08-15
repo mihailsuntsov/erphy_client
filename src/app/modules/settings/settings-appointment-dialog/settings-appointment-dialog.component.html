@@ -107,7 +107,30 @@
                                 </mat-slide-toggle>
                                 <input matInput hidden/>
                             </mat-form-field>
-                           
+                            
+                            <div class="row">
+                                <div class="col-12"> 
+                                    <div class = "circle-in-selected" [style.background-color]="status_color" *ngIf="settingsForm.get('statusIdOnComplete').value!=null"></div>
+                                    <mat-form-field  class="mat-form-field-100"  matTooltip="{{t('modules.tip.compl_status')}}">
+                                        <mat-label>{{t('modules.field.compl_status')}}</mat-label>
+                                        <mat-select     [ngStyle]="(settingsForm.get('statusIdOnComplete').value!=null)?{'padding': '5px 0 5px 25px'}:{}"
+                                                        formControlName="statusIdOnComplete"
+                                                        (selectionChange)="setStatusColor();">
+                                            <mat-option *ngFor="let status of receivedStatusesList" 
+                                                        [value]="status.id"
+                                                        matTooltip={{status.description}}>
+                                                        <div style="display: inline;line-height: 20px;">
+                                                            <div class = "circle-wrapper" >
+                                                                <div class = "circle-in-list" [style.background-color]="status.color"></div>
+                                                            </div>
+                                                            <div class = "status-name">{{status.name}}</div>
+                                                        </div>
+                                            </mat-option>
+                                        </mat-select>
+                                    </mat-form-field>
+                                </div>
+                            </div>
+
                         </div>
                     </div>
                 </div>
