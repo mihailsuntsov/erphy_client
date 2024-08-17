@@ -561,7 +561,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       id: new UntypedFormControl ('' ,[]),
       email: new UntypedFormControl ('' ,[Validators.maxLength(254)]),
       telephone: new UntypedFormControl ('' ,[Validators.maxLength(60)]),
-      // description: new UntypedFormControl ('' ,[]),      
+      additional: new UntypedFormControl ('' ,[Validators.maxLength(1024)]),
     });
 
     // Форма настроек
@@ -1125,6 +1125,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
             let documentValues: any = data as any;
             this.formCustomerSearch.get('telephone').setValue(documentValues.telephone==null?'':documentValues.telephone);
             this.formCustomerSearch.get('email').setValue(documentValues.email==null?'':documentValues.email);
+            this.formCustomerSearch.get('additional').setValue(documentValues.description==null?'':documentValues.description);
             this.isCagentValuesLoading=false;
             this.addCustomerRow(documentValues.id,documentValues.name);
             this.addPreloadServiceToSelectedCustomer();
@@ -2617,18 +2618,16 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   //   });
   // }
 
-  formingCustomerRow(guest:any) {
-    return this._fb.group({
-      id: new UntypedFormControl (guest.id,[]),
-      row_id:     [this.getCustomerRowId()],
-      // is_payer:   new UntypedFormControl (guest.is_payer,[]),
-      name:       new UntypedFormControl (guest.name,[]),
-      email:      new UntypedFormControl (guest.email,[]),
-      telephone:  new UntypedFormControl (guest.telephone,[]),
-      // child:      new UntypedFormControl (guest.child,[]),
-      // products:   new UntypedFormArray   ([]),//массив с услугами клиента / array of customer's services
-    });
-  }
+  // formingCustomerRow(guest:any) {
+  //   return this._fb.group({
+  //     id: new UntypedFormControl (guest.id,[]),
+  //     row_id:     [this.getCustomerRowId()],
+  //     name:       new UntypedFormControl (guest.name,[]),
+  //     email:      new UntypedFormControl (guest.email,[]),
+  //     telephone:  new UntypedFormControl (guest.telephone,[]),
+  //     additional:  new UntypedFormControl (guest.additional,[]),
+  //   });
+  // }
 
   addCustomerRow(customerId:number,customerName:string) 
   { 
@@ -2679,12 +2678,12 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     return this._fb.group({
       id: new UntypedFormControl (this.formCustomerSearch.get('id').value,[]),
       row_id:     [this.getCustomerRowId()],
-      // is_payer:   new UntypedFormControl (this.formBaseInformation.get('customersTable').value.length>0?false:true),
       name:       new UntypedFormControl (customerName,[]),
       email:      new UntypedFormControl (this.formCustomerSearch.get('email').value,[]),
       telephone:  new UntypedFormControl (this.formCustomerSearch.get('telephone').value,[]),
       // child:      new UntypedFormControl (false,[]),
-      products:   new UntypedFormControl ([],[])
+      products:   new UntypedFormControl ([],[]),
+      additional:  new UntypedFormControl (this.formCustomerSearch.get('additional').value,[]),
     });
   }
 
@@ -2711,7 +2710,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       id: new UntypedFormControl (row.id,[]),
       name: new UntypedFormControl (row.name,[]),
       email: new UntypedFormControl (row.email,[]),
-      telephone: new UntypedFormControl (row.telephone,[])
+      telephone: new UntypedFormControl (row.telephone,[]),
     });
   }
   resetFormCustomerSearch(){
@@ -2720,6 +2719,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     this.formCustomerSearch.get('id').setValue(null);
     this.formCustomerSearch.get('telephone').setValue('');
     this.formCustomerSearch.get('email').setValue('');
+    this.formCustomerSearch.get('additional').setValue('');
     this.searchCustomerCtrl.setValue('');
     this.formCustomerSearch.reset();
     this.searchCustomerCtrl.reset();

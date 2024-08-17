@@ -675,11 +675,7 @@
                                                                                 </div>
                                                                                 </mat-option>
                                                                             </ng-container>
-                                                                        </mat-autocomplete>
-                                                                        <!-- <mat-hint  align="start" *ngIf="searchCustomerCtrl.touched && (searchCustomerCtrl.value==null || searchCustomerCtrl.value=='')">
-                                                                            <i class="form-invalid">{{t('docs.error.no_cust_name')}}</i>
-                                                                        </mat-hint> -->
-                                                                        
+                                                                        </mat-autocomplete>                                                                        
                                                                         <mat-hint  align="start" *ngIf="customerNotFound()">
                                                                             <i>{{t('docs.error.customer_n_fnd')}}</i>
                                                                         </mat-hint>
@@ -713,6 +709,20 @@
                                                                                 formControlName="email"
                                                                                 />
                                                                         <mat-hint align="end" *ngIf="email.length>200">{{email.length}} / 254</mat-hint>
+                                                                    </mat-form-field>
+                                                                </div>
+                                                            </div>
+                                                            <div class="row" *ngIf="customerNotFound()">
+                                                                <div class="col-12"> 
+                                                                    <mat-form-field  class="mat-form-field-100">
+                                                                        <mat-label>{{t('docs.field.additional')}}</mat-label>
+                                                                        <input  matInput
+                                                                                [readonly]=!editability||is_completed
+                                                                                #additional
+                                                                                maxlength="1024"
+                                                                                formControlName="additional"
+                                                                                />
+                                                                        <mat-hint align="end" *ngIf="additional.length>1000">{{additional.length}} / 1024</mat-hint>
                                                                     </mat-form-field>
                                                                 </div>
                                                             </div>
