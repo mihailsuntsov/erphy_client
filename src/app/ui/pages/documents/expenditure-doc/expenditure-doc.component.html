@@ -4,8 +4,7 @@
             <div class="row" id="topBlock">
                 <div class="card-name">{{t('docs.docs.expenditure')}} {{formBaseInformation.get('name').value}}</div>
                 
-                <button 
-                    mat-button 
+                <button
                     [matMenuTriggerFor]="addDocMenu"
                     mat-raised-button 
                     matTooltip="{{t('docs.tip.create_docs')}}"

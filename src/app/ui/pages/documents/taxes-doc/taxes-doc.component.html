@@ -6,8 +6,7 @@
                 <div class="card-name">
                     {{t('docs.docs.tax')}}<span [ngClass]="{invisible: +id==0}"> "{{formBaseInformation.get('name').value}}"</span>
                 </div>
-                <button 
-                    mat-button 
+                <button
                     [matMenuTriggerFor]="addDocMenu"
                     mat-raised-button 
                     matTooltip="{{t('docs.tip.create_docs')}}"

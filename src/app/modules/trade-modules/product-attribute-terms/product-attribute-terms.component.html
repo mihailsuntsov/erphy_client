@@ -69,9 +69,8 @@
                                             <button 
                                                     *ngIf="name.value!=''"
                                                     type="button"
-                                                    mat-button
+                                                    mat-icon-button
                                                     matSuffix 
-                                                    mat-icon-button 
                                                     matTooltip="{{t('docs.tip.generate')}}"
                                                     style="font-size: 150%;color: gray;" 
                                                     (click)="slugifyTranslated(i)">
@@ -120,7 +119,6 @@
                             <button 
                                 *ngIf="formBaseInformation.get('name').value!=''"
                                 type="button"
-                                mat-button
                                 matSuffix 
                                 mat-icon-button 
                                 matTooltip="{{t('docs.tip.generate')}}"

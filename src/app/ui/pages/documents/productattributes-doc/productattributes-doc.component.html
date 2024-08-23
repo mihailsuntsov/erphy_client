@@ -16,7 +16,6 @@
                     <i class="material-icons">translate</i>
                 </button>
                 <button 
-                    mat-button 
                     [matMenuTriggerFor]="addDocMenu"
                     mat-raised-button 
                     matTooltip="{{t('docs.tip.create_docs')}}"
@@ -149,14 +148,13 @@
                                                             <button 
                                                                 *ngIf="formBaseInformation.get('name').value!=''"
                                                                 type="button"
-                                                                mat-button
-                                                                matSuffix 
-                                                                mat-icon-button 
+                                                                mat-icon-button
+                                                                matSuffix
                                                                 matTooltip="{{t('docs.tip.generate')}}"
                                                                 style="font-size: 150%;color: gray;" 
                                                                 (click)="slugify()">
                                                                     <mat-icon>offline_bolt</mat-icon>                                                            
-                                                            </button>       
+                                                            </button>
                                                             <mat-hint  align="start" *ngIf="formBaseInformation.get('slug').touched && formBaseInformation.get('slug').invalid">
                                                                 <i class="form-invalid">{{t('modules.error.field_miss')}}</i>
                                                             </mat-hint>
@@ -223,7 +221,6 @@
                                                                         <button 
                                                                                 *ngIf="name.value!=''"
                                                                                 type="button"
-                                                                                mat-button
                                                                                 matSuffix 
                                                                                 mat-icon-button 
                                                                                 matTooltip="{{t('docs.tip.generate')}}"
