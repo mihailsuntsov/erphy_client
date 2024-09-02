@@ -102,13 +102,16 @@ min-width:150px;
     flex: 1 0 1;
   }
 .category-toolbar-icons {
-    margin-top: -20px;
+    margin-top: -14px;
     flex: 1 0 1;
   }
 
   .node  {
     cursor: pointer;
     margin-right: 10px;
+    display: block;
+    position: relative;
+    width: 100%;
 }
 
 .selected_node  {
@@ -116,6 +119,25 @@ min-width:150px;
     border-radius: 5px;
     background-color: #673ab7;
     color: white;
+}
+
+.node-owner{
+  display:none;
+  position: absolute;
+  line-height: 12px;
+  font-size: 11px;  
+  top: 20px;
+}
+.node:hover > .node-owner {
+  display: block;
+}
+.selected_node_owner{
+  border: 3px solid #673ab7;
+  border-radius: 0px 0px 6px 6px;
+  background-color: #673ab7;
+  color: white;
+  left: -4px;
+  top: 17px;
 }
 
 .category-toolbar-spacer {
@@ -130,7 +152,7 @@ flex: 1 1 auto;
 .grid-card {
     width: 164px;
     overflow: hidden;
-    height: 204px;
+    height: 226px;
   }
   .grid-header-image {
     background-image: url('https://material.angular.io/assets_/img/examples/shiba1.jpg');
@@ -154,9 +176,13 @@ flex: 1 1 auto;
     color: rgba(0,0,0,0.5);
     font-size: 21px;
   }
+  .grid-card-content{
+    margin:0 -8px !important;
+    padding-bottom: 10px!important;
+  }
   .iconArea{
     width: 100%;
-    height: 130px;
+    height: 180px;
     text-align: center;
     vertical-align: middle;
     overflow: hidden;
@@ -177,6 +203,15 @@ flex: 1 1 auto;
     margin-top:12px;
     cursor: pointer;
     color:rgb(170, 170, 170);
+  }
+  .file-owner{
+    position: absolute;
+    line-height: 12px;
+    font-size: 11px;
+    bottom: 7px;
+    left: 52px;
+    cursor: default;
+    color: darkgray;
   }
   .evenly{
     justify-content: center;

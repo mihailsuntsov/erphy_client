@@ -10,6 +10,7 @@ export class QueryForm{
     companyId:any;
     selectedNodeId:any;
     selectedNodeName:any;
+    selectedNodeOwnerId:any;
     searchCategoryString:any;
     trash:Boolean; //true - показывать файлы в корзине, false - нет
     showOnlyAnonymeAccessFiles:Boolean;//true - показывать только файлы с разрешенным анонимным доступом, false - все файлы

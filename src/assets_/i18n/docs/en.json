@@ -408,7 +408,8 @@
         "srvc_appoint":"Service by appointment",
         "time_from":"Start time",
         "time_to":"End time",
-        "date_range":"Date range"
+        "date_range":"Date range",        
+        "owner": "Owner"
         
     },
     "error":{ 

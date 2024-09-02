@@ -20,6 +20,7 @@
         "btn_create":   "Креирај",
         "btn_restore":  "Врати",
         "btn_delete":   "Избриши", 
+        "btn_ch_owner": "Промени власника",
         "btn_actions":  "Акције",
         "btn_select":   "Изабери",
         "hide_nonbuy":  "Сакријте некупљене производе",
@@ -228,7 +229,8 @@
         "add_option":   "Додатно",
         "plan_limit":   "Ограничење",
         "is_let_sync":  "Конекциja је дозвољена",
-        "dep_part":     "Део одељења"
+        "dep_part":     "Део одељења",        
+        "owner":        "Власник"
     },
     "bottom":{
         "founded":      "Пронађено",

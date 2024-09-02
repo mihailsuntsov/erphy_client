@@ -35,10 +35,10 @@ export class UniversalCategoriesDialogComponent implements OnInit {
   }
 
   ngOnInit() {
-    console.log("data.actionType:"+this.data.actionType);
-    console.log("data.parentCategoryName:"+this.data.parentCategoryName);
-    console.log("data.parentCategoryId:"+this.data.parentCategoryId);
-    console.log("data.docName:"+this.data.docName);
+    // console.log("data.actionType:"+this.data.actionType);
+    // console.log("data.parentCategoryName:"+this.data.parentCategoryName);
+    // console.log("data.parentCategoryId:"+this.data.parentCategoryId);
+    // console.log("data.docName:"+this.data.docName);
 
     this.formBaseInformation = new UntypedFormGroup({
       parentCategoryId: new UntypedFormControl(+this.data.parentCategoryId,[]),//id РОДИТЕЛЬСКОЙ категории для создаваемой категории (ПУСТО - КОРНЕВАЯ БУДЕТ)
@@ -46,6 +46,7 @@ export class UniversalCategoriesDialogComponent implements OnInit {
       categoryId: new UntypedFormControl(+this.data.categoryId,[]),//id созданной, редактируемой или удаляемой категории
       name: new UntypedFormControl            (this.data.categoryName,[Validators.required]),
       companyId: new UntypedFormControl(+this.data.companyId,[]),//id выбранного предприятия
+      ownerId: new UntypedFormControl(this.data.ownerId,[]),
     });
 
     if(this.data.actionType=='changeOrder'){
@@ -68,21 +69,34 @@ export class UniversalCategoriesDialogComponent implements OnInit {
 
   updateCategory(){
     return this.http.post('/api/auth/update'+this.data.docName+'Category', this.formBaseInformation.value)
-            .subscribe(
-                (data) => {   
-                  this.openSnackBar(translate('modules.msg.cat_saved'), translate('modules.button.close'));
-                          this.dialogRef.close();
-                        },
-                error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
-            );
+      .subscribe(
+          (data) => {                  
+            let result=data as any;
+            switch(result){
+              case 1:{this.openSnackBar(translate('modules.msg.cat_saved'), translate('modules.button.close'));break;}  //+++
+              case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:(translate('menu.msg.error_msg'))}});break;}
+              case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.ne_perm')}});break;}
+            }
+                    this.dialogRef.close();
+            },
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
+      );
   }
 
   createCategory(){
     return this.http.post('/api/auth/insert'+this.data.docName+'Category', this.formBaseInformation.value)
     .subscribe(
         (data) => {   
-                  this.data.categoryId=data as number;
-                  this.openSnackBar(translate('modules.msg.cat_created'), translate('modules.button.close'));
+              let result=data as any;
+                switch(result){
+                  case 1:{
+                    this.data.categoryId=data as number;
+                    this.openSnackBar(translate('modules.msg.cat_created'), translate('modules.button.close'));
+                    break;
+                  }  //+++
+                  case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:(translate('menu.msg.error_msg'))}});break;}
+                  case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.ne_perm')}});break;}
+                }
                   this.dialogRef.close(this.data.categoryId);
                 },
         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
@@ -94,7 +108,9 @@ export class UniversalCategoriesDialogComponent implements OnInit {
       duration: 3000,
     });
   }
+  onOwnerSelection(){
 
+  }
 //*****************************************************************************************************************************************/
 //*******************************************   D R A G   A N D   D R O P   ***************************************************************/
 //*****************************************************************************************************************************************/

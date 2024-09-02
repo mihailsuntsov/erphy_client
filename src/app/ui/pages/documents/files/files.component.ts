@@ -22,12 +22,16 @@ import { FileCategoriesSelectComponent } from 'src/app/modules/trade-modules/fil
 interface TreeNode {
   id: string;
   name: string;
+  owner: string;
+  ownerId:number;
   children?: TreeNode[];
 }
 interface FlatNode {
   expandable: boolean;
   name: string;
   level: number;
+  owner: string;
+  ownerId:number;
 }
 export interface CheckBox {
   id: number;
@@ -50,12 +54,17 @@ export interface File {
   original_name: string;
   path: string;
   image: any;
+  ownerId:number;
+  owner:string;
 }
 export interface NumRow {//интерфейс для списка количества строк
   value: string;
   viewValue: string;
 }
-
+export interface IdAndName {
+  id: number;
+  name:string;
+}
 @Component({
   selector: 'app-files',
   templateUrl: './files.component.html',
@@ -77,7 +86,7 @@ export class FilesComponent implements OnInit {
   myId:number=0;
   mode: string = 'standart';  // режим работы документа: standart - обычный режим, select - оконный режим выбора файлов
   gettingTableData:boolean=true;//!!!
-  
+  receivedUsersList: IdAndName[]=[{id: null, name:'---'}];
   files: File[] = [];//массив данных для таблицы, картинок-миниатюр и чекбоксов (чекбоксы берут из него id, таблица -всё)
   selectedObjects: number[]=[]; // выбранные во всплывающем окне выбора категорий объекты (категории), для массового присвоения файлам
 
@@ -88,18 +97,23 @@ export class FilesComponent implements OnInit {
   // allowToShowMenuTableAllCompanies:boolean = false;
   allowToViewAllCompanies:boolean = false;
   allowToViewMyCompany:boolean = false;
+  allowToViewOwned:boolean = false;
   allowToUpdateAllCompanies:boolean = false;
   allowToUpdateMyCompany:boolean = false;
+  allowToUpdateOwned:boolean = false;
   allowToCreateMyCompany:boolean = false;
   allowToCreateAllCompanies:boolean = false;
-  allowToDeleteMyCompany:boolean = false;
   allowToDeleteAllCompanies:boolean = false;
-  allowToRecoverFilesMyCompany:boolean = false;
+  allowToDeleteMyCompany:boolean = false;
+  allowToDeleteOwned:boolean = false;
   allowToRecoverFilesAllCompanies:boolean = false;
+  allowToRecoverFilesMyCompany:boolean = false;
+  allowToRecoverFilesOwned:boolean = false;
   allowToClearTrashMyCompany:boolean = false;
   allowToClearTrashAllCompanies:boolean = false;
-  allowToDeleteFromTrashMyCompany:boolean = false;
   allowToDeleteFromTrashAllCompanies:boolean = false;
+  allowToDeleteFromTrashMyCompany:boolean = false;
+  allowToDeleteFromTrashOwned:boolean = false;
   allowCategoryCreateMyCompany:boolean = false;
   allowCategoryCreateAllCompanies:boolean = false;
   allowCategoryUpdateMyCompany:boolean = false;
@@ -158,6 +172,8 @@ viewMode:string = "grid"; // способ отображения файлов - 
       name: node.name,
       id: node.id,
       level: level,
+      owner: node.owner,
+      ownerId: node.ownerId
     };
   }
   treeControl = new FlatTreeControl<FlatNode>(node => node.level, node => node.expandable);
@@ -265,10 +281,13 @@ viewMode:string = "grid"; // способ отображения файлов - 
     this.allowToCreateMyCompany = this.permissionsSet.some(            function(e){return(e==147)});
     this.allowToDeleteAllCompanies = this.permissionsSet.some(         function(e){return(e==148)});
     this.allowToDeleteMyCompany = this.permissionsSet.some(            function(e){return(e==149)});
+    this.allowToDeleteOwned = this.permissionsSet.some(                function(e){return(e==729)});
     this.allowToViewAllCompanies = this.permissionsSet.some(           function(e){return(e==150)});
     this.allowToViewMyCompany = this.permissionsSet.some(              function(e){return(e==151)});
+    this.allowToViewOwned = this.permissionsSet.some(                  function(e){return(e==727)});
     this.allowToUpdateAllCompanies = this.permissionsSet.some(         function(e){return(e==152)});
     this.allowToUpdateMyCompany = this.permissionsSet.some(            function(e){return(e==153)});
+    this.allowToUpdateOwned= this.permissionsSet.some(                 function(e){return(e==728)});
     this.allowCategoryCreateAllCompanies = this.permissionsSet.some(   function(e){return(e==154)});
     this.allowCategoryCreateMyCompany = this.permissionsSet.some(      function(e){return(e==155)});
     this.allowCategoryUpdateAllCompanies = this.permissionsSet.some(   function(e){return(e==156)});
@@ -277,8 +296,10 @@ viewMode:string = "grid"; // способ отображения файлов - 
     this.allowCategoryDeleteMyCompany = this.permissionsSet.some(      function(e){return(e==159)});
     this.allowToRecoverFilesAllCompanies = this.permissionsSet.some(   function(e){return(e==177)});
     this.allowToRecoverFilesMyCompany = this.permissionsSet.some(      function(e){return(e==178)});
+    this.allowToRecoverFilesOwned = this.permissionsSet.some(          function(e){return(e==730)});
     this.allowToDeleteFromTrashAllCompanies = this.permissionsSet.some(function(e){return(e==179)});
     this.allowToDeleteFromTrashMyCompany = this.permissionsSet.some(   function(e){return(e==180)});
+    this.allowToDeleteFromTrashOwned = this.permissionsSet.some(       function(e){return(e==731)});
     this.allowToClearTrashAllCompanies = this.permissionsSet.some(     function(e){return(e==181)});
     this.allowToClearTrashMyCompany = this.permissionsSet.some(        function(e){return(e==182)});
     
@@ -287,12 +308,12 @@ viewMode:string = "grid"; // способ отображения файлов - 
 
   refreshPermissions():boolean{
     let documentOfMyCompany:boolean = (this.sendingQueryForm.companyId==this.myCompanyId);
-    this.allowToView=((documentOfMyCompany && (this.allowToViewAllCompanies || this.allowToViewMyCompany))||(documentOfMyCompany==false && this.allowToViewAllCompanies))?true:false;
-    this.allowToUpdate=((documentOfMyCompany && (this.allowToUpdateAllCompanies || this.allowToUpdateMyCompany))||(documentOfMyCompany==false && this.allowToUpdateAllCompanies))?true:false;
+    this.allowToView=((documentOfMyCompany && (this.allowToViewAllCompanies || this.allowToViewMyCompany))||(documentOfMyCompany==false && this.allowToViewAllCompanies)||this.allowToViewOwned)?true:false;
+    this.allowToUpdate=((documentOfMyCompany && (this.allowToUpdateAllCompanies || this.allowToUpdateMyCompany))||(documentOfMyCompany==false && this.allowToUpdateAllCompanies)||this.allowToUpdateOwned)?true:false;
     this.allowToCreate=((documentOfMyCompany && (this.allowToCreateAllCompanies || this.allowToCreateMyCompany))||(documentOfMyCompany==false && this.allowToCreateAllCompanies))?true:false;
-    this.allowToDelete=((documentOfMyCompany && (this.allowToDeleteAllCompanies || this.allowToDeleteMyCompany))||(documentOfMyCompany==false && this.allowToDeleteAllCompanies))?true:false;
-    this.allowToRecoverFiles=((documentOfMyCompany && (this.allowToRecoverFilesAllCompanies || this.allowToRecoverFilesMyCompany))||(documentOfMyCompany==false && this.allowToRecoverFilesAllCompanies))?true:false;
-    this.allowToDeleteFromTrash=((documentOfMyCompany && (this.allowToDeleteFromTrashAllCompanies || this.allowToDeleteFromTrashMyCompany))||(documentOfMyCompany==false && this.allowToDeleteFromTrashAllCompanies))?true:false;
+    this.allowToDelete=((documentOfMyCompany && (this.allowToDeleteAllCompanies || this.allowToDeleteMyCompany))||(documentOfMyCompany==false && this.allowToDeleteAllCompanies)||this.allowToDeleteOwned)?true:false;
+    this.allowToRecoverFiles=((documentOfMyCompany && (this.allowToRecoverFilesAllCompanies || this.allowToRecoverFilesMyCompany))||(documentOfMyCompany==false && this.allowToRecoverFilesAllCompanies)||this.allowToRecoverFilesOwned)?true:false;
+    this.allowToDeleteFromTrash=((documentOfMyCompany && (this.allowToDeleteFromTrashAllCompanies || this.allowToDeleteFromTrashMyCompany))||(documentOfMyCompany==false && this.allowToDeleteFromTrashAllCompanies)||this.allowToDeleteFromTrashOwned)?true:false;
     this.allowToClearTrash=((documentOfMyCompany && (this.allowToClearTrashAllCompanies || this.allowToClearTrashMyCompany))||(documentOfMyCompany==false && this.allowToClearTrashAllCompanies))?true:false;
     this.allowCategoryCreate=((documentOfMyCompany && (this.allowCategoryCreateAllCompanies || this.allowCategoryCreateMyCompany))||(documentOfMyCompany==false && this.allowCategoryCreateAllCompanies))?true:false;
     this.allowCategoryUpdate=((documentOfMyCompany && (this.allowCategoryUpdateAllCompanies || this.allowCategoryUpdateMyCompany))||(documentOfMyCompany==false && this.allowCategoryUpdateAllCompanies))?true:false;
@@ -327,6 +348,8 @@ viewMode:string = "grid"; // способ отображения файлов - 
     this.displayedColumns.push('description');
     this.displayedColumns.push('anonyme_access');
     this.displayedColumns.push('date_time_created');
+    this.displayedColumns.push('creator');
+    this.displayedColumns.push('owner');
     this.displayedColumns.push('file_size');
   }
 
@@ -338,6 +361,7 @@ viewMode:string = "grid"; // способ отображения файлов - 
         this.getTable();
         this.doFilterCompaniesList();
         this.loadTrees();
+        this.getUsersList();
         //!!!
       } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('menu.msg.ne_perm')}})} 
     }
@@ -538,11 +562,18 @@ viewMode:string = "grid"; // способ отображения файлов - 
       const parentId = this.getParent(this.getNodeById(id))!=null?this.getNodeId(this.getParent(this.getNodeById(id))):0;//возвращает id родителя или 0 если корневая категория
       return this.http.post('/api/auth/deleteFileCategory',body)
       .subscribe(
-          (data) => {   
-                      this.openSnackBar(translate('menu.msg.del_success'), translate('menu.msg.close')); //+++
-                      if (parentId>0) {this.loadTreesAndOpenNode(parentId)} else {this.loadTrees()};
-                      this.resetSelectedCategory();
-                  },
+          (data) => {  
+            let result=data as any;
+            switch(result){
+              case 1:{ 
+                this.openSnackBar(translate('menu.msg.del_success'), translate('menu.msg.close'));
+                if (parentId>0) {this.loadTreesAndOpenNode(parentId)} else {this.loadTrees()};
+                this.resetSelectedCategory();
+                break;}  //+++
+              case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:(translate('menu.msg.error_msg'))}});break;}
+              case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.ne_perm')}});break;}
+            }
+          },
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
       );  
     }
@@ -712,7 +743,8 @@ viewMode:string = "grid"; // способ отображения файлов - 
           parentCategoryId: +this.sendingQueryForm.selectedNodeId,
           title:translate('menu.dialogs.ctg_creation'), //+++
           companyId:+this.sendingQueryForm.companyId,
-          docName:"File"
+          docName:"File",
+          receivedUsersList: this.receivedUsersList,
         },
       });
       dialogRef.afterClosed().subscribe(result => {
@@ -730,7 +762,9 @@ viewMode:string = "grid"; // способ отображения файлов - 
           categoryName: this.sendingQueryForm.selectedNodeName , 
           categoryId: +this.sendingQueryForm.selectedNodeId,
           title:translate('menu.dialogs.ctg_edit'), //+++
-          docName:"File"
+          docName:"File",
+          receivedUsersList: this.receivedUsersList,
+          ownerId:this.sendingQueryForm.selectedNodeOwnerId
         },
       });
       dialogRef.afterClosed().subscribe(result => {
@@ -834,11 +868,18 @@ viewMode:string = "grid"; // способ отображения файлов - 
         this.clearCheckboxSelection();
         return this.http.post('/api/auth/setCategoriesToFiles', body) 
           .subscribe(
-              (data) => {   
-                this.openSnackBar(translate('menu.msg.sep_prod_cat'), translate('menu.msg.close')); //+++
-                this.showOnlyVisBtnAdd();
-                this.getPagesList();
-                this.getTable();
+              (data) => { 
+                let result = data as any;
+                switch(result){
+                  case 1:{this.getData();this.openSnackBar(translate('menu.msg.changed_succ'), translate('menu.msg.close'));
+                    this.openSnackBar(translate('menu.msg.sep_prod_cat'), translate('menu.msg.close')); //+++
+                    this.showOnlyVisBtnAdd();
+                    this.getPagesList();
+                    this.getTable();
+                    break;}  //+++
+                  case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:(translate('menu.msg.error_msg'))}});break;}
+                  case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.ne_perm')}});break;}
+                }  
               },
               error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
           );
@@ -898,6 +939,7 @@ viewMode:string = "grid"; // способ отображения файлов - 
     //console.log("node Id:"+node.id);
     this.sendingQueryForm.selectedNodeId=node.id;
     this.sendingQueryForm.selectedNodeName=node.name;
+    this.sendingQueryForm.selectedNodeOwnerId=node.ownerId;
     this.recountNumChildsOfSelectedCategory();
     this.getPagesList();
     this.sendingQueryForm.offset=0;
@@ -1012,7 +1054,38 @@ clickBtnFileUplioad(){
   });   
 
 }
+getUsersList(){
+  if(this.receivedUsersList.length==1)// contains only id:null, name:"---"
+  this.http.get('/api/auth/getUsersListByCompanyId?company_id='+this.sendingQueryForm.companyId).subscribe(
+      data  => { 
+        this.receivedUsersList = this.receivedUsersList.concat(data as IdAndName[])
+      },
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+  );
+}
 
+changeOwner(newOwnerId:number){
+  const body = {
+    "documentIds":                this.checkedList,//join convert array to the string with "," delimitters
+    "newOwnerId":                 newOwnerId,
+    "documentName":               "files",
+    "documentRegistryId":         13,
+    "editDocAllCompaniesPermit":  "152",
+    "editDocMyCompanyPermit":     "153",
+    "editMyDocPermit":            "728"  
+  }; 
+  this.clearCheckboxSelection();
+  return this.http.post('/api/auth/changeDocumentOwner', body) 
+    .subscribe(
+      (data) => {   
+        let result=data as any;
+        switch(result){
+          case 1:{this.getData();this.openSnackBar(translate('menu.msg.changed_succ'), translate('menu.msg.close'));break;}  //+++
+          case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:(translate('menu.msg.error_msg'))}});break;}
+          case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.ne_perm')}});break;}
+        }
+      },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},);
+} 
   // clickBtnDeleteImage(id: number): void {
   //   const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
   //     width: '400px',

@@ -20,6 +20,7 @@
         "btn_create":   "Create",
         "btn_restore":  "Restore",
         "btn_delete":   "Delete",
+        "btn_ch_owner": "Change owner",
         "btn_actions":  "Actions",
         "btn_select":   "Select",
         "hide_nonbuy":  "Hide non-purchased goods",
@@ -228,7 +229,8 @@
         "add_option":   "Additional",
         "plan_limit":   "Limit",
         "is_let_sync":  "Connection allowed",
-        "dep_part":     "Part of department"
+        "dep_part":     "Part of department",        
+        "owner": "Owner"
     },
     "bottom":{
         "founded":      "Founded",

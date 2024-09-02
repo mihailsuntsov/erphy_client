@@ -86,7 +86,14 @@ class="spinner"
             <mat-tree [dataSource]="treeDataSource" [treeControl]="treeControl">
                 <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
                     <button mat-icon-button disabled></button>
-                    <span class="node" [ngClass]="{selected_node:node.id==sendingQueryForm.selectedNodeId}" (click)="selectNode(node)">{{node.name}}</span>
+                    <span class="node" [ngClass]="{selected_node:node.id==sendingQueryForm.selectedNodeId}" (click)="selectNode(node)">{{node.name}}
+                        <i 
+                            *ngIf = "node.owner"
+                            class="node-owner" 
+                            [ngClass]="{selected_node_owner:node.id==sendingQueryForm.selectedNodeId}">
+                            {{node.owner}}
+                        </i>
+                    </span>
                 </mat-tree-node>
                 <mat-tree-node *matTreeNodeDef="let node;when: hasChild" matTreeNodePadding>
                     <button mat-icon-button matTreeNodeToggle
@@ -95,7 +102,14 @@ class="spinner"
                         {{treeControl.isExpanded(node) ? 'expand_more' : 'chevron_right'}}
                     </mat-icon>
                     </button>
-                    <span class="node" [ngClass]="{selected_node:node.id==sendingQueryForm.selectedNodeId}" (click)="selectNode(node)">{{node.name}}</span>
+                    <span class="node" [ngClass]="{selected_node:node.id==sendingQueryForm.selectedNodeId}" (click)="selectNode(node)">{{node.name}}
+                        <i 
+                            *ngIf = "node.owner"
+                            class="node-owner" 
+                            [ngClass]="{selected_node_owner:node.id==sendingQueryForm.selectedNodeId}">
+                            {{node.owner}}
+                        </i>
+                    </span>
                 </mat-tree-node>
             </mat-tree>
     </mat-drawer>
@@ -133,6 +147,14 @@ class="spinner"
                             <button mat-menu-item *ngIf="allowToUpdate && selection.selected.length>0 && !sendingQueryForm.trash" (click)="openDialogFileCategoriesSelect()" matTooltip="{{t('menu.tip.ch_cat_prod')}}" matTooltipPosition="left"><mat-icon style="width: 30px;">rule</mat-icon><span>{{t('menu.menu.categories')}}</span></button>
                             <button mat-menu-item [matMenuTriggerFor]="shareExMenu" *ngIf="allowToUpdate && selection.selected.length>0 && !sendingQueryForm.trash"><mat-icon style="width: 30px;">share</mat-icon><span>{{t('menu.menu.share_ex')}}</span></button>
                             <button 
+                                [matMenuTriggerFor]="usersList"
+                                matTooltipPosition="left"
+                                [style.display]="(sendingQueryForm.trash || mode!='standart')?'none':'flex'"
+                                *ngIf="allowToUpdate && selection.selected.length>0"
+                                mat-menu-item>
+                                <mat-icon style="width: 30px;">person</mat-icon><span>{{t('menu.top.btn_ch_owner')}}</span>
+                            </button>
+                            <button 
                                 matTooltip="{{t('menu.tip.delete_to_bin')}}"
                                 matTooltipPosition="left"
                                 [style.display]="(sendingQueryForm.trash || mode!='standart')?'none':'flex'"
@@ -146,6 +168,13 @@ class="spinner"
                             <button mat-menu-item (click)="setFilesExternalAccess(true)"><span>{{t('menu.menu.share_ex_y')}}</span></button>
                             <button mat-menu-item (click)="setFilesExternalAccess(false)"><span>{{t('menu.menu.share_ex_n')}}</span></button>
                         </mat-menu>
+                        <mat-menu #usersList="matMenu" yPosition="below" xPosition="before">
+                            <button 
+                            *ngFor="let user of receivedUsersList"
+                            mat-menu-item 
+                            (click)="changeOwner(user.id)">
+                            <span>{{user.name}}</span></button>
+                        </mat-menu>
                         <!-- <div [style.display]="visBtnAdd==true?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
                             <button mat-raised-button (click)="clickBtnFileUplioad()" matTooltip="Загрузить файлы на сервер" color="primary"><i class="material-icons">cloud_upload</i> Загрузить</button>
                         </div> -->
@@ -154,7 +183,7 @@ class="spinner"
                             mat-raised-button 
                             matTooltip="{{t('menu.tip.restore_f_bin')}}"
                             matTooltipPosition="left"
-                            [style.display]="(visBtnRecover==true && selection.selected.length)?'block':'none'"
+                            [style.display]="(visBtnRecover==true && selection.selected.length)?'flex':'none'"
                             (click)="clickBtnRecover()" 
                             color="accent"
                             class="button small-button">
@@ -191,7 +220,7 @@ class="spinner"
                         <button 
                             mat-raised-button 
                             matTooltip="{{t('menu.tip.delete_perman')}}"
-                            [style.display]="(allowToDeleteFromTrash && selection.selected.length && sendingQueryForm.trash && selection.selected.length>0)?'block':'none'"
+                            [style.display]="(allowToDeleteFromTrash && selection.selected.length && sendingQueryForm.trash && selection.selected.length>0)?'flex':'none'"
                             (click)="clickBtnDeleteFromTrash()" 
                             color="warn"
                             class="button small-button">
@@ -205,7 +234,7 @@ class="spinner"
                         <button 
                             mat-raised-button 
                             matTooltip="{{t('menu.tip.empty_bin')}}"
-                            [style.display]="(sendingQueryForm.trash && +size>0)?'block':'none'"
+                            [style.display]="(sendingQueryForm.trash && +size>0)?'flex':'none'"
                             (click)="clickBtnClearTrash()" 
                             *ngIf="allowToClearTrash"
                             color="warn"
@@ -274,8 +303,8 @@ class="spinner"
 
                                         <div class="flex" *ngIf="sendingQueryForm.selectedNodeName" style="margin-left: 10px; max-width: 250px;">
                                             <mat-form-field  style="margin-left: 10px; width: 100%;">
-                                                <input matInput  
-                                                placeholder="{{t('menu.top.category')}}" 
+                                                <mat-label>{{t('menu.top.category')}}</mat-label>
+                                                <input matInput
                                                 [(ngModel)]="sendingQueryForm.selectedNodeName" 
                                                 type="text" 
                                                 [readonly]=true
@@ -405,6 +434,15 @@ class="spinner"
                                                     <td mat-cell *matCellDef="let row"> {{row.date_time_created}} </td>
                                                 </ng-container>
 
+                                                <ng-container matColumnDef="owner">
+                                                    <th mat-header-cell *matHeaderCellDef>
+                                                    <span (click)="setSort('owner')" class="sortheader"> {{t('menu.table.owner')}}  
+                                                        <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='owner'" class="material-icons sortarrow">arrow_upward</i>
+                                                        <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='owner'" class="material-icons sortarrow">arrow_downward</i>
+                                                    </span>
+                                                    <td mat-cell *matCellDef="let row"> {{row.owner}} </td>
+                                                </ng-container>
+
                                                 <ng-container matColumnDef="anonyme_access">
                                                     <th mat-header-cell *matHeaderCellDef>
                                                     <span (click)="setSort('anonyme_access')" class="sortheader"> {{t('menu.table.shared')}} 
@@ -467,16 +505,23 @@ class="spinner"
                                                                 <img *ngIf="mode=='select'" class="file_icon" [src]="block.image" width=120>
                                                         </div>
                                                     </ng-template>
-                                                    <mat-card-content style="margin:0 -8px !important">
-                                                        <p>
-                                                            <mat-checkbox 
-                                                                (click)="$event.stopPropagation()"
-                                                                (change)="$event ? clickTableCheckbox(block) : null"
-                                                                [checked]="selection.isSelected(block)"
-                                                                matTooltip={{block.original_name}}
-                                                                [aria-label]="checkboxLabel(block)">
-                                                                {{block.original_name}}
-                                                            </mat-checkbox>
+                                                    <mat-card-content class="grid-card-content">
+                                                        <mat-checkbox 
+                                                            style="white-space: nowrap;"
+                                                            (click)="$event.stopPropagation()"
+                                                            (change)="$event ? clickTableCheckbox(block) : null"
+                                                            [checked]="selection.isSelected(block)"
+                                                            matTooltip={{block.original_name}}
+                                                            [aria-label]="checkboxLabel(block)">
+                                                            {{block.original_name}}
+                                                            
+                                                        </mat-checkbox>
+                                                            <i                                                             
+                                                                matTooltip="{{t('docs.field.owner')}}"
+                                                                *ngIf = "block.owner"
+                                                                class="file-owner">
+                                                                {{block.owner}}
+                                                            </i>
                                                     </mat-card-content>
                                                 </mat-card>
                                             </div> 
