@@ -309,7 +309,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   allFields: any[][] = [];//[номер строки начиная с 0][объект - вся инфо о товаре (id,кол-во, цена... )] - массив товаров
   filesInfo : filesInfo [] = []; //массив для получения информации по прикрепленным к документу файлам 
   myId:number=0;
-  creatorId:number=0;
+  ownerId:number=0;
   // is_addingNewCustomer: boolean = false; // при создании документа создаём нового получателя (false) или ищем уже имеющегося (true)
   panelContactsOpenState = true;
   panelAddressOpenState = false;
@@ -421,6 +421,16 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
   lastCheckedDocNumber:string=''; //!!!
 
   displayedColumns:string[];
+  quillTools = {
+    toolbar: [      
+      // [{ header: [1, 2, false] }],
+      [{ 'size': ['small', false, 'large', 'huge'] }],  // custom dropdown
+      ['bold', 'italic', 'underline'],
+      // [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+      // [ 'clean', 'divider' ]
+    ]
+  };
+
   @ViewChild("countInput", {static: false}) countInput;
   @ViewChild("nameInput", {static: false}) nameInput; 
   @ViewChild("doc_number", {static: false}) doc_number; 
@@ -694,6 +704,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
           (data) => {   
                       this.permissionsSet=data as any [];
                       this.getMyId();
+                      this.getCRUD_rights();
                       // this.necessaryActionsBeforeGetChilds();
       },
       error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
@@ -727,41 +738,47 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     if(this.allowToCompleteAllCompanies){this.allowToCompleteMyCompany=true;this.allowToCompleteMyDepartments=true;this.allowToCompleteMyDocs=true;}
     if(this.allowToCompleteMyCompany){this.allowToCompleteMyDepartments=true;this.allowToCompleteMyDocs=true;}
     if(this.allowToCompleteMyDepartments)this.allowToCompleteMyDocs=true;
-    this.getData();
   }
 
   refreshPermissions(){
     // alert(2)
     let documentOfMyCompany:boolean = (this.formBaseInformation.get('company_id').value==this.myCompanyId);
-    let documentOfMyDepartments:boolean = (this.inMyDepthsId(+this.getDepartmentIdByDepPartId()));
+    // let documentOfMyDepartments:boolean = (this.inMyDepthsId(+this.getDepartmentIdByDepPartId()));
+    let documentOfMyDepartments:boolean = (this.inMyDepthsId(this.getDepartmentIdByDepPartId()));
+    // let documentOfMyDepartments:boolean=true;
     this.allowToView=(
       (this.allowToViewAllCompanies)||
       (this.allowToViewMyCompany&&documentOfMyCompany)||
       (this.allowToViewMyDepartments&&documentOfMyCompany&&documentOfMyDepartments)||
-      (this.allowToViewMyDocs&&documentOfMyCompany&&documentOfMyDepartments&&(this.myId==this.creatorId))
+      (this.allowToViewMyDocs&&documentOfMyCompany&&documentOfMyDepartments&&(this.myId==this.ownerId))
     )?true:false;
+    // alert("company_id-"+(this.formBaseInformation.get('company_id').value))
+    // alert("this.myCompanyId-"+this.myCompanyId)
+    // alert("documentOfMyCompany-"+documentOfMyCompany)
+    // alert("documentOfMyDepartments-"+documentOfMyDepartments)
+    // alert("this.myId==this.ownerId-"+(this.myId==this.ownerId))
     this.allowToUpdate=(
       (this.allowToUpdateAllCompanies)||
       (this.allowToUpdateMyCompany&&documentOfMyCompany)||
       (this.allowToUpdateMyDepartments&&documentOfMyCompany&&documentOfMyDepartments)||
-      (this.allowToUpdateMyDocs&&documentOfMyCompany&&documentOfMyDepartments&&(this.myId==this.creatorId))
+      (this.allowToUpdateMyDocs&&documentOfMyCompany&&documentOfMyDepartments&&(this.myId==this.ownerId))
     )?true:false;
     this.allowToComplete=(
       (this.allowToCompleteAllCompanies)||
       (this.allowToCompleteMyCompany&&documentOfMyCompany)||
       (this.allowToCompleteMyDepartments&&documentOfMyCompany&&documentOfMyDepartments)||
-      (this.allowToCompleteMyDocs&&documentOfMyCompany&&documentOfMyDepartments&&(this.myId==this.creatorId))
+      (this.allowToCompleteMyDocs&&documentOfMyCompany&&documentOfMyDepartments&&(this.myId==this.ownerId))
     )?true:false;
     this.allowToCreate=(this.allowToCreateAllCompanies || this.allowToCreateMyCompany||this.allowToCreateMyDepartments)?true:false;
     
     this.editability=((this.allowToCreate && +this.id==0)||(this.allowToUpdate && this.id>0));
     
-    // console.log("refreshPermissions editability - "+this.editability);
-    // console.log("documentOfMyCompany - "+documentOfMyCompany);
-    // console.log("allowToView - "+this.allowToView);
-    // console.log("allowToUpdate - "+this.allowToUpdate);
-    // console.log("allowToCreate - "+this.allowToCreate);
-    // console.log("allowToCreateAllCompanies - "+this.allowToCreateAllCompanies);
+    console.log("refreshPermissions editability - "+this.editability);
+    console.log("documentOfMyCompany - "+documentOfMyCompany);
+    console.log("allowToView - "+this.allowToView);
+    console.log("allowToUpdate - "+this.allowToUpdate);
+    console.log("allowToCreate - "+this.allowToCreate);
+    console.log("allowToCreateAllCompanies - "+this.allowToCreateAllCompanies);
     // return true;
     this.rightsDefined=true;//!!!
     this.formCustomerTableColumns();
@@ -788,17 +805,8 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
         Cookie.get('appointments_companyId')=="0"? // если в куках нет информации о выбранном предприятии - ставим своё по дефолту
         (this.myCompanyId):+Cookie.get('appointments_companyId')
       );
-      this.getPriceTypesList();
-      this.getSpravTaxes();
-      // this.getSetOfTypePrices();//загрузка типов цен для покупателя, склада и по умолчанию  
-      this.getDepartmentsList();
-      this.getStatusesList(); 
-      this.getCompanySettings();
       this.getDepartmentsWithPartsList();
-      this.getJobtitleList();
-      this.getSpravSysEdizm(); //загрузка единиц измерения
-      if(this.data&&this.data.resourceId)
-        this.getPreloadServicesIdsByResourceId();
+      
   }
 
     getCompanySettings(){
@@ -873,11 +881,11 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     this.loadSpravService.getMyDepartmentsListByCompanyId(this.myCompanyId,false)
       .subscribe(
           (data) => {this.receivedMyDepartmentsList=data as any [];            
-          this.getCRUD_rights();
+          this.getData();
           },
           error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
       );
-    else this.getCRUD_rights();
+    else this.getData();
   }
 
   getDepartmentsList(){
@@ -896,14 +904,39 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
         .subscribe(
             (data) => {   
               this.receivedDepartmentsWithPartsList=data as any [];
-              if(+this.id==0) 
+              if(+this.id==0){
                 this.setDefaultDepartmentPart();
                 // call settings from here because from settings calling getEmployeesList(), and it needs department parts
                 this.getSettings();
+                this.otherActions();
+              } else {
+                this.refreshPermissions();
+                this.refreshEnableDisableFields();
+              }
             },
             error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
       );
-    else if(+this.id==0) {this.setDefaultDepartmentPart();this.getSettings();}
+    else {
+      if(+this.id==0) {
+        this.setDefaultDepartmentPart();this.getSettings();this.otherActions()
+      } else {
+        this.refreshPermissions();
+        this.refreshEnableDisableFields();
+      }
+    } 
+  }
+  otherActions(){
+    this.refreshPermissions();
+    this.getPriceTypesList();
+    this.getSpravTaxes();
+    // this.getSetOfTypePrices();//загрузка типов цен для покупателя, склада и по умолчанию  
+    this.getDepartmentsList();
+    this.getStatusesList(); 
+    this.getCompanySettings();    
+    this.getJobtitleList();
+    this.getSpravSysEdizm(); //загрузка единиц измерения
+    if(this.data&&this.data.resourceId)
+      this.getPreloadServicesIdsByResourceId();
   }
   setDefaultDepartmentPart(){
  
@@ -912,6 +945,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     if(this.data&&this.data.transmittedEvent&&this.data.transmittedEvent.meta.departmentPartId)
       this.formBaseInformation.get('department_part_id').setValue(this.data.transmittedEvent.meta.departmentPartId);
     this.getSetOfTypePrices();
+    this.refreshPermissions
   }
 
   getJobtitleList(){ 
@@ -1062,6 +1096,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     this.secondaryDepartments=this.receivedDepartmentsList;
   }
   inMyDepthsId(id:number):boolean{//проверяет, состоит ли присланный id в группе id отделений пользователя
+    console.log("inMyDepthsId",id)
     let inMyDepthsId:boolean = false;
     this.receivedMyDepartmentsList.forEach(myDepth =>{
       myDepth.id==id?inMyDepthsId=true:null;
@@ -1708,7 +1743,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
                   this.formBaseInformation.get('status_description').setValue(documentValues.status_description);
                   this.formBaseInformation.get('uid').setValue(documentValues.uid);
                   this.oneClickSaveControl=false;
-                  this.creatorId=+documentValues.creator_id;
+                  this.ownerId=+documentValues.owner_id;
                   this.is_completed=documentValues.is_completed;
                   this.showSearchCustomerFormFields=false;
                   this.formAppointmentChildDocsColumns();
@@ -1732,8 +1767,6 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
                   this.getSettings();                  
                   this.isMainDataLoading=false;
                   this.showBalanceModules=false;
-                  this.refreshPermissions();
-                  this.refreshEnableDisableFields();
                   setTimeout(() => { 
                     this.showBalanceModules=true;
                   }, 1);
@@ -3024,8 +3057,8 @@ deleteFile(id:number){
     this.tabIndex=index;
   }
   myTabSelectedTabChange(changeEvent: MatTabChangeEvent) {
-    console.log('Index: ' + changeEvent.index);
-  }  
+    if(changeEvent.index==0) this.quillRefresh();
+  }
   myTabAnimationDone() {
     // console.log('Animation is done.');
     if(this.tabIndex==1)  {
@@ -4471,6 +4504,10 @@ deleteFile(id:number){
         result.push(service.id);  
     });
     return result;
+  }
+
+  quillRefresh(){
+    this.formBaseInformation.get('description').setValue((this.formBaseInformation.get('description').value));
   }
   //--------------------------------------------------------------------------- Утилиты ---------------------------------------------------------------------------------------------------------
   //заменяет запятую на точку при вводе цены или количества в заданной ячейке

@@ -14,6 +14,7 @@ import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 import { AppointmentsModule } from 'src/app/ui/pages/documents/appointments/appointments.module';
 // import { KkmModule } from 'src/app/modules/trade-modules/kkm/kkm.module';
 import {NgxMaterialTimepickerModule} from 'ngx-material-timepicker';
+import { QuillModule } from 'ngx-quill';
 
 @NgModule({ 
   declarations: [AppointmentsDocComponent, ControlMessagesComponent],
@@ -30,7 +31,8 @@ import {NgxMaterialTimepickerModule} from 'ngx-material-timepicker';
     FormsModule,
     ReactiveFormsModule,
     TranslocoModule,
-    NgxMaterialTimepickerModule
+    NgxMaterialTimepickerModule,    
+    QuillModule.forRoot(),
   ],
   providers: [{ provide: TRANSLOCO_SCOPE, useValue: ['docs','menu','modules']},ValidationService],
 })

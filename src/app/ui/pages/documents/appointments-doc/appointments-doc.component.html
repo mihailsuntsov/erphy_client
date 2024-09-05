@@ -27,6 +27,7 @@
                             <mat-progress-bar *ngIf="isDocNumberUnicalChecking" mode="indeterminate"></mat-progress-bar>
                         </mat-form-field>
                         <span [ngClass]="{invisible: +id==0}"> {{formBaseInformation.get('doc_number').value}}</span>
+                        <!-- -allowToView:{{allowToView}}-com:{{(this.formBaseInformation.get('company_id').value==this.myCompanyId)}}-dep:{{(this.inMyDepthsId(+this.getDepartmentIdByDepPartId()))}}-myId:{{this.myId}}-ownerId{{ownerId}}-my:{{this.myId==this.ownerId}} -->
                     </div>
                     <!-- <button mat-icon-button
                             type="button"
@@ -594,7 +595,19 @@
                                                             
                                                             <div class="row" display="block">
                                                                 <div class="col-12">
-                                                                    <mat-form-field  class="mat-form-field-100" style="height: 96px;">
+                                                                    <quill-editor 
+                                                                        id="quill_description"
+                                                                        formControlName="description"
+                                                                        [modules]="quillTools" 
+                                                                        (keyup)="documentChanged=true"
+                                                                        (change)="documentChanged=true"
+                                                                        [format]="'html'"
+                                                                        style="height:500px;width:100%;"
+                                                                        maxnLength=1000000
+                                                                        >
+                                                                    </quill-editor>
+
+                                                                    <!-- <mat-form-field  class="mat-form-field-100" style="height: 96px;">
                                                                         <mat-label>{{t('docs.field.additional')}}</mat-label>
                                                                         <textarea   matInput
                                                                                     [readonly]=is_completed
@@ -606,7 +619,7 @@
                                                                                     formControlName="description">
                                                                         </textarea>
                                                                         <mat-hint align="end" *ngIf="description.value.length>500">{{description.value.length}} / 2000</mat-hint>
-                                                                    </mat-form-field>
+                                                                    </mat-form-field> -->
                                                                 </div>  
                                                             </div>                                                            
                                                     </div>

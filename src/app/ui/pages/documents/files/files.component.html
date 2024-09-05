@@ -326,10 +326,46 @@ class="spinner"
                                             <mat-icon>refresh</mat-icon>
                                         </button>
                                         <div  class="emptyspace flex evenly"  style="text-align: center; width: 70%; overflow: hidden;">
-                                            <span [ngClass]="{selected_mode_button: viewMode=='table',deselected_mode_button: viewMode=='grid'}"  (click)="setViewMode('table')" matTooltip="{{t('menu.tip.as_table')}}"><i class="material-icons">view_list</i></span>
+                                            <mat-button-toggle-group>
+                                                <button mat-icon-button 
+                                                class="group-button" 
+                                                matTooltip="{{t('menu.tip.as_table')}}"
+                                                [ngStyle]="viewMode=='table'?{'background-color':'#e0e0e0'}:{}"
+                                                (click)="setViewMode('table')">
+                                                    <mat-icon>view_list</mat-icon>
+                                                </button>
+                                                <button mat-icon-button 
+                                                class="group-button" 
+                                                matTooltip="{{t('menu.tip.as_table')}}"
+                                                [ngStyle]="viewMode=='grid'?{'background-color':'#e0e0e0'}:{}"
+                                                (click)="setViewMode('grid')">
+                                                    <mat-icon>view_module</mat-icon>
+                                                </button>
+                                                <button mat-icon-button
+                                                *ngIf="allowToRecoverFiles||allowToDeleteFromTrash||allowToClearTrash"
+                                                class="group-button" 
+                                                matTooltip="{{sendingQueryForm.trash?t('menu.tip.out_of_bin'):t('menu.tip.in_bin')}}"
+                                                [ngStyle]="this.sendingQueryForm.trash?{'background-color':'#e0e0e0'}:{}"
+                                                [style.display]="(mode=='standart')?'block':'none'"
+                                                (click)="clickShowTrashBtn()">
+                                                    <mat-icon>delete_outline</mat-icon>
+                                                </button>
+                                                <button mat-icon-button
+                                                class="group-button" 
+                                                matTooltip="{{sendingQueryForm.showOnlyAnonymeAccessFiles?t('menu.tip.dspl_all_file'):t('menu.tip.anonyme')}}"
+                                                [ngStyle]="sendingQueryForm.showOnlyAnonymeAccessFiles?{'background-color':'#e0e0e0'}:{}"
+                                                [style.display]="(mode=='standart')?'block':'none'"
+                                                (click)="clickAnonymeAccessFilesBtn()">
+                                                    <mat-icon>present_to_all</mat-icon>
+                                                </button>
+
+
+                                            </mat-button-toggle-group>
+                                            <!-- <span [ngClass]="{selected_mode_button: viewMode=='table',deselected_mode_button: viewMode=='grid'}"  (click)="setViewMode('table')" matTooltip="{{t('menu.tip.as_table')}}"><i class="material-icons">view_list</i></span>
                                             <span [ngClass]="{selected_mode_button: viewMode=='grid', deselected_mode_button: viewMode=='table'}"  (click)="setViewMode('grid')" matTooltip="{{t('menu.tip.as_icons')}}"><i class="material-icons">view_module</i></span>
                                             <span  *ngIf="allowToRecoverFiles||allowToDeleteFromTrash||allowToClearTrash"[ngClass]="{selected_mode_button: sendingQueryForm.trash, deselected_mode_button: !sendingQueryForm.trash}"  
                                                   (click)="clickShowTrashBtn()" 
+                                                  
                                                   [style.display]="(mode=='standart')?'block':'none'"
                                                   matTooltip="{{sendingQueryForm.trash?t('menu.tip.out_of_bin'):t('menu.tip.in_bin')}}">
                                                   <i class="material-icons">delete_outline</i>
@@ -339,9 +375,9 @@ class="spinner"
                                                   [style.display]="(mode=='standart')?'block':'none'"
                                                   matTooltip="{{sendingQueryForm.showOnlyAnonymeAccessFiles?t('menu.tip.dspl_all_file'):t('menu.tip.anonyme')}}">
                                                   <i class="material-icons">present_to_all</i>
-                                            </span>
+                                            </span> -->
                                         </div>
-                                            <mat-form-field>
+                                        <mat-form-field>
                                             <input matInput 
                                                 placeholder="{{t('menu.top.search')}}" 
                                                 [(ngModel)]="sendingQueryForm.searchString" 

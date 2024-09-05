@@ -184,10 +184,10 @@ height:30px;
   transition: 0.3s ease;
 }
 .div-foto{
-    width:100%;
+    /* width:100%; */
     min-height: 280px;
     max-height: 500px;
-    margin-bottom:15px;
+    margin:15px;
     overflow: hidden;
     display: flex;
 }

@@ -15,6 +15,7 @@ import { translate } from '@ngneat/transloco'; //+++
 interface docResponse {//интерфейс для получения ответа в запросе значений полей документа
   id: number;
   name: string;
+  owner: string;
   description: string;
   original_name: string;
   extention: string;
@@ -165,6 +166,7 @@ constructor(private activateRoute: ActivatedRoute,
       id: new UntypedFormControl                         ('',[]),
       master: new UntypedFormControl                     ('',[]),
       creator: new UntypedFormControl                    ('',[]),
+      owner: new UntypedFormControl                      ('',[]),
       changer: new UntypedFormControl                    ('',[]),
       company: new UntypedFormControl                    ('',[]),
       date_time_created: new UntypedFormControl          ('',[]),
@@ -299,6 +301,7 @@ constructor(private activateRoute: ActivatedRoute,
           this.formAboutDocument.get('master').setValue(documentValues.master);
           this.formAboutDocument.get('creator').setValue(documentValues.creator);
           this.formAboutDocument.get('changer').setValue(documentValues.changer);
+          this.formAboutDocument.get('owner').setValue(documentValues.owner);
           this.formAboutDocument.get('company').setValue(documentValues.company);
           this.formAboutDocument.get('date_time_created').setValue(documentValues.date_time_created);
           this.formAboutDocument.get('date_time_changed').setValue(documentValues.date_time_changed);

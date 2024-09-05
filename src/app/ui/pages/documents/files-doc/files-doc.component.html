@@ -244,37 +244,48 @@
                                     </form>  
                                 </mat-tab>
 
-                                <mat-tab  *ngIf="+id>0"  label="{{t('docs.tab.about')}}">
+                                <mat-tab  *ngIf="+id>0" label="{{t('docs.tab.about')}}">
                                     <form [formGroup]="formAboutDocument">
-                                        <mat-card appearance="outlined" style="margin:10px;">
-                                            <mat-card-content class="input-form">
-                                                    <mat-form-field [ngClass]="{invisible: +id==0}">
-                                                        <input  matInput
-                                                                placeholder="{{t('docs.field.company')}}"
-                                                                formControlName="company" [readonly]=true/>
-                                                    </mat-form-field>
-                                                    <mat-form-field [ngClass]="{invisible: +id==0}">
-                                                        <input  matInput
-                                                                placeholder="{{t('docs.field.creator')}}"
-                                                                formControlName="creator" [readonly]=true/>
-                                                    </mat-form-field>
-                                                    <mat-form-field [ngClass]="{invisible: +id==0}">
-                                                        <input  matInput
-                                                                placeholder="{{t('docs.field.created')}}"
-                                                                formControlName="date_time_created" [readonly]=true/>
-                                                    </mat-form-field>
-                                                    <mat-form-field [ngClass]="{invisible: +id==0}">
-                                                        <input  matInput
-                                                                placeholder="{{t('docs.field.changer')}}"
-                                                                formControlName="changer" [readonly]=true/>
-                                                    </mat-form-field>
-                                                    <mat-form-field [ngClass]="{invisible: +id==0}">
-                                                        <input  matInput
-                                                                placeholder="{{t('docs.field.changed')}}"
-                                                                formControlName="date_time_changed" [readonly]=true/>
-                                                    </mat-form-field>
-                                            </mat-card-content>
-                                        </mat-card>  
+                                        <div class="container-fluid" style="padding-top: 10px;">
+                                            <div class="row">
+                                                <div class="col-12 col-lg-10 col-xl-6">
+                                                    <mat-card appearance="outlined">
+                                                        <mat-card-content class="input-form">
+                                                                <mat-form-field [ngClass]="{invisible: +id==0}">
+                                                                    <mat-label>{{t('docs.field.company')}}</mat-label>
+                                                                    <input  matInput
+                                                                            formControlName="company" [readonly]=true/>
+                                                                </mat-form-field>
+                                                                <mat-form-field [ngClass]="{invisible: +id==0}">
+                                                                    <mat-label>{{t('docs.field.creator')}}</mat-label>
+                                                                    <input  matInput
+                                                                            formControlName="creator" [readonly]=true/>
+                                                                </mat-form-field>
+                                                                <mat-form-field [ngClass]="{invisible: +id==0}">
+                                                                    <mat-label>{{t('docs.field.created')}}</mat-label>
+                                                                    <input  matInput
+                                                                            formControlName="date_time_created" [readonly]=true/>
+                                                                </mat-form-field>
+                                                                <mat-form-field [ngClass]="{invisible: +id==0}">
+                                                                    <mat-label>{{t('docs.field.owner')}}</mat-label>
+                                                                    <input  matInput
+                                                                            formControlName="owner" [readonly]=true/>
+                                                                </mat-form-field>
+                                                                <mat-form-field [ngClass]="{invisible: +id==0}">
+                                                                    <mat-label>{{t('docs.field.changer')}}</mat-label>
+                                                                    <input  matInput
+                                                                            formControlName="changer" [readonly]=true/>
+                                                                </mat-form-field>
+                                                                <mat-form-field [ngClass]="{invisible: +id==0}">
+                                                                    <mat-label>{{t('docs.field.changed')}}</mat-label>
+                                                                    <input  matInput
+                                                                            formControlName="date_time_changed" [readonly]=true/>
+                                                                </mat-form-field>
+                                                        </mat-card-content>
+                                                    </mat-card>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </form>  
                                 </mat-tab>
                         </mat-tab-group>

@@ -189,19 +189,19 @@ flex: 1 1 auto;
     padding-top: 14px;
   }
   .selected_mode_button{
-    height: 48px;
+    /* height: 48px;
     min-width: 30px;
     padding:0px;
     margin-top:12px;
-    cursor: pointer;
+    cursor: pointer; */
     color:rgb(43, 43, 43);
   }
   .deselected_mode_button{
-    height: 48px;
+    /* height: 48px;
     min-width: 30px;
     padding:0px;
     margin-top:12px;
-    cursor: pointer;
+    cursor: pointer; */
     color:rgb(170, 170, 170);
   }
   .file-owner{

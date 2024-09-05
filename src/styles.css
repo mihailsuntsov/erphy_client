@@ -533,6 +533,11 @@ z-index: 10000000 !important;
 .group-button:not(:first-child) span.mat-mdc-button-persistent-ripple{
   border-left: solid 1px #e0e0e0;
 }
+.mat-button-toggle-group-appearance-standard{
+  display: flex !important;
+  height: 50px !important;
+  border-radius: 4px !important;
+}
 .cal-week-view .cal-current-time-marker {
   width: calc(100% + 10px)!important;
 }
