@@ -4,6 +4,27 @@
         <mat-card-title class="top-bar container-fluid"> 
                 <div class="row" id="topBlock">
                         <div class="card-name">{{t('docs.docs.role')}}</div>
+                        
+                                <button 
+                                        mat-raised-button 
+                                        *ngIf="+id>0 && allowToUpdate && allowToView"
+                                        matTooltip="{{t('docs.tip.select_all')}}"
+                                        (click)="selectAllChBoxes()"
+                                        color="primary"
+                                        type="button"
+                                        class="button small-button">
+                                        <i class="material-icons">fact_check</i>
+                                </button>
+                                <button 
+                                        mat-raised-button 
+                                        *ngIf="+id>0 && allowToUpdate && allowToView"
+                                        matTooltip="{{t('docs.tip.unselect_all')}}"
+                                        (click)="unselectAllChBoxes()"
+                                        color="primary"
+                                        type="button"
+                                        class="button small-button">
+                                        <i class="material-icons">ballot</i>
+                                </button>
                                 <button 
                                         mat-raised-button 
                                         matTooltip="{{t('docs.tip.create')}}"
@@ -27,13 +48,13 @@
                                         <i class="material-icons">save</i>
                                 </button>
                                 <a routerLink="../{{+id>0?'../':''}}usergroup">
-                                <button 
-                                        [matTooltip]="id>0?t('docs.tip.exit'):t('docs.tip.cancel')"
-                                        mat-raised-button 
-                                        color="accent"
-                                        class="button small-button">
-                                        <i class="material-icons">close</i>
-                                </button>
+                                    <button 
+                                            [matTooltip]="id>0?t('docs.tip.exit'):t('docs.tip.cancel')"
+                                            mat-raised-button 
+                                            color="accent"
+                                            class="button small-button">
+                                            <i class="material-icons">close</i>
+                                    </button>
                                 </a>
                 </div>
         </mat-card-title>
@@ -74,20 +95,7 @@
                                                                 placeholder="id"
                                                                 formControlName="id"/>
                                                     </mat-form-field>
-<!-- 
-                                                    <mat-form-field class="mat-form-field-100" *ngIf="+id==0">
-                                                        <mat-label>{{t('docs.field.company')}} <span *ngIf="formBaseInformation.get('company_id').value==''||formBaseInformation.get('company_id').value==null" class="star">*</span></mat-label>
-                                                        <mat-select  formControlName="company_id" (selectionChange)="onCompanyChange()">                          
-                                                                <mat-option  *ngFor="let rt of receivedCompaniesList" [value]="rt.id">
-                                                                        {{rt.name}}
-                                                                </mat-option> 
-                                                        </mat-select>
-                                                    </mat-form-field>
-                                                    <mat-form-field class="mat-form-field-100" *ngIf="+id>0">
-                                                        <mat-label>{{t('docs.field.company')}}</mat-label>
-                                                        <input  matInput [readonly]="true"
-                                                                [ngModel]="formAboutDocument.get('company').value" [ngModelOptions]="{standalone: true}"/>
-                                                    </mat-form-field> -->
+
                                                     <mat-form-field>
                                                         <mat-label>{{t('docs.field.name')}} <span *ngIf="formBaseInformation.get('name').value==''||formBaseInformation.get('name').value==null" class="star">*</span></mat-label>
                                                         <input matInput
@@ -120,17 +128,37 @@
                                                 <mat-expansion-panel *ngFor="let rt of receivedDocumentsWithPermissions">
                                                     <mat-expansion-panel-header>
                                                         <mat-panel-title>
-                                                                {{rt.name}}
+                                                                {{rt.name}} - {{rt.id}}
                                                         </mat-panel-title>
                                                     </mat-expansion-panel-header>
+                                                    <div style="width:100%; height: 40px; display: flex;">
+
+                                                        <button 
+                                                            mat-icon-button 
+                                                            class="btn-gray-color"
+                                                            matTooltip="{{t('docs.tip.select_all')}}"
+                                                            (click)="selectAllDocChBoxes(rt.id)">
+                                                            <mat-icon>fact_check</mat-icon>
+                                                        </button>
+                                                        <button 
+                                                            mat-icon-button 
+                                                            class="btn-gray-color" 
+                                                            matTooltip="{{t('docs.tip.unselect_all')}}"
+                                                            (click)="unselectAllDocChBoxes(rt.id)">
+                                                            <mat-icon>ballot</mat-icon>
+                                                        </button>
+
+                                                    </div>
                                                     <ul>
-                                                        <li *ngFor="let row of rt.permissions">
-                                                                <mat-checkbox
-                                                                (click)="$event.stopPropagation()"
-                                                                (change)="$event ? clickTableCheckbox(row) : null"
-                                                                [checked]="selection.isSelected(row)"
-                                                                >{{row.name}}</mat-checkbox>
-                                                        </li>
+                                                        <ng-container *ngFor="let row of rt.permissions">
+                                                            <li *ngIf="!blackListedPermissions.includes(row.id)">
+                                                                    <mat-checkbox
+                                                                    (click)="$event.stopPropagation()"
+                                                                    (change)="$event ? clickTableCheckbox(row) : null"
+                                                                    [checked]="selection.isSelected(row)"
+                                                                    >{{row.name}} - {{row.id}}</mat-checkbox>
+                                                            </li>
+                                                        </ng-container>
                                                     </ul>
                                                 </mat-expansion-panel>
                                             </mat-card-content>

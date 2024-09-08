@@ -172,8 +172,8 @@ class="spinner"
                                         </mat-form-field>
                                         <div class="flex" *ngIf="sendingQueryForm.selectedNodeName" style="margin-left: 10px; width: 200px;">
                                             <mat-form-field class="emptyspace">
+                                                <mat-label>{{t('menu.top.category')}}</mat-label>
                                                 <input matInput 
-                                                placeholder="{{t('menu.top.category')}}" 
                                                 [(ngModel)]="sendingQueryForm.selectedNodeName" 
                                                 type="text" 
                                                 [readonly]=true
@@ -290,7 +290,7 @@ class="spinner"
                                                 </ng-container>
                                                 <ng-container matColumnDef="description">
                                                     <th mat-header-cell *matHeaderCellDef>
-                                                        <span (click)="setSort('description')" class="sortheader"> {{t('menu.table.description')}} 
+                                                        <span (click)="setSort('p.description')" class="sortheader"> {{t('menu.table.description')}} 
                                                             <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='description'" class="material-icons sortarrow">arrow_upward</i>
                                                             <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='description'" class="material-icons sortarrow">arrow_downward</i>
                                                         </span>
@@ -299,52 +299,51 @@ class="spinner"
                                                 </ng-container>
                                                 <ng-container matColumnDef="contacts">
                                                     <th mat-header-cell *matHeaderCellDef>
-                                                        <span (click)="setSort('contacts')" class="sortheader"> {{t('menu.table.contacts')}} 
+                                                        <span class="sortheader"> {{t('menu.table.contacts')}} 
                                                             <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='contacts'" class="material-icons sortarrow">arrow_upward</i>
                                                             <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='contacts'" class="material-icons sortarrow">arrow_downward</i>
                                                         </span>
                                                     </th>
                                                     <td mat-cell *matCellDef="let row">
-                                                        <a class="inactive truncate-text" href= "tel:{{row.telephone}}">{{row.telephone}}</a>
-                                                        <button 
-                                                            type="button"
-                                                            matSuffix 
-                                                            *ngIf="row.telephone && row.telephone!=''"
-                                                            mat-icon-button 
-                                                            matTooltip="{{t('menu.table.copy_to_buff')}}"
-                                                            matTooltipPosition="right"
-                                                            style="color: gray; width:25px; height:25px;line-height: 24px;position: relative;top: -2px;" 
-                                                            (click)="copyToClipboard(row.telephone)">
-                                                                <mat-icon style="font-size: 15px;">content_copy</mat-icon>
-                                                        </button>
-                                                        <br>
-                                                        <a class="inactive truncate-text" href = "mailto: {{row.email}}">{{row.email}}</a>
-                                                        
-                                                        <button 
-                                                            type="button"
-                                                            matSuffix 
-                                                            *ngIf="row.email && row.email!=''"
-                                                            mat-icon-button 
-                                                            matTooltip="{{t('menu.table.copy_to_buff')}}"
-                                                            matTooltipPosition="right"
-                                                            style="color: gray; width:25px; height:25px;line-height: 24px;position: relative;top: -2px;" 
-                                                            (click)="copyToClipboard(row.email)">
-                                                                <mat-icon style="font-size: 15px;">content_copy</mat-icon>
-                                                        </button><br>
-                                                        <a *ngIf="row.site && row.site!=''" class="inactive truncate-text"  target="_blank" href="{{row.site}}">
-                                                            {{row.site}}
-                                                        </a>                                                          
-                                                        <button 
-                                                            type="button" 
-                                                            matSuffix 
-                                                            *ngIf="row.site && row.site!=''"
-                                                            mat-icon-button 
-                                                            matTooltip="{{t('menu.table.copy_to_buff')}}"
-                                                            matTooltipPosition="right"
-                                                            style="color: gray; width:25px; height:25px;line-height: 24px;position: relative;top: -2px;" 
-                                                            (click)="copyToClipboard(row.site)">
-                                                                <mat-icon style="font-size: 15px;">content_copy</mat-icon>
-                                                        </button>
+                                                        <div style="width:100%" *ngIf="row.telephone && row.telephone!=''">
+                                                            <a class="inactive truncate-text" href= "tel:{{row.telephone}}">{{row.telephone}}</a>
+                                                            <button 
+                                                                type="button"
+                                                                matSuffix                                                        
+                                                                mat-icon-button 
+                                                                matTooltip="{{t('menu.table.copy_to_buff')}}"
+                                                                matTooltipPosition="right"
+                                                                class="contact-icon" 
+                                                                (click)="copyToClipboard(row.telephone)">
+                                                                    <mat-icon style="font-size: 15px;">content_copy</mat-icon>
+                                                            </button>
+                                                        </div>
+                                                        <div style="width:100%" *ngIf="row.email && row.email!=''">
+                                                            <a class="inactive truncate-text" href = "mailto: {{row.email}}">{{row.email}}</a>
+                                                            <button 
+                                                                type="button"
+                                                                matSuffix 
+                                                                mat-icon-button 
+                                                                matTooltip="{{t('menu.table.copy_to_buff')}}"
+                                                                matTooltipPosition="right"
+                                                                class="contact-icon" 
+                                                                (click)="copyToClipboard(row.email)">
+                                                                    <mat-icon style="font-size: 15px;">content_copy</mat-icon>
+                                                            </button>
+                                                        </div>
+                                                        <div style="width:100%" *ngIf="row.site && row.site!=''">
+                                                            <a class="inactive truncate-text"  target="_blank" href="{{row.site}}">{{row.site}}</a>                                                          
+                                                            <button 
+                                                                type="button" 
+                                                                matSuffix 
+                                                                mat-icon-button 
+                                                                matTooltip="{{t('menu.table.copy_to_buff')}}"
+                                                                matTooltipPosition="right"
+                                                                class="contact-icon" 
+                                                                (click)="copyToClipboard(row.site)">
+                                                                    <mat-icon style="font-size: 15px;">content_copy</mat-icon>
+                                                            </button>
+                                                        </div>
                                                     </td>
                                                 </ng-container>
                                                 <ng-container matColumnDef="status">

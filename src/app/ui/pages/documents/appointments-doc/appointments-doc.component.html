@@ -594,7 +594,10 @@
                                                             </div>
                                                             
                                                             <div class="row" display="block">
-                                                                <div class="col-12">
+                                                                <div class="col-12" style="position: relative;">
+                                                                    <div>
+                                                                        <span class="sortheader">{{t('docs.field.description')}}</span>
+                                                                    </div>
                                                                     <quill-editor 
                                                                         id="quill_description"
                                                                         formControlName="description"
@@ -602,11 +605,31 @@
                                                                         (keyup)="documentChanged=true"
                                                                         (change)="documentChanged=true"
                                                                         [format]="'html'"
+                                                                        placeholder= ""
                                                                         style="height:500px;width:100%;"
                                                                         maxnLength=1000000
                                                                         >
                                                                     </quill-editor>
-
+                                                                    <button mat-icon-button
+                                                                            style="position:absolute; top:27px; right:10px; color: #333"
+                                                                            *ngIf="this.editability && !this.is_completed && (formBaseInformation.get('description').value==null||formBaseInformation.get('description').value=='')"  
+                                                                            type="button"
+                                                                            [disabled]="oneClickSaveControl" 
+                                                                            (click)="getDescriptionDefaultTemplate()"
+                                                                            matTooltip="{{t('docs.tip.get_def_templ')}}"
+                                                                            matSuffix>
+                                                                        <mat-icon>cloud_download</mat-icon>
+                                                                    </button>
+                                                                    <button mat-icon-button
+                                                                            style="position:absolute; top:27px; right:10px; color: #333"
+                                                                            *ngIf="this.editability && !this.is_completed && (formBaseInformation.get('description').value!=null&&formBaseInformation.get('description').value!='')"  
+                                                                            type="button"
+                                                                            [disabled]="oneClickSaveControl" 
+                                                                            (click)="updateDescriptionDefaultTemplate()"
+                                                                            matTooltip="{{t('docs.tip.save_def_templ')}}"
+                                                                            matSuffix>
+                                                                        <mat-icon>save</mat-icon>
+                                                                    </button>
                                                                     <!-- <mat-form-field  class="mat-form-field-100" style="height: 96px;">
                                                                         <mat-label>{{t('docs.field.additional')}}</mat-label>
                                                                         <textarea   matInput

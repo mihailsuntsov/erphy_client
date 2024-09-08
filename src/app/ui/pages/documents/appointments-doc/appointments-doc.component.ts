@@ -1034,6 +1034,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       this.formBaseInformation.controls['time_start'].disable();
       this.formBaseInformation.controls['date_end'].disable();
       this.formBaseInformation.controls['time_end'].disable();
+      this.formBaseInformation.controls['description'].disable();
       this.getControlTablefield().value.map(()=>{
         this.getControlTablefield().at(indx).get('nds_id').disable();
         this.getControlTablefield().at(indx).get('price_type_id').disable();
@@ -1049,6 +1050,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       this.formBaseInformation.controls['time_start'].enable();
       this.formBaseInformation.controls['date_end'].enable();
       this.formBaseInformation.controls['time_end'].enable();
+      this.formBaseInformation.controls['description'].enable();
       this.getControlTablefield().value.map(()=>{
         this.getControlTablefield().at(indx).get('nds_id').enable();
         this.getControlTablefield().at(indx).get('price_type_id').enable();
@@ -3579,45 +3581,59 @@ deleteFile(id:number){
     }    
   }
 
+  updateDescriptionDefaultTemplate(){ 
+    this.oneClickSaveControl=true;
+    this.http.post('/api/auth/updateDescriptionDefaultTemplate',  
+      {
+        "companyId":this.formBaseInformation.get('company_id').value, 
+        "descriptionDefaultTemplate":this.formBaseInformation.get('description').value
+      }).subscribe(
+          (data) => 
+          {   
+            this.oneClickSaveControl=false;
+            let result:number=data as number;
+            switch(result){
+              case null:{// null возвращает если не удалось завершить операцию из-за ошибки
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.error_msg')}});
+                break;
+              }
+              case -1:{//недостаточно прав
+                this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}});
+                break;
+              }
+              case 1:{// Успешно
+                this.openSnackBar(translate('menu.msg.settngs_saved'), translate('docs.msg.close'));
+              }
+            }
+          },
+          error => {
+            this.oneClickSaveControl=false;this.showQueryErrorMessage(error);
+          },
+      );
+  }
 
+  getDescriptionDefaultTemplate(){
+    this.oneClickSaveControl=true;
+    this.http.get('/api/auth/getDescriptionDefaultTemplate?company_id='+this.formBaseInformation.get('company_id').value)
+      .subscribe(
+        (data) => 
+        {
+          this.oneClickSaveControl=false;
+          let result = data as any;
+          console.log('getDescriptionDefaultTemplate', result);
+          if(data!=null){            
+            this.formBaseInformation.get('description').setValue(result.descriptionDefaultTemplate);
+          } else {
+            this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.error')}})
+          }
+        },
+        error => {this.oneClickSaveControl=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},
+    );
+  }
 
-
-  // delAtRow(j){
-  //   this.appointmentChildDocs.splice(0,1);
-  //   this.displayedAppointmentChildDocsColumns=[];
-  //   setTimeout(() => { 
-  //     this.formAppointmentChildDocsColumns();
-  //   }, 10);
-  // }
-    //**************************** КАССОВЫЕ ОПЕРАЦИИ  ******************************/
-
-  //обработчик события успешной печати чека - в Заказе покупателя это выставление статуса документа, сохранение и создание нового.  
-  // onSuccesfulChequePrintingHandler(){
-  //   //установим статус из настроек при автосоздании перед сохранением
-  //   if(this.settingsForm.get('autocreateOnCheque').value) 
-  //     this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnComplete').value);
-  //   //потом сохраним:
-  //   if(this.updateDocument(true)){
-  //     //если стоит чекбокс Автосоздание нового после печати чека:
-  //     if(this.settingsForm.get('autocreateOnCheque').value){
-  //       this._router.navigate(['ui/appointmentsdoc']);
-  //       this.formBaseInformation.get('status_id').setValue(this.settingsForm.get('statusIdOnComplete').value);
-  //     }
-  //     this.openSnackBar("Чек был успешно напечатан. Создание нового Заказа покупателя", "Закрыть");
-  //   }
-  // }
-
-  // The situation can be, that in settings there is "Status after ompletion" for company A, but document created for company B. If it happens, when completion is over, Dokio can set this status of company A to the document, but that's wrong! 
+  // The situation can be, that in settings there is "Status after completion" for company A, but document created for company B. If it happens, when completion is over, Dokio can set this status of company A to the document, but that's wrong! 
   statusIdInList(id:number):boolean{let r=false;this.receivedStatusesList.forEach(c=>{if(id==+c.id) r=true});return r}
 
-  // get payersCnt(){
-  //   let result = 0;
-  //   this.formBaseInformation.controls.customersTable.value.map(row=>{
-  //     if(row.is_payer)
-  //       result++;
-  //   })
-  //   return result;
-  // }
   getProductArrayIndexByCustomerRowId(row_id:number){
     let i=0;
     let indx:number = null;
@@ -4509,6 +4525,8 @@ deleteFile(id:number){
   quillRefresh(){
     this.formBaseInformation.get('description').setValue((this.formBaseInformation.get('description').value));
   }
+
+
   //--------------------------------------------------------------------------- Утилиты ---------------------------------------------------------------------------------------------------------
   //заменяет запятую на точку при вводе цены или количества в заданной ячейке
   commaToDotInTableField(row_index:number, fieldName:string){

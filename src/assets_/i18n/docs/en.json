@@ -627,7 +627,9 @@
         "empl_incom_service":"A service your company receives from an employee",
         "select_all_onejt":"Select everyone in this job title",
         "unselect_all_onejt":"Unselect everyone in this job title",
-        "crte_usr_cgnt":"Create a counterparty card for this user"
+        "crte_usr_cgnt":"Create a counterparty card for this user",
+        "get_def_templ":"Load default template",
+        "save_def_templ":"Save as default template"
         
     },
     "msg":{

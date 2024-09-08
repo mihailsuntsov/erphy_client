@@ -221,7 +221,7 @@ export class CompaniesComponent {
 
   getTableHeaderTitles(){
     this.displayedColumns=[];
-    if(this.allowToDelete) this.displayedColumns.push('select');
+    // if(this.allowToDelete) this.displayedColumns.push('select');
     if(this.allowToUpdateMyCompany||this.allowToUpdateAllCompanies||this.allowToViewMyCompany||this.allowToViewAllCompanies) this.displayedColumns.push('opendoc');
     this.displayedColumns.push('name');
     this.displayedColumns.push('creator');

@@ -150,4 +150,12 @@ flex: 1 1 auto;
     margin-top: 100px;
     z-index: 100;
 }
-
+.contact-icon{
+    color: gray;
+    width: 25px;
+    height: 25px;
+    line-height: 24px;
+    position: relative;
+    top: -2px;
+    padding: 0;
+}

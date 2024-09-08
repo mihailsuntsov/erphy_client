@@ -90,6 +90,27 @@ export class UsergroupDocComponent implements OnInit {
   allowToView:boolean = false;
   rightsDefined:boolean = false;
 
+blackListedPermissions = [ 3,   4,   6,   8,  25,  27,  26,  14,  16,  95,  97, 
+131, 122, 124, 129, 131, 133, 135, 137, 138, 139, 140, 141, 142, 146, 148, 150, 152, 154, 156, 158, 177, 179, 181, 163, 165, 167, 169, 171, 173, 175,
+188, 190, 184, 186, 611, 200, 203, 207, 211, 627, 216, 219, 223, 227, 623, 232, 235, 253, 256, 260, 264, 396, 271, 273, 275, 277, 280,
+283, 287, 291, 400, 309, 312, 316, 320, 296, 299, 302, 305, 325, 592, 594, 596, 598, 600, 602, 604, 606, 609, 329, 332, 336, 340, 631, 345, 348,
+352, 356, 619, 361, 364, 368, 372, 615, 377, 380, 384, 388, 392, 405, 408, 412, 416, 420, 425, 428, 432, 436, 440, 445, 448, 452, 456, 460,
+465, 467, 469, 471, 473, 476, 478, 480, 482, 484, 486, 487, 489, 491, 493, 495, 498, 500, 502, 504, 507, 509, 511, 513, 515, 518, 520, 522, 524, 526,
+528, 529, 531, 533, 535, 537, 540, 542, 544, 546, 548, 550, 551, 553, 555, 557, 560, 563, 568, 571, 576, 579, 584, 587, 590, 
+636, 638, 640, 642, 239, 242, 112, 645, 647, 649, 651, 654, 656, 658, 660, 663, 665, 667, 669, 672, 674, 676, 678, 684, 686,
+688, 690, 683, 684, 686, 688, 690, 693, 695, 697, 699, 705, 708, 712, 716, 720, 725, 726, 733]
+
+selectAllPermissions = [183,185,189,191,187,612,704,706,709,713,717,721,653,655,659,661,657,724,725,726,559,561, 18, 5,  7,
+  539,541,545,547,543,549,126,130,134,136,132,138,140,142,475,477,481,483,479,485,644,646,650,652,648,
+  279,281,288,292,284,401,324,601,603,605,595,597,599,326,593,607,610,517,519,523,525,521,527, 17, 11, 13, 15, 12,
+  268,272,276,278,274,701,702,703,497,499,503,505,501,143,147,151,153,149,178,182,180,155,734,157,159,231,236,233,
+  464,466,470,472,468,474,328,330,337,341,333,632,404,406,413,417,409,421,486,488,492,494,490,496,692,694,698,700,696,
+  586,588,376,378,385,389,381,393,583,585,671,673,677,679,675,506,508,512,514,510,516,589,591,199,201,208,212,204,628,
+   90, 93, 94, 96, 98,238,240,243,662,664,668,670,666,160,164,168,170,166,172,174,186,424,426,433,437,429,441,
+  528,530,534,536,532,538,683,685,689,691,687,360,362,369,373,365,616, 28, 31, 29, 34, 32,252,254,261,265,257,397,
+  680,681,682,444,446,453,457,449,461,635,637,641,643,639,117,120,123,125,121, 19, 22, 23, 24, 26,
+  215,217,224,228,220,624,550,552,556,558,554,344,346,353,357,349,620,176];
+
   @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
 
   constructor(
@@ -314,13 +335,49 @@ refreshPermissions(){
       }
     }
     //this.checkedList = JSON.stringify(this.checkedList);
-    console.log("checkedList - "+this.checkedList);
+    // console.log("checkedList - "+this.checkedList);
   }
   
   getBaseData(data) {    //+++ emit data to parent component
     this.baseData.emit(data);
   }
 
+  selectAllDocChBoxes(docId:number){
+    this.receivedDocumentsWithPermissions.map(document=>{
+      if(document.id==docId){
+        document.permissions.map(row=>{
+          if(!this.selection.isSelected(row) && this.selectAllPermissions.includes(row.id))  this.selection.toggle(row);
+        })
+      }
+    });
+    this.createCheckedList();
+  }
 
+  unselectAllDocChBoxes(docId:number){
+    this.receivedDocumentsWithPermissions.map(document=>{
+      if(document.id==docId){
+        document.permissions.map(row=>{
+          if(this.selection.isSelected(row))  this.selection.toggle(row);
+        })
+      }
+    });
+    this.createCheckedList();
+  }
 
+  selectAllChBoxes(){
+    this.receivedDocumentsWithPermissions.map(document=>{
+        document.permissions.map(row=>{
+          if(!this.selection.isSelected(row) && this.selectAllPermissions.includes(row.id))  this.selection.toggle(row);
+        })
+    });
+    this.createCheckedList();
+  }
+  unselectAllChBoxes(){
+    this.receivedDocumentsWithPermissions.map(document=>{
+        document.permissions.map(row=>{
+          if(this.selection.isSelected(row)) this.selection.toggle(row);
+        })
+    });
+    this.createCheckedList();
+  }
 }

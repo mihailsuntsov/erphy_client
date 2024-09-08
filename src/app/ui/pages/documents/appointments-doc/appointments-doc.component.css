@@ -63,6 +63,12 @@ li {list-style: none;}
     color: gray;
     z-index: 1000;
 }
+.sortheader{
+    cursor: default;
+    line-height: 30px;
+    font-weight: 600;
+    color: #333;
+}
 .slideWidth100{
     width:100%;
     /* margin:-8.5px 0 0 0; */

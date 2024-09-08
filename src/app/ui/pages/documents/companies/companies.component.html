@@ -9,11 +9,11 @@ class="spinner"
         <mat-card-title class="flex" style="height: 30px;">
             <div *ngIf="!displayingDeletedDocs" class="card-name">{{cu.cap(t('menu.docs.companies'))}}</div>
             <div *ngIf="displayingDeletedDocs" class="card-name"><span style="color: red; font-weight: bold;">{{t('menu.top.deleted')}}</span> {{t('menu.docs.companies')}}</div>
-            <div [style.display]="(visBtnAdd && !displayingDeletedDocs)?'block':'none' " class="col-sm-auto justify-content-center" style="margin-bottom:10px">
+            <!-- <div [style.display]="(visBtnAdd && !displayingDeletedDocs)?'block':'none' " class="col-sm-auto justify-content-center" style="margin-bottom:10px">
                 <a routerLink="../companiesdoc">
                     <button mat-raised-button  color="primary"><i class="material-icons">add_circle_outline</i> {{t('menu.top.btn_create')}}</button>
                 </a>   
-            </div>
+            </div> -->
             <div [style.display]="(!displayingDeletedDocs && visBtnDelete)?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
                 <button mat-raised-button (click)="clickBtnDelete()" color="warn"><i class="material-icons">delete_forever</i> {{t('menu.top.btn_delete')}}</button>
             </div>
@@ -67,7 +67,7 @@ class="spinner"
                         </button>
                         <span  class="card-name"></span>
                     
-                        <button
+                        <!-- <button
                             *ngIf="displaySelectOptions"
                             class="options-button"
                             [matMenuTriggerFor]="oper"
@@ -95,7 +95,7 @@ class="spinner"
                                     </button>
                                 </div>
                             </div> 
-                        </mat-menu>
+                        </mat-menu> -->
 
                         <span  class="emptyspace" style="display: none"></span>
                         <div class="flex">
