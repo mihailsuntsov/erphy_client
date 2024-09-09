@@ -91,6 +91,9 @@ interface docResponse {//интерфейс для получения ответ
   jr_ip_reg_date: string; // дата регистрации ИП (для ИП)
   type: string;// entity or individual
   legal_form: string;// legal form of individual (ie entrepreneur, ...)
+  id_card: string;
+  date_of_birth: string;
+  sex: string;
 }
 
 interface CagentCategoriesTreeNode {
@@ -342,6 +345,9 @@ constructor(private activateRoute: ActivatedRoute,
       jr_country:  new UntypedFormControl      ('',[]),
       type:  new UntypedFormControl      ('entity',[]),// entity or individual
       legal_form:  new UntypedFormControl      ('',[Validators.maxLength(240)]),
+      id_card: new UntypedFormControl ('' ,[Validators.maxLength(1000)]),
+      date_of_birth: new UntypedFormControl ('' ,[Validators.maxLength(10)]),
+      sex: new UntypedFormControl ('' ,[Validators.maxLength(1000)]),
     });
     this.formAboutDocument = new UntypedFormGroup({
       id: new UntypedFormControl      ('',[]),
@@ -581,6 +587,9 @@ constructor(private activateRoute: ActivatedRoute,
                   this.formBaseInformation.get('jr_ip_reg_date').setValue(documentValues.jr_ip_reg_date?moment(documentValues.jr_ip_reg_date,'DD.MM.YYYY'):"");
                   this.formBaseInformation.get('type').setValue(documentValues.type);
                   this.formBaseInformation.get('legal_form').setValue(documentValues.legal_form);
+                  this.formBaseInformation.get('id_card').setValue(documentValues.id_card);
+                  this.formBaseInformation.get('date_of_birth').setValue(documentValues.date_of_birth?moment(documentValues.date_of_birth,'DD.MM.YYYY'):'');
+                  this.formBaseInformation.get('sex').setValue(documentValues.sex);
                   // alert("1-"+this.checkedList)
                   this.checkedList=documentValues.cagent_categories_id?documentValues.cagent_categories_id:[];
                   // alert("2-"+this.checkedList)

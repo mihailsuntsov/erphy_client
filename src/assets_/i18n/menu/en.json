@@ -84,7 +84,7 @@
         "dplcte_prod":  "Duplicate the selected product",
         "ch_cat_prod":  "Change categories for selected products",
         "del_sel_prod": "Delete selected products",
-        "prod_actions": "Actions on selected products",
+        "prod_actions": "Actions on selected documents",
         "restore":      "Restore selected documents",
         "clr_filter":   "Clear this filter",
         "m_rem_d_depar":"The minimum in-stock balance varies depending of department",

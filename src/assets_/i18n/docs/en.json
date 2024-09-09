@@ -84,7 +84,7 @@
         "department":   "Department",
         "supplier":     "Supplier",
         "description":  "Description",
-        "additional":   "Additional",
+        "additional":   "Additional information",
         "tax":          "Tax",
         "tax_included": "Tax included",
         "expenses":     "Expenses",
@@ -409,7 +409,8 @@
         "time_from":"Start time",
         "time_to":"End time",
         "date_range":"Date range",        
-        "owner": "Owner"
+        "owner": "Owner",
+        "id_card":"ID card, Passport or other identification document"
         
     },
     "error":{ 

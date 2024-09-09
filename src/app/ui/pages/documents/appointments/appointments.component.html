@@ -24,12 +24,51 @@ class="spinner"
                     <button mat-raised-button  color="primary"><i class="material-icons">add_circle_outline</i> {{t('menu.top.btn_create')}}</button>
                 </a>   
             </div>
-            <div [style.display]="(!displayingDeletedDocs && visBtnDelete)?'block':'none'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
-                <button mat-raised-button (click)="clickBtnDelete()" color="warn"><i class="material-icons">delete_forever</i> {{t('menu.top.btn_delete')}}</button>
-            </div>
-            <div *ngIf="displayingDeletedDocs && visBtnDelete" class="col-sm-auto justify-content-center" style="margin:0px 10px 10px 0px">
-                <button mat-raised-button (click)="clickBtnRestore()" color="accent"><i class="material-icons">restore_from_trash</i> {{t('menu.top.btn_restore')}}</button>
-            </div>
+            <button 
+                [matMenuTriggerFor]="addDocMenu"
+                mat-raised-button 
+                matTooltip="{{t('menu.tip.prod_actions')}}"                        
+                *ngIf="selection.selected.length>0 && !displayingDeletedDocs"
+                color="primary"
+                (submit)="false"
+                type="button"
+                class="button"
+                style="width: 142px;height: 36px;min-width: 38px;margin-left: 10px;">
+                <i class="material-icons">add_task</i>&nbsp;&nbsp;{{t('menu.top.btn_actions')}}<i class="material-icons">arrow_drop_down</i>
+            </button>
+            <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
+                <button 
+                    [matMenuTriggerFor]="usersList"
+                    matTooltipPosition="left"
+                    [style.display]="(displayingDeletedDocs || mode!='standart')?'none':'flex'"
+                    *ngIf="allowToUpdate && selection.selected.length>0"
+                    mat-menu-item>
+                    <mat-icon style="width: 30px;">person</mat-icon><span>{{t('menu.top.btn_ch_owner')}}</span>
+                </button>
+                <button 
+                    mat-menu-item 
+                    [style.display]="(!displayingDeletedDocs && visBtnDelete)?'flex':'none'"
+                    (click)="clickBtnDelete()">
+                    <mat-icon style="width: 30px;">delete_forever</mat-icon><span>{{t('menu.top.btn_delete')}}</span>
+                </button>
+            </mat-menu>
+            <button 
+                *ngIf="displayingDeletedDocs && visBtnDelete"
+                mat-raised-button
+                type="button"
+                color="accent"
+                class="button"
+                style="margin-left: 10px;"
+                (click)="clickBtnRestore()">
+                <i class="material-icons">restore_from_trash</i>{{t('menu.top.btn_restore')}}                     
+            </button>
+            <mat-menu #usersList="matMenu" yPosition="below" xPosition="before">
+                <button 
+                    *ngFor="let user of receivedUsersList"
+                    mat-menu-item 
+                    (click)="changeOwner(user.id)">
+                <span>{{user.name}}</span></button>
+            </mat-menu>
         </mat-card-title>
     </mat-card-header>
     <mat-card-content>
@@ -175,6 +214,14 @@ class="spinner"
                                 <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='creator'" class="material-icons sortarrow">arrow_downward</i>
                             </span>
                             <td mat-cell *matCellDef="let row"> {{row.creator}} </td>
+                        </ng-container>
+                        <ng-container matColumnDef="owner">
+                            <th mat-header-cell *matHeaderCellDef>
+                            <span (click)="setSort('owner')" class="sortheader"> {{t('menu.table.owner')}}   
+                                <i *ngIf="this.sendingQueryForm.sortAsc=='asc' && this.sendingQueryForm.sortColumn=='owner'" class="material-icons sortarrow">arrow_upward</i>
+                                <i *ngIf="this.sendingQueryForm.sortAsc=='desc' && this.sendingQueryForm.sortColumn=='owner'" class="material-icons sortarrow">arrow_downward</i>
+                            </span>
+                            <td mat-cell *matCellDef="let row"> {{row.owner}} </td>
                         </ng-container>
                         <ng-container matColumnDef="doc_number">
                             <th mat-header-cell *matHeaderCellDef>

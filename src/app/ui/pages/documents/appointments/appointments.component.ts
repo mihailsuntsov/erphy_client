@@ -24,7 +24,8 @@ export interface CheckBox {
   department_id: number;
   creator_id: number;
 }
-export interface idAndName {
+
+export interface IdAndName {
   id: number;
   name:string;
 }
@@ -76,9 +77,9 @@ export class AppointmentsComponent implements OnInit {
   dataSource = new MatTableDataSource<CheckBox>(); //массив данных для таблицы и чекбоксов (чекбоксы берут из него id, таблица -всё)
   displayedColumns: string[] = [];//массив отображаемых столбцов таблицы
   selection = new SelectionModel<CheckBox>(true, []);// специальный класс для удобной работы с чекбоксами
-  receivedCompaniesList: idAndName [] = [];//массив для получения списка предприятий
-  receivedDepartmentsList: idAndName [] = [];//массив для получения списка отделений
-  receivedMyDepartmentsList: idAndName [] = [];//массив для получения списка СВОИХ отделений
+  receivedCompaniesList: IdAndName [] = [];//массив для получения списка предприятий
+  receivedDepartmentsList: IdAndName [] = [];//массив для получения списка отделений
+  receivedMyDepartmentsList: IdAndName [] = [];//массив для получения списка СВОИХ отделений
   myCompanyId:number=0;//
   myId:number=0;
   checkedList:number[]=[]; //строка для накапливания id чекбоксов вида [2,5,27...]
@@ -114,6 +115,7 @@ export class AppointmentsComponent implements OnInit {
 
   gettingTableData:boolean=true;
 
+  receivedUsersList: IdAndName[]=[{id: null, name:'---'}];
   numRows: NumRow[] = [
     {value: '5', viewValue: '5'},
     {value: '10', viewValue: '10'},
@@ -132,8 +134,8 @@ export class AppointmentsComponent implements OnInit {
   visBtnDelete = false;
 
   //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
-  selectionFilterOptions = new SelectionModel<idAndName>(true, []);//Класс, который взаимодействует с чекбоксами и хранит их состояние 
-  optionsIds: idAndName [] = [];
+  selectionFilterOptions = new SelectionModel<IdAndName>(true, []);//Класс, который взаимодействует с чекбоксами и хранит их состояние 
+  optionsIds: IdAndName [] = [];
   displayingDeletedDocs:boolean = false;//true - режим отображения удалённых документов. false - неудалённых
   displaySelectOptions:boolean = true;// отображать ли кнопку "Выбрать опции для фильтра"
   option:number = 0; // опция для фильтра при переходе в данный модуль по роутеру
@@ -257,6 +259,7 @@ export class AppointmentsComponent implements OnInit {
       this.getTableHeaderTitles();
       this.getPagesList();
       this.getTable();
+      this.getUsersList();
       // this.getPriceTypesList();
     } else {this.gettingTableData=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:translate('menu.msg.ne_perm')}})} //+++
   }
@@ -267,13 +270,14 @@ export class AppointmentsComponent implements OnInit {
     if(this.showOpenDocIcon) this.displayedColumns.push('opendoc');
     if(this.mode == 'standart') this.displayedColumns.push('doc_number');
     this.displayedColumns.push('name'); 
-    this.displayedColumns.push('dep_part');
+    // this.displayedColumns.push('dep_part');
     this.displayedColumns.push('status');
     this.displayedColumns.push('product_count');
     this.displayedColumns.push('sum_price');
     this.displayedColumns.push('is_completed');
-    this.displayedColumns.push('description');
+    // this.displayedColumns.push('description');
     if(this.mode == 'standart') this.displayedColumns.push('creator');
+    if(this.mode == 'standart') this.displayedColumns.push('owner');
     this.displayedColumns.push('date_time_start');
   }
 
@@ -348,12 +352,13 @@ export class AppointmentsComponent implements OnInit {
     return this.selection.selected.length>0;
   } 
   showCheckbox(row:CheckBox):boolean{
-    if(!row.is_completed && (
-      (this.allowToDeleteAllCompanies)||
-      (this.allowToDeleteMyCompany && row.company_id==this.myCompanyId)||
-      (this.allowToDeleteMyDepartments && row.company_id==this.myCompanyId && this.inMyDepthsId(row.department_id))||
-      (this.allowToDeleteMyDocs && row.company_id==this.myCompanyId && this.inMyDepthsId(row.department_id) && row.creator_id==this.myId))
-      )return true; else return false;
+    return true; // because now checkbox needs not only for deleting but for change owner
+    // if(!row.is_completed && (
+    //   (this.allowToDeleteAllCompanies)||
+    //   (this.allowToDeleteMyCompany && row.company_id==this.myCompanyId)||
+    //   (this.allowToDeleteMyDepartments && row.company_id==this.myCompanyId && this.inMyDepthsId(row.department_id))||
+    //   (this.allowToDeleteMyDocs && row.company_id==this.myCompanyId && this.inMyDepthsId(row.department_id) && row.creator_id==this.myId))
+    //   )return true; else return false;
   }
   /**                              КОНЕЦ ЧЕКБОКСОВ                                  */
 
@@ -580,7 +585,7 @@ export class AppointmentsComponent implements OnInit {
   }
 
   doFilterCompaniesList(){
-    let myCompany:idAndName;
+    let myCompany:IdAndName;
     if(!this.allowToViewAllCompanies){
       this.receivedCompaniesList.forEach(company=>{
       if(this.myCompanyId==company.id) myCompany={id:company.id, name:company.name}});
@@ -702,4 +707,30 @@ export class AppointmentsComponent implements OnInit {
   }
   // sometimes in cookie "..._companyId" there value that not exists in list of companies. If it happens, company will be not selected and data not loaded until user select company manually
   companyIdInList(id:any):boolean{let r=false;this.receivedCompaniesList.forEach(c=>{if(+id==c.id) r=true});return r}
+  getUsersList(){
+    if(this.receivedUsersList.length==1)// contains only id:null, name:"---"
+    this.http.get('/api/auth/getUsersListByCompanyId?company_id='+this.sendingQueryForm.companyId).subscribe(
+        data  => { 
+          this.receivedUsersList = this.receivedUsersList.concat(data as IdAndName[])
+        },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+    );
+  }
+  changeOwner(newOwnerId:number){
+    const body = {
+      "documentIds":                this.checkedList,//join convert array to the string with "," delimitters
+      "newOwnerId":                 newOwnerId,
+    }; 
+    this.clearCheckboxSelection();
+    return this.http.post('/api/auth/changeAppointmentOwner', body)
+      .subscribe(
+        (data) => {   
+          let result=data as any;
+          switch(result){
+            case 1:{this.getData();this.openSnackBar(translate('menu.msg.changed_succ'), translate('menu.msg.close'));break;}  //+++
+            case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:(translate('menu.msg.error_msg'))}});break;}
+            case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.ne_perm')}});break;}
+          }
+        },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},);
+  } 
 }

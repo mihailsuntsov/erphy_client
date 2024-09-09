@@ -168,6 +168,9 @@ class AppointmentCustomer {
   name: string;
   email: string;
   telephone: string;
+  id_card: string;
+  date_of_birth: string;
+  sex: string;
 }
 interface filesInfo {
   id: string;
@@ -569,9 +572,12 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     });
     this.formCustomerSearch = new UntypedFormGroup({
       id: new UntypedFormControl ('' ,[]),
-      email: new UntypedFormControl ('' ,[Validators.maxLength(254)]),
+      email: new UntypedFormControl ('' ,[Validators.maxLength(256)]),
       telephone: new UntypedFormControl ('' ,[Validators.maxLength(60)]),
       additional: new UntypedFormControl ('' ,[Validators.maxLength(1024)]),
+      id_card: new UntypedFormControl ('' ,[Validators.maxLength(1000)]),
+      date_of_birth: new UntypedFormControl ('' ,[Validators.maxLength(10)]),
+      sex: new UntypedFormControl ('' ,[Validators.maxLength(1000)]),
     });
 
     // Форма настроек
@@ -2719,6 +2725,9 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       // child:      new UntypedFormControl (false,[]),
       products:   new UntypedFormControl ([],[]),
       additional:  new UntypedFormControl (this.formCustomerSearch.get('additional').value,[]),
+      id_card:  new UntypedFormControl (this.formCustomerSearch.get('id_card').value,[]),
+      date_of_birth:  new UntypedFormControl (this.formCustomerSearch.get('date_of_birth').value,[]),
+      sex:  new UntypedFormControl (this.formCustomerSearch.get('sex').value,[]),
     });
   }
 
@@ -2746,8 +2755,12 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       name: new UntypedFormControl (row.name,[]),
       email: new UntypedFormControl (row.email,[]),
       telephone: new UntypedFormControl (row.telephone,[]),
+      id_card: new UntypedFormControl (row.id_card,[]),
+      date_of_birth: new UntypedFormControl (row.date_of_birth,[]),
+      sex: new UntypedFormControl (row.sex,[]),
     });
   }
+  
   resetFormCustomerSearch(){
     // console.log('resetFormCustomerSearch')
     this.customerHasBeenSearched=false;
