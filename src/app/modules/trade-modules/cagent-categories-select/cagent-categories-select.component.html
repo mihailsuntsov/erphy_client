@@ -1,0 +1,114 @@
+<mat-card appearance="outlined" class="card" *transloco="let t">
+    <mat-card-header>
+        <mat-card-title class="flex">
+            <div class="card-name">{{idTypes=='categories'?('modules.card.cat_select' | transloco):('modules.card.prods_select' | transloco)}}</div>
+            <button 
+                mat-raised-button
+                class="button small-button"
+                (click)="applySelect()"
+                color="primary"
+                matTooltip="{{t('docs.tip.select')}}">
+                <i class="material-icons">done</i>
+            </button>
+            <button 
+                (click)="onNoClick()"
+                matTooltip="{{t('docs.tip.close')}}"
+                mat-raised-button
+                class="button small-button"
+                color="accent">
+                <i class="material-icons">close</i>
+            </button>
+        </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+        <mat-drawer-container class="doc-container" autosize>
+            <p *ngIf="!allowToView && showNotEnoughPermissionsMessage">{{'modules.err.ne_rght_prod' | transloco}}<br>-{{'modules.err._rght_all_com' | transloco}},<br>-{{'modules.err._rght_my_com' | transloco}}</p>
+            <mat-drawer #drawer class="categories-sidenav" mode="side" opened *ngIf="allowToView" >
+                
+                    <!-- <div class="category-toolbar-search flex">
+                        <span style="flex-grow: 1;"></span>
+                            <div>
+                                <form  class="form-horizontal" method="post" action="">
+                                    <mat-form-field>
+                                        <input matInput 
+                                            placeholder="{{t('menu.top.search')}}" 
+                                            [(ngModel)]="sendingQueryForm.searchCategoryString" 
+                                            type="text"  
+                                            id="search_input" 
+                                            name="search_input" 
+                                        />
+                                        <button matSuffix mat-icon-button aria-label="search"  type="submit" (click)="searchCategory()">
+                                            <mat-icon>search</mat-icon>
+                                        </button>
+                                    </mat-form-field>
+                                </form>
+                            </div>
+                        <span style="flex-grow: 1;"></span>
+                    </div> -->
+
+                    <mat-tree [dataSource]="treeDataSource" [treeControl]="treeControl">
+                        <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
+                            <button mat-icon-button disabled></button>
+                            <span class="node" [ngClass]="{selected_node:node.id==selectedNodeId}" (click)="selectNode(node)">{{node.name}}</span>
+                            <button *ngIf="idTypes=='categories'" 
+                                    mat-icon-button 
+                                    style="margin-left: -10px;" 
+                                    (click)="addCategory(node)" 
+                                    matTooltip="{{t('docs.tip.select')}}"
+                                    matTooltipPosition="right">
+                                    <mat-icon>
+                                        add
+                                    </mat-icon>
+                            </button>
+                        </mat-tree-node>
+                        <mat-tree-node *matTreeNodeDef="let node;when: hasChild" matTreeNodePadding>
+                            <button mat-icon-button 
+                                    matTreeNodeToggle
+                                    [attr.aria-label]="'toggle ' + node.name">
+                                    <mat-icon class="mat-icon-rtl-mirror">
+                                        {{treeControl.isExpanded(node) ? 'expand_more' : 'chevron_right'}}
+                                    </mat-icon>
+                            </button>
+                            <span   class="node" 
+                                    [ngClass]="{selected_node:node.id==selectedNodeId}" 
+                                    (click)="selectNode(node)">
+                                {{node.name}}
+                            </span>
+                            <button mat-icon-button  
+                                    *ngIf="idTypes=='categories'" 
+                                    style="margin-left: -10px;" 
+                                    (click)="addCategory(node)"
+                                    matTooltip="{{t('docs.tip.select')}}"
+                                    matTooltipPosition="right"
+                                    >
+                                <mat-icon>
+                                    add
+                                </mat-icon>
+                            </button>
+                        </mat-tree-node>
+                    </mat-tree>
+            </mat-drawer>
+            <mat-card appearance="outlined" class="card" *ngIf="selectedObjects.length>0">
+                <mat-card-title class="flex">
+                    <div class="card-name" style="font-size: 20px;">{{idTypes=='categories'?('modules.card.cat_selectd' | transloco):('modules.card.prods_selectd' | transloco)}}</div>
+                </mat-card-title>
+                <mat-card-content>
+                    <div class="chip-list" appearance="fill">
+                        <mat-chip-listbox #chipList aria-label="Selected objects">
+                            <mat-chip-option
+                            *ngFor="let object of selectedObjects"
+                            [selectable]="selectable"
+                            [removable]="removable"
+                            (removed)="remove(object)">
+                            {{object.name}}
+                            <mat-icon matChipRemove *ngIf="removable">cancel</mat-icon> 
+                            </mat-chip-option>
+                        </mat-chip-listbox>
+                    </div>
+                </mat-card-content>
+            </mat-card>
+        </mat-drawer-container>
+    </mat-card-content>
+
+
+</mat-card>

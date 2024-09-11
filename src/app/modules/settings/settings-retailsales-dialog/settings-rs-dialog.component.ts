@@ -88,7 +88,7 @@ export class SettingsRetailsalesDialogComponent implements OnInit {
       //тип цены
       priceTypeId: new UntypedFormControl              (null,[]),
       //наценка/скидка в цифре (например, 50)
-      changePrice: new UntypedFormControl              (50,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
+      changePrice: new UntypedFormControl              (0,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
       //наценка или скидка (+ или -)
       plusMinus: new UntypedFormControl                ('plus',[]),
       // тип наценки/скидки (валюта или проценты)

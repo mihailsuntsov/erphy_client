@@ -119,8 +119,7 @@ export class LoadSpravService{
     //getSpravSysPriceRole(){return this.http.post('/api/auth/getSpravSysPriceRole', '');}
     //загружает деревья категорий контрагентов
     getCagentCategoriesTrees(companyId: number){
-        const body = {companyId: companyId};
-        return this.http.post('/api/auth/getCagentCategoriesTrees', body);}
+        return this.http.get('/api/auth/getCagentCategoriesTrees?company_id='+companyId);}
     //организационно-правовые формы    
     getSpravSysOPF(){return this.http.post('/api/auth/getSpravSysOPF', '');}
     // НДС или другие налоги

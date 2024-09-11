@@ -185,7 +185,7 @@
                     <button 
                         mat-raised-button 
                         matTooltip="{{t('docs.tip.create')}}"
-                        [style.display]="+id>0?'none':'block'"
+                        [style.display]="+id>0?'none':'flex'"
                         (click)="createNewDocument(false)" 
                         (submit)="false"
                         *ngIf="allowToCreate && +id==0"

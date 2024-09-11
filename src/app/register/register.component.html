@@ -71,8 +71,8 @@ class="spinner"
 
     <form [formGroup]="regform" class="reg-form">
       <mat-form-field>
+        <mat-label>{{'user.field.ur_name' | transloco}}</mat-label>
         <input matInput 
-        placeholder="{{'user.field.ur_name' | transloco}}" 
         formControlName="name" 
         type="text"    
         [ngClass]="{'is-invalid':regform.get('name').touched && regform.get('name').invalid}"
@@ -87,8 +87,8 @@ class="spinner"
       </mat-form-field>
 
       <mat-form-field>
+        <mat-label>{{'user.field.login' | transloco}}</mat-label>
         <input matInput 
-        placeholder="{{'user.field.login' | transloco}}" 
         formControlName="username" 
         type="text"    
         [ngClass]="{'is-invalid':regform.get('username').touched && regform.get('username').invalid}"
@@ -106,10 +106,10 @@ class="spinner"
       </mat-form-field>
 
       <mat-form-field>
-        <input matInput 
-        placeholder="E-mail" 
-        formControlName="email" 
-        type="text"    
+        <mat-label>E-mail</mat-label>
+        <input matInput
+        formControlName="email"
+        type="text"
         [ngClass]="{'is-invalid':regform.get('email').touched && regform.get('email').invalid}"
         />
         <mat-hint *ngIf="regform.get('email').touched && regform.get('email').invalid">
@@ -122,10 +122,10 @@ class="spinner"
       </mat-form-field>
 
       <mat-form-field>
-        <input [type]="showPwd ? 'text' : 'password'" 
-        matInput         
-        placeholder="{{'user.field.password' | transloco}}" 
-        formControlName="password"  
+        <mat-label>{{'user.field.password' | transloco}}</mat-label>
+        <input [type]="showPwd ? 'text' : 'password'"
+        matInput
+        formControlName="password"
         [ngClass]="{'is-invalid':regform.get('password').touched && regform.get('password').invalid}"
         />
         <button

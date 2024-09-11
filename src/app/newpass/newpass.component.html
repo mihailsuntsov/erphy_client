@@ -39,8 +39,8 @@
             <form [formGroup]="newpassform" class="login-form" *ngIf = "!emptyUUID">
   
               <mat-form-field>
-                <input matInput 
-                placeholder="{{'user.field.password' | transloco}}" 
+                <mat-label>{{'user.field.password' | transloco}}</mat-label>
+                <input matInput
                 formControlName="password"
                 [type]="showPwd ? 'text' : 'password'"  
                 [ngClass]="{'is-invalid':newpassform.get('password').touched && newpassform.get('password').invalid}" 

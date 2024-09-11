@@ -365,7 +365,7 @@ export class RetailsalesDocComponent implements OnInit {
       //тип цены
       priceTypeId: new UntypedFormControl              (null,[]),
       //наценка или скидка. В чем выражается (валюта или проценты) - определяет changePriceType
-      changePrice: new UntypedFormControl              (50,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
+      changePrice: new UntypedFormControl              (0,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
       // Наценка (plus) или скидка (minus)
       plusMinus: new UntypedFormControl                ('plus',[]),
       // выражение наценки (валюта или проценты): currency - валюта, procents - проценты
@@ -764,7 +764,7 @@ export class RetailsalesDocComponent implements OnInit {
             this.settingsForm.get('pricingType').setValue(result.pricingType?result.pricingType:'priceType');
             this.settingsForm.get('priceTypeId').setValue(result.priceTypeId);
             this.settingsForm.get('plusMinus').setValue(result.plusMinus?result.plusMinus:'plus');
-            this.settingsForm.get('changePrice').setValue(result.changePrice?result.changePrice:50);
+            this.settingsForm.get('changePrice').setValue(result.changePrice?result.changePrice:0);
             this.settingsForm.get('changePriceType').setValue(result.changePriceType?result.changePriceType:'procents');
             this.settingsForm.get('hideTenths').setValue(result.hideTenths);
             this.settingsForm.get('saveSettings').setValue(result.saveSettings);

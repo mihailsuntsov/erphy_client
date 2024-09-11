@@ -949,7 +949,9 @@ export class UsersDocComponent implements OnInit {
             name:this.formBaseInformation.get('fio_name').value,
             surname:this.formBaseInformation.get('fio_family').value,
             fatherName:this.formBaseInformation.get('fio_otchestvo').value,
-            email:this.formBaseInformation.get('email').value
+            email:this.formBaseInformation.get('email').value,
+            date_of_birth: this.formBaseInformation.get('date_birthday').value,
+            sex: this.formBaseInformation.get('sex').value,
           }
         ).subscribe((data) => {
           let result:number=data as number;

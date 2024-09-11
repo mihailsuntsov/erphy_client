@@ -80,8 +80,8 @@
             <form [formGroup]="loginform" class="login-form">
   
                 <mat-form-field>
-                    <input matInput 
-                    placeholder="{{'user.field.login' | transloco}}" 
+                    <mat-label>{{'user.field.login' | transloco}}</mat-label>
+                    <input matInput
                     formControlName="username" 
                     type="text"    
                     [ngClass]="{'is-invalid':loginform.get('username').touched && loginform.get('username').invalid}"
@@ -96,8 +96,8 @@
                 </mat-form-field>
                 
                 <mat-form-field>
-                    <input matInput 
-                    placeholder="{{'user.field.password' | transloco}}" 
+                    <mat-label>{{'user.field.password' | transloco}}</mat-label>
+                    <input matInput
                     formControlName="password"
                     [type]="'password'"   
                     [ngClass]="{'is-invalid':loginform.get('password').touched && loginform.get('password').invalid}" 

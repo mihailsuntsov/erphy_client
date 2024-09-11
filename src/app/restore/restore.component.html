@@ -49,8 +49,8 @@
             <form [formGroup]="restoreform" class="login-form">
   
               <mat-form-field>
-                <input matInput 
-                placeholder="{{'user.field.ur_email' | transloco}}" 
+                <mat-label>{{'user.field.ur_email' | transloco}}</mat-label>
+                <input matInput
                 formControlName="email" 
                 type="text"    
                 [ngClass]="{'is-invalid':restoreform.get('email').touched && restoreform.get('email').invalid}"

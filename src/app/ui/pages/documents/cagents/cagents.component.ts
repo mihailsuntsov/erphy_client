@@ -16,6 +16,7 @@ import { DeleteDialog } from 'src/app/ui/dialogs/deletedialog.component';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
 import { CommonUtilitesService } from '../../../../services/common_utilites.serviсe'; //+++
 import { translate, TranslocoService } from '@ngneat/transloco'; //+++
+import { CagentCategoriesSelectComponent } from 'src/app/modules/trade-modules/cagent-categories-select/cagent-categories-select.component';
 
 interface TreeNode {
   id: string;
@@ -43,7 +44,7 @@ export interface NumRow {//интерфейс для списка количес
   selector: 'app-cagents',
   templateUrl: './cagents.component.html',
   styleUrls: ['./cagents.component.css'],
-  providers: [QueryFormService,LoadSpravService,Cookie,CommonUtilitesService]
+  providers: [QueryFormService,LoadSpravService,Cookie,CommonUtilitesService,CagentCategoriesSelectComponent]
 })
 export class CagentsComponent implements OnInit {
   sendingQueryForm: QueryForm=new QueryForm(); // интерфейс отправляемых данных по формированию таблицы (кол-во строк, страница, поисковая строка, колонка сортировки, asc/desc)
@@ -57,6 +58,7 @@ export class CagentsComponent implements OnInit {
   numRootCategories: number=0;
   numChildsOfSelectedCategory: number=0;
   mode: string = 'standart';  // режим работы документа: standart - обычный режим, select_docs - оконный режим выбора
+  selectedObjects: number[]=[]; // выбранные во всплывающем окне выбора категорий объекты (категории), для массового присвоения контрагентам
 
   //переменные прав
   permissionsSet: any[];//сет прав на документ
@@ -141,6 +143,7 @@ export class CagentsComponent implements OnInit {
       private ConfirmDialog: MatDialog,
       private http: HttpClient,
       private deleteDialog: MatDialog,
+      private cagentCategoriesSelectComponent: MatDialog,
       private dialogRef1: MatDialogRef<CagentsComponent>,
       public cu: CommonUtilitesService, //+++
       private service: TranslocoService,
@@ -717,6 +720,63 @@ recountNumChildsOfSelectedCategory(){//считает количество по�
   //console.log("this.numChildsOfSelectedCategory: "+this.numChildsOfSelectedCategory);
 }
 
+openDialogCagentCategoriesSelect(){
+  const dialogSettings = this.cagentCategoriesSelectComponent.open(CagentCategoriesSelectComponent, {
+    maxWidth: '95vw',
+    maxHeight: '95vh',
+    width: '800px', 
+    minHeight: '650px',
+    data:
+    { //отправляем в диалог:
+      idTypes:    'categories', // 
+      companyId:  +this.sendingQueryForm.companyId, //предприятие, по которому будут отображаться товары и категории
+    },
+  });
+  dialogSettings.afterClosed().subscribe(result => {
+    if(result){
+      this.selectedObjects=[];
+      result.map(i => {
+        this.selectedObjects.push(i.id);
+      });
+      this.setCategoriesToCagents();
+    }
+  });
+}
+setCategoriesToCagents(){
+  const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
+    width: '400px',
+    data:
+    { 
+      head: translate('menu.dialogs.cat_adding'), //+++
+      query: translate('menu.dialogs.q_save_p_cat'),
+      warning: translate('menu.dialogs.save_p_cat_ad'),
+    },
+  });
+  dialogRef.afterClosed().subscribe(result => {
+    const body = {"cagentsIds":     this.checkedList,
+                  "categoriesIds":  this.selectedObjects,
+                  "save":           result==1?true:false
+    };
+    this.clearCheckboxSelection();
+    return this.http.post('/api/auth/setCategoriesToCagents', body) 
+      .subscribe(
+          (data) => { 
+            let result = data as any;
+            switch(result){
+              case 1:{this.getData();this.openSnackBar(translate('menu.msg.changed_succ'), translate('menu.msg.close'));
+                this.openSnackBar(translate('menu.msg.sep_prod_cat'), translate('menu.msg.close')); //+++
+                this.showOnlyVisBtnAdd();
+                this.getPagesList();
+                this.getTable();
+                break;}  //+++
+              case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:(translate('menu.msg.error_msg'))}});break;}
+              case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.ne_perm')}});break;}
+            }  
+          },
+          error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})}  //+++
+      );
+  });      
+}
 //***********************************************  Ф И Л Ь Т Р   О П Ц И Й   *******************************************/
   resetOptions(){
     this.displayingDeletedDocs=false;

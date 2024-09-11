@@ -88,7 +88,7 @@ export class SettingsShipmentDialogComponent implements OnInit {
       //тип цены
       priceTypeId: new UntypedFormControl              (null,[]),
       //наценка/скидка в цифре (например, 50)
-      changePrice: new UntypedFormControl              (50,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
+      changePrice: new UntypedFormControl              (0,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
       //наценка или скидка (+ или -)
       plusMinus: new UntypedFormControl                ('plus',[]),
       // тип наценки/скидки (валюта или проценты)
@@ -147,7 +147,7 @@ export class SettingsShipmentDialogComponent implements OnInit {
         //данная группа настроек не зависит от предприятия
         this.settingsForm.get('pricingType').setValue(result.pricingType?result.pricingType:'priceType');
         this.settingsForm.get('plusMinus').setValue(result.plusMinus?result.plusMinus:'plus');
-        this.settingsForm.get('changePrice').setValue((result.changePrice||result.changePrice==0)?result.changePrice:50);
+        this.settingsForm.get('changePrice').setValue((result.changePrice||result.changePrice==0)?result.changePrice:0);
         this.settingsForm.get('changePriceType').setValue(result.changePriceType?result.changePriceType:'procents');
         this.settingsForm.get('hideTenths').setValue(result.hideTenths);
         this.settingsForm.get('saveSettings').setValue(result.saveSettings);

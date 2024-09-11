@@ -278,7 +278,7 @@ export class ProductSearchAndTableByCustomersComponent implements OnInit, OnChan
       //тип цены
       priceTypeId: new UntypedFormControl              (null,[]),
       //наценка или скидка. В чем выражается (валюта или проценты) - определяет changePriceType
-      changePrice: new UntypedFormControl              (50,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
+      changePrice: new UntypedFormControl              (0,[Validators.pattern('^[0-9]{1,7}(?:[.,][0-9]{0,2})?\r?$')]),
       // Наценка (plus) или скидка (minus)
       plusMinus: new UntypedFormControl                ('plus',[]),
       // выражение наценки (валюта или проценты): currency - валюта, procents - проценты

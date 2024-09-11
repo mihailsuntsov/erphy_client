@@ -120,9 +120,44 @@ class="spinner"
                                 <button mat-raised-button  color="primary"><i class="material-icons">add_circle_outline</i> {{t('menu.top.btn_create')}}</button>
                             </a>   
                         </div>
-                        <div *ngIf="!displayingDeletedDocs && visBtnDelete && mode=='standart'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
+
+
+                        <button 
+                            [matMenuTriggerFor]="addDocMenu"
+                            mat-raised-button 
+                            matTooltip="{{t('menu.tip.prod_actions')}}"                        
+                            *ngIf="selection.selected.length>0 && !displayingDeletedDocs && mode=='standart'"
+                            color="primary"
+                            (submit)="false"
+                            type="button"
+                            class="button"
+                            style="width: 142px;height: 36px;min-width: 38px;margin-left: 10px;">
+                            <i class="material-icons">add_task</i>&nbsp;&nbsp;{{t('menu.top.btn_actions')}}<i class="material-icons">arrow_drop_down</i>
+                        </button>
+                        <mat-menu #addDocMenu="matMenu" yPosition="below" xPosition="before">
+                            <button 
+                                mat-menu-item 
+                                *ngIf="allowToUpdate && selection.selected.length>0" 
+                                (click)="openDialogCagentCategoriesSelect()" 
+                                matTooltip="{{t('menu.tip.ch_cat_prod')}}" 
+                                matTooltipPosition="left">
+                                    <mat-icon style="width: 30px;">rule</mat-icon>
+                                    <span>{{t('menu.menu.categories')}}</span></button>
+                            <button 
+                                mat-menu-item 
+                                [style.display]="(!displayingDeletedDocs && visBtnDelete)?'flex':'none'"
+                                (click)="clickBtnDelete()">
+                                <mat-icon style="width: 30px;">delete_forever</mat-icon><span>{{t('menu.top.btn_delete')}}</span>
+                            </button>
+                        </mat-menu>
+
+
+
+
+
+                        <!-- <div *ngIf="!displayingDeletedDocs && visBtnDelete && mode=='standart'" class="col-sm-auto justify-content-center" style="margin-bottom:10px">
                             <button mat-raised-button (click)="clickBtnDelete()" color="warn"><i class="material-icons">delete_forever</i> {{t('menu.top.btn_delete')}}</button>
-                        </div>
+                        </div> -->
                         <div *ngIf="displayingDeletedDocs && visBtnDelete && mode=='standart'" class="col-sm-auto justify-content-center" style="margin:0px 10px 10px 0px">
                             <button mat-raised-button (click)="clickBtnRestore()" color="accent"><i class="material-icons">restore_from_trash</i> {{t('menu.top.btn_restore')}}</button>
                         </div>
