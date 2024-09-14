@@ -4,7 +4,7 @@ import { IncomeOutcomeComponent } from 'src/app/modules/info-modules/income-outc
 import { IndicatorsLeftComponent } from 'src/app/modules/info-modules/indicators-left/indicators-left.component';
 import { RemainsComponent } from 'src/app/modules/info-modules/remains/remains.component';
 import { OpexComponent } from 'src/app/modules/info-modules/opex/opex.component';
-import { SettingsDashboardComponent } from 'src/app/modules/settings/settings-dashboard/settings-dashboard.component'
+// import { SettingsDashboardComponent } from 'src/app/modules/settings/settings-dashboard/settings-dashboard.component'
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { HttpClient } from '@angular/common/http';
@@ -257,28 +257,28 @@ export class DashboardComponent implements OnInit {
     
   }
 
-  openDialogSettings(){
-    const dialogSettings = this.settingsDashboardComponent.open(SettingsDashboardComponent, {
-      maxWidth: '95vw',
-      maxHeight: '95vh',
-      width: '400px', 
-      data:
-      { //отправляем в диалог:
-        receivedCompaniesList: this.receivedCompaniesList, //список предприятий
-        permissionsSet: this.permissionsSet, //набор прав стартовой страницы
-        myCompanyId: this.myCompanyId, //предприятие пользователя
-      },
-    });
-    dialogSettings.afterClosed().subscribe(result => {
-      if(result){
-        //если нажата кнопка Сохранить настройки - вставляем настройки в форму настроек и сохраняем
-        if(result.get('companyId')) 
-          this.settingsForm.get('companyId').setValue(result.get('companyId').value);
+  // openDialogSettings(){
+  //   const dialogSettings = this.settingsDashboardComponent.open(SettingsDashboardComponent, {
+  //     maxWidth: '95vw',
+  //     maxHeight: '95vh',
+  //     width: '400px', 
+  //     data:
+  //     { //отправляем в диалог:
+  //       receivedCompaniesList: this.receivedCompaniesList, //список предприятий
+  //       permissionsSet: this.permissionsSet, //набор прав стартовой страницы
+  //       myCompanyId: this.myCompanyId, //предприятие пользователя
+  //     },
+  //   });
+  //   dialogSettings.afterClosed().subscribe(result => {
+  //     if(result){
+  //       //если нажата кнопка Сохранить настройки - вставляем настройки в форму настроек и сохраняем
+  //       if(result.get('companyId')) 
+  //         this.settingsForm.get('companyId').setValue(result.get('companyId').value);
 
-          this.saveSettingsDashboard();
-      }
-    });
-  }
+  //         this.saveSettingsDashboard();
+  //     }
+  //   });
+  // }
 
   saveSettingsDashboard(){
     return this.http.post('/api/auth/saveSettingsDashboard', this.settingsForm.value)

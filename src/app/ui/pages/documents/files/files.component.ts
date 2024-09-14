@@ -116,8 +116,10 @@ export class FilesComponent implements OnInit {
   allowToDeleteFromTrashOwned:boolean = false;
   allowCategoryCreateMyCompany:boolean = false;
   allowCategoryCreateAllCompanies:boolean = false;
+  allowCategoryUpdateMyOwned:boolean = false;
   allowCategoryUpdateMyCompany:boolean = false;
   allowCategoryUpdateAllCompanies:boolean = false;
+  allowCategoryDeleteMyOwned:boolean = false;
   allowCategoryDeleteMyCompany:boolean = false;
   allowCategoryDeleteAllCompanies:boolean = false;
   allowToView:boolean = false;
@@ -292,8 +294,10 @@ viewMode:string = "grid"; // способ отображения файлов - 
     this.allowCategoryCreateMyCompany = this.permissionsSet.some(      function(e){return(e==155)});
     this.allowCategoryUpdateAllCompanies = this.permissionsSet.some(   function(e){return(e==156)});
     this.allowCategoryUpdateMyCompany = this.permissionsSet.some(      function(e){return(e==157)});
+    this.allowCategoryUpdateMyOwned = this.permissionsSet.some(        function(e){return(e==736)});
     this.allowCategoryDeleteAllCompanies = this.permissionsSet.some(   function(e){return(e==158)});
     this.allowCategoryDeleteMyCompany = this.permissionsSet.some(      function(e){return(e==159)});
+    this.allowCategoryDeleteMyOwned = this.permissionsSet.some(        function(e){return(e==737)});
     this.allowToRecoverFilesAllCompanies = this.permissionsSet.some(   function(e){return(e==177)});
     this.allowToRecoverFilesMyCompany = this.permissionsSet.some(      function(e){return(e==178)});
     this.allowToRecoverFilesOwned = this.permissionsSet.some(          function(e){return(e==730)});
@@ -316,8 +320,8 @@ viewMode:string = "grid"; // способ отображения файлов - 
     this.allowToDeleteFromTrash=((documentOfMyCompany && (this.allowToDeleteFromTrashAllCompanies || this.allowToDeleteFromTrashMyCompany))||(documentOfMyCompany==false && this.allowToDeleteFromTrashAllCompanies)||this.allowToDeleteFromTrashOwned)?true:false;
     this.allowToClearTrash=((documentOfMyCompany && (this.allowToClearTrashAllCompanies || this.allowToClearTrashMyCompany))||(documentOfMyCompany==false && this.allowToClearTrashAllCompanies))?true:false;
     this.allowCategoryCreate=((documentOfMyCompany && (this.allowCategoryCreateAllCompanies || this.allowCategoryCreateMyCompany))||(documentOfMyCompany==false && this.allowCategoryCreateAllCompanies))?true:false;
-    this.allowCategoryUpdate=((documentOfMyCompany && (this.allowCategoryUpdateAllCompanies || this.allowCategoryUpdateMyCompany))||(documentOfMyCompany==false && this.allowCategoryUpdateAllCompanies))?true:false;
-    this.allowCategoryDelete=((documentOfMyCompany && (this.allowCategoryDeleteAllCompanies || this.allowCategoryDeleteMyCompany))||(documentOfMyCompany==false && this.allowCategoryDeleteAllCompanies))?true:false;
+    this.allowCategoryUpdate=((documentOfMyCompany && (this.allowCategoryUpdateAllCompanies || this.allowCategoryUpdateMyCompany || this.allowCategoryUpdateMyOwned))||(documentOfMyCompany==false && this.allowCategoryUpdateAllCompanies))?true:false;
+    this.allowCategoryDelete=((documentOfMyCompany && (this.allowCategoryDeleteAllCompanies || this.allowCategoryDeleteMyCompany || this.allowCategoryDeleteMyOwned))||(documentOfMyCompany==false && this.allowCategoryDeleteAllCompanies))?true:false;
     
     this.showOpenDocIcon=(this.allowToUpdate||this.allowToView);
     this.visBtnAdd = (this.allowToCreate && !this.sendingQueryForm.trash)?true:false;

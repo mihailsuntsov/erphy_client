@@ -606,7 +606,7 @@
                                                                         (change)="documentChanged=true"
                                                                         [format]="'html'"
                                                                         placeholder= ""
-                                                                        style="height:500px;width:100%;"
+                                                                        style="height:250px;width:100%;"
                                                                         maxnLength=1000000
                                                                         >
                                                                     </quill-editor>
@@ -872,7 +872,7 @@
                                                         <td mat-cell *matCellDef="let row; let i = dataIndex" [formGroupName]="i" style="position: relative"> 
                                                             <a href="ui/cagentsdoc/{{row.id}}" target="_blank" style="color:rgba(0, 0, 0, 0.87)" *ngIf="row.id>0"><span>{{row.name}}</span></a>
                                                             <span *ngIf="+row.id==0">{{row.name}}</span>
-                                                            <app-balance-cagent *ngIf="+row.id>0 && showBalanceModules" style="position: absolute; top: 2px; right: 0;"
+                                                            <app-balance-cagent *ngIf="+row.id>0 && showBalanceModules && !initialLoading" style="position: absolute; top: 2px; right: 0;"
                                                                 [company_id]="formBaseInformation.get('company_id').value"
                                                                 [cagent_id]="row.id"
                                                                 [currency]="accountingCurrency">

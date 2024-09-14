@@ -156,7 +156,7 @@
                                                                     (click)="$event.stopPropagation()"
                                                                     (change)="$event ? clickTableCheckbox(row) : null"
                                                                     [checked]="selection.isSelected(row)"
-                                                                    >{{row.name}}</mat-checkbox>
+                                                                    >{{row.name}} - {{row.id}}</mat-checkbox>
                                                             </li>
                                                         </ng-container>
                                                     </ul>

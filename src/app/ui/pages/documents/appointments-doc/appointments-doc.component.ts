@@ -779,12 +779,12 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
     
     this.editability=((this.allowToCreate && +this.id==0)||(this.allowToUpdate && this.id>0));
     
-    console.log("refreshPermissions editability - "+this.editability);
-    console.log("documentOfMyCompany - "+documentOfMyCompany);
-    console.log("allowToView - "+this.allowToView);
-    console.log("allowToUpdate - "+this.allowToUpdate);
-    console.log("allowToCreate - "+this.allowToCreate);
-    console.log("allowToCreateAllCompanies - "+this.allowToCreateAllCompanies);
+    // console.log("refreshPermissions editability - "+this.editability);
+    // console.log("documentOfMyCompany - "+documentOfMyCompany);
+    // console.log("allowToView - "+this.allowToView);
+    // console.log("allowToUpdate - "+this.allowToUpdate);
+    // console.log("allowToCreate - "+this.allowToCreate);
+    // console.log("allowToCreateAllCompanies - "+this.allowToCreateAllCompanies);
     // return true;
     this.rightsDefined=true;//!!!
     this.formCustomerTableColumns();
@@ -802,20 +802,21 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
       this.setDefaultCompany();
     }
   }
+
   getCompanyId(){
     return Cookie.get('appointments_companyId')
   }
+
   setDefaultCompany(){
     if(+this.formBaseInformation.get('company_id').value==0) // если не в режиме окна, то тут будет null
       this.formBaseInformation.get('company_id').setValue( // и тогда берем из куков, которые выставляются в /appointments через выбор предприятия.
         Cookie.get('appointments_companyId')=="0"? // если в куках нет информации о выбранном предприятии - ставим своё по дефолту
         (this.myCompanyId):+Cookie.get('appointments_companyId')
       );
-      this.getDepartmentsWithPartsList();
-      
+      this.getDepartmentsWithPartsList();      
   }
 
-    getCompanySettings(){
+  getCompanySettings(){
     this.http.get('/api/auth/getCompanySettings?id='+this.formBaseInformation.get('company_id').value)
       .subscribe(
         data => {         
@@ -851,8 +852,6 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
     );
   }
-
-
 
   getMyId(){
     if(+this.myId==0)
@@ -910,10 +909,11 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
         .subscribe(
             (data) => {   
               this.receivedDepartmentsWithPartsList=data as any [];
+              this.getSettings();
               if(+this.id==0){
                 this.setDefaultDepartmentPart();
                 // call settings from here because from settings calling getEmployeesList(), and it needs department parts
-                this.getSettings();
+                // this.getSettings();
                 this.otherActions();
               } else {
                 this.refreshPermissions();
@@ -923,8 +923,9 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
             error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}, //+++
       );
     else {
+      this.getSettings();
       if(+this.id==0) {
-        this.setDefaultDepartmentPart();this.getSettings();this.otherActions()
+        this.setDefaultDepartmentPart();this.otherActions()
       } else {
         this.refreshPermissions();
         this.refreshEnableDisableFields();
@@ -1772,7 +1773,7 @@ export class AppointmentsDocComponent implements OnInit/*, OnChanges */{
                   this.fillProductsListFromApiResponse(documentValues.appointmentsProductTable);
                   this.getTotalSumPrice();
                   this.refreshNowUsedResources();
-                  this.getSettings();                  
+                  // this.getSettings();                  
                   this.isMainDataLoading=false;
                   this.showBalanceModules=false;
                   setTimeout(() => { 

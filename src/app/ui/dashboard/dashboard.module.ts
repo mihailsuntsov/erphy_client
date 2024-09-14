@@ -8,7 +8,7 @@ import { IncomeOutcomeModule } from 'src/app/modules/info-modules/income-outcome
 import { IndicatorsLeftModule } from 'src/app/modules/info-modules/indicators-left/indicators-left.module';
 import { RemainsModule } from 'src/app/modules/info-modules/remains/remains.module';
 import { OpexModule } from 'src/app/modules/info-modules/opex/opex.module';
-import { SettingsDashboardModule } from 'src/app/modules/settings/settings-dashboard/settings-dashboard.module'
+// import { SettingsDashboardModule } from 'src/app/modules/settings/settings-dashboard/settings-dashboard.module'
 
 @NgModule({
   declarations: [DashboardComponent],
@@ -21,7 +21,7 @@ import { SettingsDashboardModule } from 'src/app/modules/settings/settings-dashb
     OpexModule,
     IndicatorsLeftModule,
     RemainsModule,
-    SettingsDashboardModule
+    // SettingsDashboardModule
   ]
 })
 export class DashboardModule { }
