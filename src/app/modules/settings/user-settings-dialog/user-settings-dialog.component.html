@@ -77,14 +77,6 @@
                                     [matAutocomplete]="lc" 
                                     (input)="checkEmptyFields('localeId','localeName');"
                                     (change)="checkEmptyFields('localeId','localeName');">
-                                <!-- <button
-                                    type="button"
-                                    class="clear-button"
-                                    (click)="clearField('localeName');checkEmptyFields('localeId','localeName');"
-                                    matTooltip="{{t('modules.tip.clr_srch')}}"
-                                    matSuffix mat-icon-button>
-                                    <mat-icon>close</mat-icon>
-                                </button> -->
                                 <mat-icon 
                                     matTooltip="{{t('docs.tip.clr_srch')}}" 
                                     class="add_circle"

@@ -10,6 +10,7 @@
         "operations":   "Operations",
         "legal_data":   "Legal data",
         "bank_data":    "Bank data",
+        "online_bookng":"Online booking",
         "settings":     "Settings",
         "store":        "Online store",
         "general":      "General",
@@ -75,7 +76,11 @@
         "employee_info":"Employee information",
         "resources":"Resources",
         "work_shift":"Work shift",
-        "vacation":"Non-working day"
+        "vacation":"Non-working day",
+        "languages":"Languages",
+        "labls_on_elmnts":"Labels on elements",
+        "styles":"Design styles",
+        "basic_settings":"Main settings"
     },
     "field":{ 
         "-- COMMON":"--",
@@ -240,7 +245,7 @@
         "sku_supplier": "Supplier's SKU",
         "legal_form":   "Legal form",
         "lang_code":    "Language",
-        "default_lang": "Default language of online store",
+        "default_lang": "Main language of company",
         "stores":       "Online store (connection)",
         "balance":      "Balance",
         "writeoff_day": "Daily withdrawal",
@@ -410,8 +415,38 @@
         "time_to":"End time",
         "date_range":"Date range",        
         "owner": "Owner",
-        "id_card":"ID card, Passport or other identification document"
-        
+        "id_card":"ID card, Passport or other identification document",
+        "os_step":"Step, minutes",
+        "os_max_srvcs":"Max amount of services",
+        "os_duration":"Duration",
+        "os_predef_durtn":"Predefined duration",
+        "os_ask_tel":"Request phone",
+        "os_ask_email":"Request e-mail",
+        "os_tel_prfx":"Phone prefix",
+        "os_url_slug":"URL identifier",
+        "txt_btn_select_time":"Time selection (button label and section)",
+        "txt_btn_select_specialist":"Specialist selection (label on the button and section)",
+        "txt_btn_select_services": "Service selection (label on the button and section)",
+        "txt_summary_header":"Appointment details",
+        "txt_summary_date": "Date",
+        "txt_summary_time_start": "Start time",
+        "txt_summary_time_end":"End time",
+        "txt_summary_duration": "Duration",
+        "txt_summary_specialist":"Specialist",
+        "txt_summary_services":"Services",
+        "txt_btn_create_order":"Done",
+        "txt_btn_send_order":"Send order",
+        "txt_fld_your_name":"Your name",
+        "txt_fld_your_tel": "Your phone",
+        "txt_fld_your_email":"E-mail",
+        "txt_msg_send_successful":"Successfully sent",
+        "txt_msg_send_error": "Error creating a record",
+        "txt_msg_time_not_enable":"The selected time is already occupied. Please choose another time.",
+        "stl_color_buttons":"Button color",
+        "stl_color_buttons_text":"Button text color",
+        "stl_color_text":"Text color",
+        "stl_corner_radius":"Corner radius, px",
+        "stl_font_family":"Font family"
     },
     "error":{ 
         "-- COMMON":"--",
@@ -1002,5 +1037,8 @@
         "resource":"Resource",
         "jobtitle":"Job title"
 
+    },
+    "col":{
+        "main":"Main"
     }
 }

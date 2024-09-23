@@ -28,7 +28,7 @@ interface docResponse {
   description: string;
   dep_parts: any[]; // quantity of this resource in each department part
 }
-interface resourcesList {//интерфейс массива для получения всех статусов текущего документа
+interface resourcesList {
   id: string;
   name: string;
 }

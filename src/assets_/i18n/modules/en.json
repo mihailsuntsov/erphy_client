@@ -135,6 +135,7 @@
         "def_supplr":   "Default supplier",
         "def_cagent":   "Default counterparty",
         "ap_s_no_calc":"The end date and time are set manually",
+        "os_duration_man":"The duration is set manually",
         "ap_s_max_length":"The end date and time will be calculated based on the longest service. Suitable if secondary services are provided within the main one.",
         "ap_s_sum_all_length":"The end date and time will be calculated as the sum of the duration of all services. Suitable if your services cannot be provided simultaneously.",
         "ap_s_suit_intraday":"Suitable if your services start and end within the day.",

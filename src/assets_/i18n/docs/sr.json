@@ -10,6 +10,7 @@
         "operations":   "Операције",
         "legal_data":   "Правни подаци",
         "bank_data":    "Подаци о банци",
+        "online_bookng":"Онлине резервација",
         "settings":     "Подешавања",
         "store":        "Онлине продавница",
         "general":      "Општи",
@@ -75,7 +76,11 @@
         "employee_info":"Информације о запосленима",
         "resources":"Ресурси",
         "work_shift":"Радне смене",
-        "vacation":"Нерадни дан" 
+        "vacation":"Нерадни дан",
+        "languages":"Језици",
+        "labls_on_elmnts":"Ознаке на елементима",
+        "styles":"Стилови дизајна",
+        "basic_settings":"Главна подешавања"
     },
     "field":{
         "-- ОБЩИЕ":"--",
@@ -240,7 +245,7 @@
         "sku_supplier": "Шифра производа од добављача",
         "legal_form":   "Правни облик",
         "lang_code":    "Језик",
-        "default_lang": "Основни језик онлине продавнице",
+        "default_lang": "Основни језик предузећа",
         "stores":       "Онлине продавнице (конекције)",
         "balance":      "Баланс",
         "writeoff_day": "Отпис по дану",
@@ -410,8 +415,38 @@
         "time_to":"Време завршетка",
         "date_range":"Период",        
         "owner": "Власник",
-        "id_card":"Лична карта, пасош или други идентификациони документ"
-
+        "id_card":"Лична карта, пасош или други идентификациони документ",
+        "os_step":"Корак, минута",
+        "os_max_srvcs":"Максимални број услуга",
+        "os_duration":"Трајање",
+        "os_predef_durtn":"Унапред дефинисано трајање",
+        "os_ask_tel":"Request phone",
+        "os_ask_email":"Request e-mail",
+        "os_tel_prfx":"Phone prefix",
+        "os_url_slug":"URL identifier",
+        "txt_btn_select_time":"Time selection (button label and section)",
+        "txt_btn_select_specialist":"Specialist selection (label on the button and section)",
+        "txt_btn_select_services": "Service selection (label on the button and section)",
+        "txt_summary_header":"Recording Details",
+        "txt_summary_date": "Date",
+        "txt_summary_time_start": "Start time",
+        "txt_summary_time_end":"End time",
+        "txt_summary_duration": "Duration",
+        "txt_summary_specialist":"Specialist",
+        "txt_summary_services":"Services",
+        "txt_btn_create_order":"Done",
+        "txt_btn_send_order":"Sign up",
+        "txt_fld_your_name":"Your name",
+        "txt_fld_your_tel": "Your phone",
+        "txt_fld_your_email":"E-mail",
+        "txt_msg_send_successful":"Successfully sent",
+        "txt_msg_send_error": "Error creating a record",
+        "txt_msg_time_not_enable":"The selected time is already occupied. Please choose another time.",
+        "stl_color_buttons":"Button color",
+        "stl_color_buttons_text":"Button text color",
+        "stl_color_text":"Text color",
+        "stl_corner_radius":"Corner radius, px",
+        "stl_font_family":"Font family"
     },
     "error":{
         "-- ОБЩИЕ":"--",
@@ -992,5 +1027,8 @@
         "reservations":"Резервације",
         "resource":"Ресурс",
         "jobtitle":"Позиција"
+    },
+    "col":{
+        "main":"Основни"
     }
 }

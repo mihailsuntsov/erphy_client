@@ -1,4 +1,4 @@
-import { Component, OnInit , Inject, Optional, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit , Inject, Optional, Output, EventEmitter, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { LoadSpravService } from '../../../../services/loadsprav';
 import { Validators, UntypedFormGroup, UntypedFormArray, UntypedFormControl, UntypedFormBuilder } from '@angular/forms';
@@ -108,29 +108,75 @@ interface docResponse {//интерфейс для получения ответ
   booking_doc_name_variation_id:number; // variation's id of name of booking document: 1-appointment, 2-reservation
   nds_included: boolean;                // used with nds_payer as default values for Customers orders fields "Tax" and "Tax included"
   time_zone_id: number;                 // id of company's time zone
-  // E-commerce integration
-  /*
-  is_store: boolean;                // on off the store
-  store_site_address: string;       // e.g. http://localhost/DokioShop
-  store_key: string;                // consumer key
-  store_secret: string;             // consumer secret
-  store_type: string;               // e.g. woo
-  store_api_version: string;        // e.g. v3
-  crm_secret_key: string;           // like UUID generated
-  store_price_type_regular: number; // id of regular type price
-  store_price_type_sale: number;    // id of sale type price
-  store_orders_department_id: number;   // department for creation Customer order from store
-  store_if_customer_not_found: string;  // "create_new" or "use_default"
-  store_default_customer_id: number;    // counterparty id if store_if_customer_not_found=use_default
-  cagent: string;                       // the name of store_default_customer
-  store_default_creator_id: number;     // ID of default user, that will be marked as a creator of store order. Default is master user
-  store_days_for_esd: number;           // number of days for ESD of created store order. Default is 0 
-  store_default_creator: string;        // name of default user that will be marked as a creator of store order.
-  store_auto_reserve: boolean;          // auto reserve product after getting internet store order
-  companyStoreDepartments: number[];    // internet store's departments
-  store_ip: string;                     // store server ip address
-  */
+
   store_default_lang_code: string;      // internet-store basic language, e.g. EN, RU, UA, ...
+
+
+  // settings for online cheduling page/frame
+  fld_step: number;
+  fld_max_amount_services: number;
+  fld_locale_id: number;
+  fld_time_format: string;
+  fld_duration: string;
+  fld_predefined_duration: number;
+  fld_predefined_duration_unit_id: number;
+  fld_tel_prefix: string;
+  fld_ask_telephone: boolean;
+  fld_ask_email: boolean;
+  fld_url_slug: string;
+  txt_btn_select_time: string;
+  txt_btn_select_specialist: string;
+  txt_btn_select_services: string;
+  txt_summary_header: string;
+  txt_summary_date: string;
+  txt_summary_time_start: string;
+  txt_summary_time_end: string;
+  txt_summary_duration: string;
+  txt_summary_specialist: string;
+  txt_summary_services: string;
+  txt_btn_create_order: string;
+  txt_btn_send_order: string;
+  txt_msg_send_successful: string;
+  txt_msg_send_error: string;
+  txt_msg_time_not_enable: string;
+  txt_fld_your_name: string;
+  txt_fld_your_tel: string;
+  txt_fld_your_email: string;
+  stl_color_buttons: string;
+  stl_color_buttons_text: string;
+  stl_color_text: string;
+  stl_corner_radius: string;
+  stl_font_family: string;
+  onlineSchedulingLanguagesList: OnlineSchedulingLanguage[];
+  onlineSchedulingFieldsTranslations: OnlineSchedulingFieldsTranslation[];
+}
+interface OnlineSchedulingFieldsTranslation{
+  langCode: string;
+  txt_btn_select_time: string;
+  txt_btn_select_specialist: string;
+  txt_btn_select_services: string;
+  txt_summary_header: string;
+  txt_summary_date: string;
+  txt_summary_time_start: string;
+  txt_summary_time_end: string;
+  txt_summary_duration: string;
+  txt_summary_specialist: string;
+  txt_summary_services: string; 
+  txt_btn_create_order: string;
+  txt_btn_send_order: string;
+  txt_msg_send_successful: string;
+  txt_msg_send_error: string;
+  txt_msg_time_not_enable: string;
+  txt_fld_your_name: string;
+  txt_fld_your_tel: string;
+  txt_fld_your_email: string;
+}
+
+interface OnlineSchedulingLanguage{
+  id: number;
+  suffix: string;
+  name: string;
+  fileName: string;
 }
 
 interface IdAndName{
@@ -141,31 +187,11 @@ interface IdAndName_ru{
   id: number;
   name_ru: string;
 }
-interface CompanyStoreDepartment{
-  id: number;
-  name: string;
-  menuOrder:number;
-}
 interface filesInfo {
   id: string;
   name: string;
   original_name: string;
   date_time_created: string;
-}
-interface Region{
-  id: number;
-  name_ru: string;
-  country_id: number;
-  country_name_ru: string;
-}
-interface City{
-  id: number;
-  name_ru: string;
-  country_id: number;
-  country_name_ru: string;
-  region_id: number;
-  region_name_ru: string;
-  area_ru: string;
 }
 interface statusInterface{
   id:number;
@@ -181,7 +207,6 @@ interface idNameDescription{ //универсалный интерфейс дл�
   name: string;
   description: string;
 }
-
 @Component({
   selector: 'app-companies-doc',
   templateUrl: './companies-doc.component.html',
@@ -191,7 +216,6 @@ interface idNameDescription{ //универсалный интерфейс дл�
     {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},
   ]
 })
-
 export class CompaniesDocComponent implements OnInit {
   id: number=0;// id документа
   receivedDepartmentsList: IdAndName [] = [];//массив для получения списка отделений
@@ -261,6 +285,21 @@ export class CompaniesDocComponent implements OnInit {
   isDefaultCreatorListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
   canDefaultCreatorAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
   filteredDefaultCreators: any;
+
+  // Fields Translations variables
+  onlineSchedulingDefaultLanguage: string = ''; // default language from Company settings ( like EN )
+  // onlineSchedulingLanguagesList: string[] = [];  // the array of languages from all onlineSchedulings like ["EN","RU", ...]
+  onlineSchedulingFieldsTranslations: OnlineSchedulingFieldsTranslation[]=[]; // the list of translated product's data
+  onlineSchedulingTranslationModeOn = false; // translation mode ON
+  // list of languages with which thу online sceduling form will be accessible
+  onlineSchedulingFieldsLanguagesList: OnlineSchedulingLanguage[]=[]; 
+  spravSysEdizmOfProductTime: any[]=[];//  units of measurement of time
+  spravSysLocales  : IdAndName[] = [];                // here will be loaded all locales
+  showLanguagesFormFields:boolean = false;
+  displayedLanguagesColumns: string[]=[];//array of displayed columns of the table with languages
+  formLanguageAdding:any;//
+  @ViewChild('langSuffixInput') langSuffixInput;
+
   //переменные прав
   permissionsSet: any[];//сет прав на документ
   allowToViewAllCompanies:boolean = false;
@@ -369,30 +408,44 @@ constructor(private activateRoute: ActivatedRoute,
       booking_doc_name_variation_id:  new UntypedFormControl      (1,[]),
       time_zone_id:  new UntypedFormControl       (21,[]), // 21 is UTC (GMT+0) time zone
       timeZoneName: new UntypedFormControl      ('',[]),
-
-
-      
-      // E-commerce integration
-      /*
-      is_store:                 new UntypedFormControl      (false,[]),  // on off the store
-      store_site_address:       new UntypedFormControl      ('',[Validators.maxLength(128)]),  // e.g. http://localhost/DokioShop
-      store_key:                new UntypedFormControl      ('',[Validators.maxLength(128)]),  // consumer key
-      store_secret:             new UntypedFormControl      ('',[Validators.maxLength(128)]),  // consumer secret
-      store_type:               new UntypedFormControl      ('woo',[]),  // e.g. woo
-      store_api_version:        new UntypedFormControl      ('v3',[]),  // e.g. v3
-      crm_secret_key:           new UntypedFormControl      ('',[Validators.maxLength(36)]),  // like UUID generated
-      store_price_type_regular: new UntypedFormControl      ('',[]),  // id of regular type price
-      store_price_type_sale:    new UntypedFormControl      ('',[]),  // id of sale type price
-      store_orders_department_id:  new UntypedFormControl   (null,[]),   // department for creation Customer order from store
-      store_if_customer_not_found: new UntypedFormControl   ('create_new',[]),  // "create_new" or "use_default"
-      store_default_customer_id:   new UntypedFormControl   (null,[]),    // counterparty id if store_if_customer_not_found=use_default
-      store_default_creator_id:    new UntypedFormControl   (null,[]),   // ID of default user, that will be marked as a creator of store order. Default is master user
-      store_days_for_esd:          new UntypedFormControl   (0,[Validators.maxLength(3),Validators.pattern('^[0-9]{1,3}$')]),// number of days for ESD of created store order. Default is 0 
-      companyStoreDepartments:     new UntypedFormControl   ([],[]),
-      store_auto_reserve:          new UntypedFormControl   (false,[]), // auto reserve product after getting internet store order
-      store_ip:                    new UntypedFormControl   (null,[Validators.maxLength(21)]),  // internet-store ip address
-      */
       store_default_lang_code:     new UntypedFormControl   ('EN',[Validators.required, Validators.minLength(2),Validators.maxLength(2)]),
+
+      fld_step:                         new UntypedFormControl('',[]),
+      fld_max_amount_services:          new UntypedFormControl('',[]),
+      fld_locale_id:                    new UntypedFormControl('',[]),
+      fld_time_format:                  new UntypedFormControl('',[Validators.maxLength(2)]),
+      fld_duration:                     new UntypedFormControl('',[Validators.maxLength(7)]),
+      fld_predefined_duration:          new UntypedFormControl('',[]),
+      fld_predefined_duration_unit_id:  new UntypedFormControl(0,[]),
+      fld_tel_prefix:                   new UntypedFormControl('',[Validators.maxLength(7)]),
+      fld_ask_telephone:                new UntypedFormControl('',[]),
+      fld_ask_email:                    new UntypedFormControl('',[]),
+      fld_url_slug:                     new UntypedFormControl('',[Validators.maxLength(50)]),
+      txt_btn_select_time:              new UntypedFormControl('',[Validators.maxLength(20)]),
+      txt_btn_select_specialist:        new UntypedFormControl('',[Validators.maxLength(20)]),
+      txt_btn_select_services:          new UntypedFormControl('',[Validators.maxLength(20)]),
+      txt_summary_header:               new UntypedFormControl('',[Validators.maxLength(20)]),
+      txt_summary_date:                 new UntypedFormControl('',[Validators.maxLength(20)]),
+      txt_summary_time_start:           new UntypedFormControl('',[Validators.maxLength(20)]),
+      txt_summary_time_end:             new UntypedFormControl('',[Validators.maxLength(20)]),
+      txt_summary_duration:             new UntypedFormControl('',[Validators.maxLength(20)]),
+      txt_summary_specialist:           new UntypedFormControl('',[Validators.maxLength(20)]),
+      txt_summary_services:             new UntypedFormControl('',[Validators.maxLength(20)]),
+      txt_btn_create_order:             new UntypedFormControl('',[Validators.maxLength(20)]),
+      txt_btn_send_order:               new UntypedFormControl('',[Validators.maxLength(20)]),
+      txt_msg_send_successful:          new UntypedFormControl('',[Validators.maxLength(100)]),
+      txt_msg_send_error:               new UntypedFormControl('',[Validators.maxLength(100)]),
+      txt_msg_time_not_enable:          new UntypedFormControl('',[Validators.maxLength(100)]),
+      txt_fld_your_name:                new UntypedFormControl('',[Validators.maxLength(200)]),
+      txt_fld_your_tel:                 new UntypedFormControl('',[Validators.maxLength(200)]),
+      txt_fld_your_email:               new UntypedFormControl('',[Validators.maxLength(200)]),
+      stl_color_buttons:                new UntypedFormControl('',[Validators.maxLength(7)]),
+      stl_color_buttons_text:           new UntypedFormControl('',[Validators.maxLength(7)]),
+      stl_color_text:                   new UntypedFormControl('',[Validators.maxLength(7)]),
+      stl_corner_radius:                new UntypedFormControl('',[Validators.maxLength(7)]),
+      stl_font_family:                  new UntypedFormControl('',[Validators.maxLength(200)]),
+      onlineSchedulingFieldsTranslations:new UntypedFormArray ([]) ,
+      onlineSchedulingLanguagesList:    new UntypedFormArray ([]) ,
     });
     this.formAboutDocument = new UntypedFormGroup({
       id: new UntypedFormControl      ('',[]),
@@ -403,12 +456,21 @@ constructor(private activateRoute: ActivatedRoute,
       date_time_created: new UntypedFormControl      ('',[]),
       date_time_changed: new UntypedFormControl      ('',[]),
     });
+    this.formLanguageAdding = new UntypedFormGroup({
+      id: new UntypedFormControl ('' ,[]),      
+      suffix: new UntypedFormControl ('' ,[Validators.required,Validators.maxLength(2),Validators.minLength(2)]),
+      name: new UntypedFormControl ('' ,[Validators.required,Validators.maxLength(20),Validators.minLength(1)]),
+      fileName: new UntypedFormControl ('' ,[]),
+    });
     this.getSpravSysOPF();
     // this.getCurrencyList();
     this.getSpravSysCountries();
     this.onCagentSearchValueChanges();//отслеживание изменений поля "Покупатель по умолчанию"
     this.onDefaultCreatorSearchValueChanges();//отслеживание изменений поля "Создатель интернет-заказов"
     this.getSetOfPermissions();
+    this.getSpravSysLocales();  
+    this.getSpravSysEdizm();
+    this.formLanguageTableColumns();
     //+++ getting base data from parent component
     // this.getBaseData('myId');    
     this.getBaseData('myCompanyId');      
@@ -680,7 +742,45 @@ onDefaultCreatorSearchValueChanges(){
                   this.formBaseInformation.get('store_default_lang_code').setValue(documentValues.store_default_lang_code); 
                   this.formBaseInformation.get('time_zone_id').setValue(documentValues.time_zone_id);
 
+                  this.formBaseInformation.get('fld_step').setValue(documentValues.fld_step);
+                  this.formBaseInformation.get('fld_max_amount_services').setValue(documentValues.fld_max_amount_services);
+                  this.formBaseInformation.get('fld_locale_id').setValue(documentValues.fld_locale_id);
+                  this.formBaseInformation.get('fld_time_format').setValue(documentValues.fld_time_format);
+                  this.formBaseInformation.get('fld_duration').setValue(documentValues.fld_duration);
+                  this.formBaseInformation.get('fld_predefined_duration').setValue(documentValues.fld_predefined_duration);
+                  this.formBaseInformation.get('fld_predefined_duration_unit_id').setValue(documentValues.fld_predefined_duration_unit_id);
+                  this.formBaseInformation.get('fld_tel_prefix').setValue(documentValues.fld_tel_prefix);
+                  this.formBaseInformation.get('fld_ask_telephone').setValue(documentValues.fld_ask_telephone);
+                  this.formBaseInformation.get('fld_ask_email').setValue(documentValues.fld_ask_email);
+                  this.formBaseInformation.get('fld_url_slug').setValue(documentValues.fld_url_slug);
+                  this.formBaseInformation.get('txt_btn_select_time').setValue(documentValues.txt_btn_select_time);
+                  this.formBaseInformation.get('txt_btn_select_specialist').setValue(documentValues.txt_btn_select_specialist);
+                  this.formBaseInformation.get('txt_btn_select_services').setValue(documentValues.txt_btn_select_services);
+                  this.formBaseInformation.get('txt_summary_header').setValue(documentValues.txt_summary_header);
+                  this.formBaseInformation.get('txt_summary_date').setValue(documentValues.txt_summary_date);
+                  this.formBaseInformation.get('txt_summary_time_start').setValue(documentValues.txt_summary_time_start);
+                  this.formBaseInformation.get('txt_summary_time_end').setValue(documentValues.txt_summary_time_end);
+                  this.formBaseInformation.get('txt_summary_duration').setValue(documentValues.txt_summary_duration);
+                  this.formBaseInformation.get('txt_summary_specialist').setValue(documentValues.txt_summary_specialist);
+                  this.formBaseInformation.get('txt_summary_services').setValue(documentValues.txt_summary_services);
+                  this.formBaseInformation.get('txt_btn_create_order').setValue(documentValues.txt_btn_create_order);
+                  this.formBaseInformation.get('txt_btn_send_order').setValue(documentValues.txt_btn_send_order);
+                  this.formBaseInformation.get('txt_msg_send_successful').setValue(documentValues.txt_msg_send_successful);
+                  this.formBaseInformation.get('txt_msg_send_error').setValue(documentValues.txt_msg_send_error);
+                  this.formBaseInformation.get('txt_msg_time_not_enable').setValue(documentValues.txt_msg_time_not_enable);
+                  this.formBaseInformation.get('txt_fld_your_name').setValue(documentValues.txt_fld_your_name);
+                  this.formBaseInformation.get('txt_fld_your_tel').setValue(documentValues.txt_fld_your_tel);
+                  this.formBaseInformation.get('txt_fld_your_email').setValue(documentValues.txt_fld_your_email);
+                  this.formBaseInformation.get('stl_color_buttons').setValue(documentValues.stl_color_buttons);
+                  this.formBaseInformation.get('stl_color_buttons_text').setValue(documentValues.stl_color_buttons_text);
+                  this.formBaseInformation.get('stl_color_text').setValue(documentValues.stl_color_text);
+                  this.formBaseInformation.get('stl_corner_radius').setValue(documentValues.stl_corner_radius);
+                  this.formBaseInformation.get('stl_font_family').setValue(documentValues.stl_font_family);
+                  this.onlineSchedulingFieldsTranslations = documentValues.onlineSchedulingFieldsTranslations;
                   
+
+
+
 
                   this.searchRegionCtrl.setValue(documentValues.region);
                   this.searchJrRegionCtrl.setValue(documentValues.jr_region);
@@ -691,15 +791,192 @@ onDefaultCreatorSearchValueChanges(){
                   this.updateValues('time_zone_id','timeZoneName',this.spravSysTimeZones);
                   // this.getStatusesList();
                   this.getCompaniesPaymentAccounts();
+                  this.fillLanguagesListFromApiResponse(documentValues.onlineSchedulingLanguagesList);
+                  this.fillTranslationsListFromApiResponse();
+                  this.refreshFieldsTranslationsArray();
                   this.loadFilesInfo();
-                  this.getPriceTypesList();
+                  this.getPriceTypesList();         
                   this.getDepartmentsList();                  
+                  this.refreshTableColumns();
                 } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}})} //+++
                 this.refreshPermissions();
             },
             error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})} //+++
         );
   }
+
+  getSpravSysEdizm():void {    
+    this.spravSysEdizmOfProductTime=[];
+    this.http.post('/api/auth/getSpravSysEdizm', {id1: this.id, string1:"(6)"})  // 6 - time type
+    .subscribe((data) => {
+      let spravSysEdizmOfProductAll = data as any[];
+      spravSysEdizmOfProductAll.forEach(a=>{
+        if(a.type_id==6){ // time
+          this.spravSysEdizmOfProductTime.push(a)}
+      });
+    },
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})} //+++
+    );
+  }
+
+  getSpravSysLocales():void {    
+    this.http.get('/api/auth/getSpravSysLocales').subscribe((data) => {this.spravSysLocales = data as any[]},
+    error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})} //+++
+    );
+  }
+
+  fillLanguagesListFromApiResponse(languagesArray:OnlineSchedulingLanguage[]){
+    const control = <UntypedFormArray>this.formBaseInformation.get('onlineSchedulingLanguagesList');
+    control.clear(); 
+    languagesArray.forEach(row=>{
+      control.push(this.formingLanguageRowFromApiResponse(row));
+    });
+  }
+  
+  formingLanguageRowFromApiResponse(row: OnlineSchedulingLanguage) {
+    return this._fb.group({
+      id: new UntypedFormControl (row.id,[]),
+      suffix: new UntypedFormControl (row.suffix,[Validators.required,Validators.maxLength(2),Validators.minLength(2)]),
+      name: new UntypedFormControl (row.name,[Validators.required,Validators.maxLength(20),Validators.minLength(1)]),
+      fileName: new UntypedFormControl (row.fileName,[]),   
+    });
+  }
+  fillTranslationsListFromApiResponse(){
+    const control = <UntypedFormArray>this.formBaseInformation.get('onlineSchedulingFieldsTranslations');
+    control.clear(); 
+    this.onlineSchedulingFieldsTranslations.forEach(row=>{
+      control.push(this.formingTranslationRowFromApiResponse(row));
+    });
+  }
+  formingTranslationRowFromApiResponse(row: OnlineSchedulingFieldsTranslation) {
+    return this._fb.group({
+      langCode: new UntypedFormControl (row.langCode,[]),
+      txt_btn_select_time: new UntypedFormControl (row.txt_btn_select_time,[]),
+      txt_btn_select_specialist: new UntypedFormControl (row.txt_btn_select_specialist,[]),
+      txt_btn_select_services: new UntypedFormControl (row.txt_btn_select_services,[]),
+      txt_summary_header: new UntypedFormControl (row.txt_summary_header,[]),
+      txt_summary_date: new UntypedFormControl (row.txt_summary_date,[]),
+      txt_summary_time_start: new UntypedFormControl (row.txt_summary_time_start,[]),
+      txt_summary_time_end: new UntypedFormControl (row.txt_summary_time_end,[]),
+      txt_summary_duration: new UntypedFormControl (row.txt_summary_duration,[]),
+      txt_summary_specialist: new UntypedFormControl (row.txt_summary_specialist,[]),
+      txt_summary_services: new UntypedFormControl (row.txt_summary_services,[]),
+      txt_btn_create_order: new UntypedFormControl (row.txt_btn_create_order,[]),
+      txt_btn_send_order: new UntypedFormControl (row.txt_btn_send_order,[]),
+      txt_msg_send_successful: new UntypedFormControl (row.txt_msg_send_successful,[]),
+      txt_msg_send_error: new UntypedFormControl (row.txt_msg_send_error,[]),
+      txt_msg_time_not_enable: new UntypedFormControl (row.txt_msg_time_not_enable,[]),
+      txt_fld_your_name: new UntypedFormControl (row.txt_fld_your_name,[]),
+      txt_fld_your_tel: new UntypedFormControl (row.txt_fld_your_tel,[]),
+      txt_fld_your_email: new UntypedFormControl (row.txt_fld_your_email,[]),
+    });
+  }
+  translationsArrayHasThisLang(suffix:string):boolean{
+    let result=false;
+    this.formBaseInformation.value.onlineSchedulingFieldsTranslations.map(translation =>{
+      if(suffix==translation.langCode) result=true;
+    });
+    return result;
+  }
+  languagesListHasThisLang(suffix:string):boolean{
+    let result=false;
+    this.formBaseInformation.value.onlineSchedulingLanguagesList.map(lang =>{
+      if(suffix==lang.suffix) result=true;
+    });
+    return result;
+  }
+  getTranslationIndexBySuffix(suffix:string):number{
+    let result=null;
+    let i=0;
+    this.formBaseInformation.value.onlineSchedulingFieldsTranslations.map(translation =>{
+      if(suffix==translation.langCode) result=i;
+      i++
+    });
+    return result;
+  }
+  // run by onlineSchedulingLanguagesList
+  // if its "suffix" is not equals to main language's suffix and onlineSchedulingFieldsTranslations has not the translation with this suffix
+  // then add translation to the array of translations "onlineSchedulingFieldsTranslations"
+  refreshFieldsTranslationsArray(){
+    const control = this.formBaseInformation.get('onlineSchedulingFieldsTranslations') as UntypedFormArray;
+
+    this.formBaseInformation.value.onlineSchedulingLanguagesList.map(i => 
+      {
+        if(
+          i['suffix']!=this.formBaseInformation.get('store_default_lang_code').value &&
+          i['suffix'].length == 2 &&
+          !this.translationsArrayHasThisLang(i['suffix'])
+        ){
+          control.push(this._fb.group(this.getProductTranslation(i['suffix'])));
+        }
+      }
+    );
+    // now need to delete translations whose language suffixes (language codes) are not in onlineSchedulingLanguagesList OR 
+    // suffix equals to the main language 
+    console.log("length=",this.formBaseInformation.value.onlineSchedulingFieldsTranslations.length);
+
+    for(let i = 0; i < this.formBaseInformation.value.onlineSchedulingFieldsTranslations.length; i++){
+      console.log("Checking for lang code = ",control.controls[i].get('langCode').value);
+      if(!this.languagesListHasThisLang(control.controls[i].get('langCode').value) || control.controls[i].get('langCode').value==this.formBaseInformation.get('store_default_lang_code').value) { 
+        console.log("At index "+i+" there is no language");
+        control.removeAt(i);
+        i--;
+      }
+    }
+  }
+  
+  getProductTranslation(currLangCode:string):OnlineSchedulingFieldsTranslation {
+    let result:OnlineSchedulingFieldsTranslation = {
+      langCode:     currLangCode,      
+      txt_btn_select_time: '',
+      txt_btn_select_specialist: '',
+       txt_btn_select_services: '',
+      txt_summary_header: '',
+      txt_summary_date: '',
+      txt_summary_time_start: '',
+      txt_summary_time_end: '',
+      txt_summary_duration: '',
+      txt_summary_specialist: '',
+      txt_summary_services: '', 
+      txt_btn_create_order: '',
+      txt_btn_send_order: '',
+      txt_msg_send_successful: '',
+      txt_msg_send_error: '',
+      txt_msg_time_not_enable: '',
+      txt_fld_your_name: '',
+      txt_fld_your_tel: '',
+      txt_fld_your_email: ''
+    }
+    this.onlineSchedulingFieldsTranslations.forEach(translation =>{
+      if(currLangCode==translation.langCode)
+        result = {
+        txt_btn_select_time: translation.txt_btn_select_time,
+        txt_btn_select_specialist: translation.txt_btn_select_specialist,
+        txt_btn_select_services: translation.txt_btn_select_services,
+        txt_summary_header: translation.txt_summary_header,
+        txt_summary_date: translation.txt_summary_date,
+        txt_summary_time_start: translation.txt_summary_time_start,
+        txt_summary_time_end: translation.txt_summary_time_end,
+        txt_summary_duration: translation.txt_summary_duration,
+        txt_summary_specialist: translation.txt_summary_specialist,
+        txt_summary_services: translation.txt_summary_services, 
+        txt_btn_create_order: translation.txt_btn_create_order,
+        txt_btn_send_order: translation.txt_btn_send_order,
+        txt_msg_send_successful: translation.txt_msg_send_successful,
+        txt_msg_send_error: translation.txt_msg_send_error,
+        txt_msg_time_not_enable: translation.txt_msg_time_not_enable,
+        txt_fld_your_name: translation.txt_fld_your_name,
+        txt_fld_your_tel: translation.txt_fld_your_tel,
+        txt_fld_your_email: translation.txt_fld_your_email,
+        langCode: currLangCode,
+        }
+    });
+    return result;
+  }
+
+
+
+
 
   clickBtnCreateNewDocument(){// Нажатие кнопки Записать
     this.createNewDocument();
@@ -795,7 +1072,8 @@ onDefaultCreatorSearchValueChanges(){
               }
             }   
             
-          this.oneClickSaveControl=false;               
+          this.oneClickSaveControl=false;
+          this.showLanguagesFormFields = false;               
           },
           error => {this.oneClickSaveControl=false; console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
       );
@@ -826,9 +1104,12 @@ onDefaultCreatorSearchValueChanges(){
     if (charCode > 31 && ((charCode < 48 || charCode > 57) && charCode!=46 && charCode!=58)) { return false; } return true;}
   lettersOnly(event): boolean {
     const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which
-    console.log('charCode = ' + charCode);
     if ((charCode >= 65 && charCode <= 90)||(charCode >= 97 && charCode <= 122)) { return true; } return false;}
-  
+  lettersAndNumbersOnly(event): boolean {
+    const charCode = (event.which) ? event.which : event.keyCode;//т.к. IE использует event.keyCode, а остальные - event.which
+    if (this.lettersOnly(event)||this.numberOnly(event)) { return true; } return false;}
+
+
   generateCrmSecretKey(){
       const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
         width: '400px',
@@ -962,231 +1243,6 @@ onDefaultCreatorSearchValueChanges(){
         this.formBaseInformation.get('jr_additional_address').setValue(this.formBaseInformation.get('additional_address').value);
       }});
   }
-
-  //  -----------------------     ***** поиск по подстроке для Региона  ***    --------------------------
-  // onRegionSearchValueChanges(){
-  //   this.searchRegionCtrl.valueChanges
-  //   .pipe( 
-  //     debounceTime(500),
-  //     tap(() => {
-  //       this.filteredRegions = [];}),       
-  //     switchMap(fieldObject =>  
-  //       this.getSpravSysRegions()))
-  //   .subscribe(data => {
-  //     this.isRegionListLoading = false;
-  //     if (data == undefined) {
-  //       this.filteredRegions = [];
-  //     } else {
-  //       this.filteredRegions = data as Region[];
-  // }});}
-  // onSelectRegion(id:number,country_id:number,country:string){
-  //   this.formBaseInformation.get('region_id').setValue(+id);
-  //   //если выбрали регион, а страна не выбрана
-  //   if((this.formBaseInformation.get('country_id').value==null || this.formBaseInformation.get('country_id').value=='') && country_id>0){
-  //     this.formBaseInformation.get('country_id').setValue(country_id);
-  //     this.formBaseInformation.get('country').setValue(country);
-  //   }
-  // }
-  // checkEmptyRegionField(){
-  //   if(this.searchRegionCtrl.value.length==0){
-  //     this.formBaseInformation.get('region_id').setValue();
-  //     // this.formBaseInformation.get('city_id').setValue(null);
-  //     // this.searchCityCtrl.setValue('');
-  // }};     
-  // getSpravSysRegions(){ //заполнение Autocomplete
-  //   try {
-  //     if(this.canRegionAutocompleteQuery && this.searchRegionCtrl.value.length>1){
-  //       const body = {
-  //         "searchString":this.searchRegionCtrl.value,
-  //         "id":this.formBaseInformation.get('country_id').value};
-  //       this.isRegionListLoading  = true;
-  //       return this.http.post('/api/auth/getSpravSysRegions', body);
-  //     }else return [];
-  //   } catch (e) {
-  //     return [];}}
-  //--------------------------------------------------------------------------------------------------------
-  //---------------     ***** поиск по подстроке для Региона в юр. адресе  ***    --------------------------
-  // onJrRegionSearchValueChanges(){
-  //   this.searchJrRegionCtrl.valueChanges
-  //   .pipe( 
-  //     debounceTime(500),
-  //     tap(() => {
-  //       this.filteredJrRegions = [];}),       
-  //     switchMap(fieldObject =>  
-  //       this.getSpravSysJrRegions()))
-  //   .subscribe(data => {
-  //     this.isJrRegionListLoading = false;
-  //     if (data == undefined) {
-  //       this.filteredJrRegions = [];
-  //     } else {
-  //       this.filteredJrRegions = data as Region[];
-  // }});}
-  // onSelectJrRegion(id:number,country_id:number,country:string){
-  //   this.formBaseInformation.get('jr_region_id').setValue(+id);
-  //   //если выбрали регион, а страна не выбрана
-  //   if((this.formBaseInformation.get('jr_country_id').value==null || this.formBaseInformation.get('jr_country_id').value=='') && country_id>0){
-  //     this.formBaseInformation.get('jr_country_id').setValue(country_id);
-  //     this.formBaseInformation.get('jr_country').setValue(country);
-  //   }
-  // }
-  // checkEmptyJrRegionField(){
-  //   if(this.searchJrRegionCtrl.value.length==0){
-  //     this.formBaseInformation.get('jr_region_id').setValue();
-  //     // this.formBaseInformation.get('jr_city_id').setValue(null);
-  //     // this.searchJrCityCtrl.setValue('');
-  // }};     
-  // getSpravSysJrRegions(){ //заполнение Autocomplete
-  //   try {
-  //     if(this.canJrRegionAutocompleteQuery && this.searchJrRegionCtrl.value.length>1){
-  //   // console.log(111);
-
-  //       const body = {
-  //         "searchString":this.searchJrRegionCtrl.value,
-  //         "id":this.formBaseInformation.get('jr_country_id').value};
-  //         console.log(222);
-  //       this.isJrRegionListLoading  = true;
-        
-  //       return this.http.post('/api/auth/getSpravSysRegions', body);
-  //     }else return [];
-  //   } catch (e) {
-  //     return [];}}
-  //---------------------------------------------------------------------------------------------------
-  //---------------     ***** поиск по подстроке для Города  ***    -----------------------------------
-  // onCitySearchValueChanges(){
-  //   this.searchCityCtrl.valueChanges
-  //   .pipe( 
-  //     debounceTime(500),
-  //     tap(() => {
-  //       this.filteredCities = [];}),       
-  //     switchMap(fieldObject =>  
-  //       this.getSpravSysCities()))
-  //   .subscribe(data => {
-  //     this.isCityListLoading = false;
-  //     if (data == undefined) {
-  //       this.filteredCities = [];
-  //     } else {
-  //       this.filteredCities = data as City[];
-  // }});}
-
-  // onSelectCity(id:any,area:string,region_id:number,region:string,country_id:number,country:string){
-  //   this.formBaseInformation.get('city_id').setValue(+id);
-  //   this.area=area;
-  //   if(area!=''){
-  //     setTimeout(()=> {
-  //       this.searchCityCtrl.setValue(this.searchCityCtrl.value+' ('+area+')'); 
-  //     },200); 
-  //   }//если выбрали город, а регион не выбран
-  //   if((this.formBaseInformation.get('region_id').value==null || this.formBaseInformation.get('region_id').value=='') && region_id>0){//если у города есть регион и он не выбран - устанавливаем регион
-  //     this.formBaseInformation.get('region_id').setValue(region_id);
-  //     this.searchRegionCtrl.setValue(region);
-  //   }//если выбрали регион, а страна не выбрана
-  //   if((this.formBaseInformation.get('country_id').value==null || this.formBaseInformation.get('country_id').value=='') && country_id>0){//если у города есть страна и она не выбрана - устанавливаем страну
-  //     this.formBaseInformation.get('country_id').setValue(country_id);
-  //     this.formBaseInformation.get('country').setValue(country);
-  //   }
-  // }
-  // checkEmptyCityField(){
-  //   if(this.searchCityCtrl.value.length==0){
-  //     this.formBaseInformation.get('city_id').setValue(null);
-  //     this.area='';
-  // }};     
-  // getSpravSysCities(){ //заполнение Autocomplete
-  //   try {
-  //     if(this.canCityAutocompleteQuery && this.searchCityCtrl.value.length>1){
-  //       const body = {
-  //         "searchString":this.searchCityCtrl.value,
-  //         "id":this.formBaseInformation.get('country_id').value,
-  //         "id2":this.formBaseInformation.get('region_id').value}
-  //       this.isCityListLoading  = true;
-  //       return this.http.post('/api/auth/getSpravSysCities', body);
-  //     }else return [];
-  //   } catch (e) {
-  //     return [];}}    
-
-  //--------------------------------------------------------------------------------------------------------
-  //---------------     ***** поиск по подстроке для Города в юр. адресе  ***    --------------------------
-  // onJrCitySearchValueChanges(){
-  //   this.searchJrCityCtrl.valueChanges
-  //   .pipe( 
-  //     debounceTime(500),
-  //     tap(() => {
-  //       this.filteredJrCities = [];}),       
-  //     switchMap(fieldObject =>  
-  //       this.getSpravSysJrCities()))
-  //   .subscribe(data => {
-  //     this.isJrCityListLoading = false;
-  //     if (data == undefined) {
-  //       this.filteredJrCities = [];
-  //     } else {
-  //       this.filteredJrCities = data as City[];
-  // }});}
-  // onSelectJrCity(id:any,jr_area:string,region_id:number,region:string,country_id:number,country:string){
-  //   this.formBaseInformation.get('jr_city_id').setValue(+id);
-  //   this.jr_area=jr_area;
-  //   if(jr_area!=''){
-  //     setTimeout(()=> {
-  //       this.searchJrCityCtrl.setValue(this.searchJrCityCtrl.value+' ('+jr_area+')'); 
-  //     },200); 
-  //   }//если выбрали город, а регион не выбран
-  //   if((this.formBaseInformation.get('jr_region_id').value==null || this.formBaseInformation.get('jr_region_id').value=='') && region_id>0){//если у города есть регион и он не выбран - устанавливаем регион
-  //     this.formBaseInformation.get('jr_region_id').setValue(region_id);
-  //     this.searchJrRegionCtrl.setValue(region);
-  //   }//если выбрали регион, а страна не выбрана
-  //   if((this.formBaseInformation.get('jr_country_id').value==null || this.formBaseInformation.get('jr_country_id').value=='') && country_id>0){//если у города есть страна и она не выбрана - устанавливаем страну
-  //     this.formBaseInformation.get('jr_country_id').setValue(country_id);
-  //     this.formBaseInformation.get('jr_country').setValue(country);
-  //   }
-  // }
-  // checkEmptyJrCityField(){
-  //   if(this.searchJrCityCtrl.value.length==0){
-  //     this.formBaseInformation.get('jr_city_id').setValue(null);
-  //     this.jr_area='';
-  // }};     
-  // getSpravSysJrCities(){ //заполнение Autocomplete
-  //   try {
-  //     if(this.canJrCityAutocompleteQuery && this.searchJrCityCtrl.value.length>1){
-  //       const body = {
-  //         "searchString":this.searchJrCityCtrl.value,
-  //         "id":this.formBaseInformation.get('jr_country_id').value,
-  //         "id2":this.formBaseInformation.get('jr_region_id').value}
-  //       this.isJrCityListLoading  = true;
-  //       return this.http.post('/api/auth/getSpravSysCities', body);
-  //     }else return [];
-  //   } catch (e) {
-  //     return [];}}    
-  //------------------------------С Т А Т У С Ы- в предприятиях не делаем, т.к. должен быть один набор статусов на документ (т.е. на ВСЕ предприятия), 
-  // но статусы создаются в разрезе предприятий, и для каждого предприятия будут разные наборы статусов, что нелогично------------------------
-  // getStatusesList(){
-  //   this.receivedStatusesList=null;
-  //   this.loadSpravService.getStatusList(this.formBaseInformation.get('id').value,3) //3 - id документа из таблицы documents
-  //           .subscribe(
-  //               (data) => {this.receivedStatusesList=data as statusInterface[];
-  //                 if(this.id==0){this.refreshPermissions();;}
-  //                 this.setStatusColor();},
-  //               error => console.log(error)
-  //           );
-  // }
-  // setDefaultStatus(){
-  //   if(this.receivedStatusesList.length>0)
-  //   {
-  //     this.receivedStatusesList.forEach(a=>{
-  //         if(a.is_default){
-  //           this.formBaseInformation.get('status_id').setValue(a.id);
-  //         }
-  //     });
-  //   }
-  //   this.refreshPermissions();
-  // }
-  //устанавливает цвет статуса (используется для цветовой индикации статусов)
-  // setStatusColor():void{
-  //   this.receivedStatusesList.forEach(m=>
-  //     {
-  //       if(m.id==+this.formBaseInformation.get('status_id').value){
-  //         this.status_color=m.color;
-  //       }
-  //     });
-  //     console.log(' this.status_color = '+ this.status_color);
-  // }
 
 //-------------------------- Б А Н К О В С К И Е   Р Е К В И З И Т Ы  -------------------------------
   getCompaniesPaymentAccounts(){
@@ -1416,8 +1472,8 @@ onDefaultCreatorSearchValueChanges(){
       data:
       { 
         head: translate('docs.msg.file_del_head'),
-      query: translate('docs.msg.file_del_qury'),
-      warning: translate('docs.msg.file_del_warn'),
+        query: translate('docs.msg.file_del_qury'),
+        warning: translate('docs.msg.file_del_warn'),
       },
     });
     dialogRef.afterClosed().subscribe(result => {
@@ -1472,5 +1528,163 @@ onDefaultCreatorSearchValueChanges(){
       }); 
     }
     
+  }
+
+  formLanguageTableColumns(){
+    this.displayedLanguagesColumns=[];
+    this.displayedLanguagesColumns.push('name','suffix'/*,'fileName'*/);
+    this.displayedLanguagesColumns.push('main');
+    if(this.editability && this.showLanguagesFormFields)
+      this.displayedLanguagesColumns.push('delete');
+  }
+
+  refresLanguageTableColumns(){
+    this.displayedLanguagesColumns=[];
+    setTimeout(() => { 
+      this.formLanguageTableColumns();
+    }, 1);
+  }
+
+  addLanguageRow(){ 
+    if(!(this.formLanguageAdding.get('suffix').value.length<2 || this.formLanguageAdding.get('suffix').value=='' || this.formLanguageAdding.get('name').value=='')){
+      this.langSuffixInput.nativeElement.blur();
+      let thereSamePart:boolean=false;
+      this.formBaseInformation.value.onlineSchedulingLanguagesList.map(i => 
+      {// Table shouldn't contain the same language. Here is checking about it
+        if(i['suffix']==this.formLanguageAdding.get('suffix').value)
+        {
+          this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.attention'),message:translate('modules.msg.record_in_list'),}});
+          thereSamePart=true; 
+        }
+      });
+      if(!thereSamePart){
+        const control = <UntypedFormArray>this.formBaseInformation.get('onlineSchedulingLanguagesList');
+        control.push(this.formingLanguageRowFromSearchForm());
+      }
+       this.resetformLanguageAdding();
+       this.refreshFieldsTranslationsArray();
+    }    
+  }
+  //формирование строки таблицы с ресурсами, необходимыми для оказания услуги
+  formingLanguageRowFromSearchForm() {
+    return this._fb.group({
+      id: new UntypedFormControl (null,[]),
+      suffix: new UntypedFormControl (this.formLanguageAdding.get('suffix').value,[Validators.required,Validators.maxLength(2),Validators.minLength(2)]),
+      name:  new UntypedFormControl (this.formLanguageAdding.get('name').value,[Validators.required,Validators.maxLength(20),Validators.minLength(1)]),
+      fileName: new UntypedFormControl (+this.formLanguageAdding.get('fileName').value,[]),
+    });
+  }
+  resetformLanguageAdding(){
+    this.formLanguageAdding.reset();
+    this.formLanguageAdding.get('name').setValue('');
+    this.formLanguageAdding.get('fileName').setValue('');
+    this.formLanguageAdding.get('suffix').setValue('');
+  }
+  getControl(formControlName){
+    const control = <UntypedFormArray>this.formBaseInformation.get(formControlName);
+    return control;
+  }
+
+  clearLanguagesTable(): void {
+    const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
+      width: '400px',data:{head: translate('docs.msg.cln_table'),warning: translate('docs.msg.cln_table_qry'),query: ''},});
+    dialogRef.afterClosed().subscribe(result => {
+      if(result==1){
+        this.getControl('onlineSchedulingLanguagesList').clear();
+        this.refreshFieldsTranslationsArray();
+      }});
+  }
+  deleteLanguageRow(row: any,index:number) {
+    const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {  
+      width: '400px',
+      data:
+      { 
+        head: translate('docs.msg.del_prod_item'),
+        warning: translate('docs.msg.del_prod_quer',{name:row.name})+'?',
+      },
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if(result==1){
+        const control = <UntypedFormArray>this.formBaseInformation.get('onlineSchedulingLanguagesList');
+        control.removeAt(index);
+        this.refresLanguageTableColumns();//чтобы глючные input-поля в таблице встали на свои места. Это у Ангуляра такой прикол
+        this.refreshFieldsTranslationsArray();
+      }
+    }); 
+  }
+  
+  changeTranslationMode(){if(this.onlineSchedulingTranslationModeOn) this.onlineSchedulingTranslationModeOn=false; else this.onlineSchedulingTranslationModeOn=true;}
+  cap(word){return word.charAt(0).toUpperCase() + word.slice(1);}
+  addingLangTransform(){
+    this.formLanguageAdding.get('name').setValue(this.cap(this.formLanguageAdding.get('name').value));
+    this.formLanguageAdding.get('suffix').setValue(this.formLanguageAdding.get('suffix').value.toUpperCase());
+  }
+  tableLangTransform(){
+    const control = <UntypedFormArray>this.formBaseInformation.get('onlineSchedulingLanguagesList');
+    for(let i = 0; i < this.formBaseInformation.value.onlineSchedulingLanguagesList.length; i++){
+      control.controls[i].get('name').setValue(this.cap(control.controls[i].get('name').value));
+      control.controls[i].get('suffix').setValue(control.controls[i].get('suffix').value.toUpperCase());
+    }
+    this.refreshFieldsTranslationsArray();
+  }
+  trackByIndex(i) { return i; }
+  setMainLanguage(suffix:string){
+    if(this.showLanguagesFormFields){// only if edit mode
+      const control = <UntypedFormArray>this.formBaseInformation.get('onlineSchedulingFieldsTranslations');
+      // add current main translation to the translation list
+      control.push(this._fb.group({
+        langCode: this.formBaseInformation.get('store_default_lang_code').value,
+        txt_btn_select_time: this.formBaseInformation.get('txt_btn_select_time').value,
+        txt_btn_select_specialist: this.formBaseInformation.get('txt_btn_select_specialist').value,
+        txt_btn_select_services: this.formBaseInformation.get('txt_btn_select_services').value,
+        txt_summary_header: this.formBaseInformation.get('txt_summary_header').value,
+        txt_summary_date: this.formBaseInformation.get('txt_summary_date').value,
+        txt_summary_time_start: this.formBaseInformation.get('txt_summary_time_start').value,
+        txt_summary_time_end: this.formBaseInformation.get('txt_summary_time_end').value,
+        txt_summary_duration: this.formBaseInformation.get('txt_summary_duration').value,
+        txt_summary_specialist: this.formBaseInformation.get('txt_summary_specialist').value,
+        txt_summary_services: this.formBaseInformation.get('txt_summary_services').value,
+        txt_btn_create_order: this.formBaseInformation.get('txt_btn_create_order').value,
+        txt_btn_send_order: this.formBaseInformation.get('txt_btn_send_order').value,
+        txt_msg_send_successful: this.formBaseInformation.get('txt_msg_send_successful').value,
+        txt_msg_send_error: this.formBaseInformation.get('txt_msg_send_error').value,
+        txt_msg_time_not_enable: this.formBaseInformation.get('txt_msg_time_not_enable').value,
+        txt_fld_your_name: this.formBaseInformation.get('txt_fld_your_name').value,
+        txt_fld_your_tel: this.formBaseInformation.get('txt_fld_your_tel').value,
+        txt_fld_your_email: this.formBaseInformation.get('txt_fld_your_email').value,
+      }));
+  
+      let newMainTranslationIndex = this.getTranslationIndexBySuffix(suffix);
+      if(newMainTranslationIndex!=null){      
+        // copy translation of new main language from the list of translations to the main form 
+        this.formBaseInformation.get('store_default_lang_code').setValue(suffix);
+        this.formBaseInformation.get('txt_btn_select_time').setValue(control.controls[newMainTranslationIndex].get('txt_btn_select_time').value),
+        this.formBaseInformation.get('txt_btn_select_specialist').setValue(control.controls[newMainTranslationIndex].get('txt_btn_select_specialist').value),
+        this.formBaseInformation.get('txt_btn_select_services').setValue(control.controls[newMainTranslationIndex].get('txt_btn_select_services').value),
+        this.formBaseInformation.get('txt_summary_header').setValue(control.controls[newMainTranslationIndex].get('txt_summary_header').value),
+        this.formBaseInformation.get('txt_summary_date').setValue(control.controls[newMainTranslationIndex].get('txt_summary_date').value),
+        this.formBaseInformation.get('txt_summary_time_start').setValue(control.controls[newMainTranslationIndex].get('txt_summary_time_start').value),
+        this.formBaseInformation.get('txt_summary_time_end').setValue(control.controls[newMainTranslationIndex].get('txt_summary_time_end').value),
+        this.formBaseInformation.get('txt_summary_duration').setValue(control.controls[newMainTranslationIndex].get('txt_summary_duration').value),
+        this.formBaseInformation.get('txt_summary_specialist').setValue(control.controls[newMainTranslationIndex].get('txt_summary_specialist').value),
+        this.formBaseInformation.get('txt_summary_services').setValue(control.controls[newMainTranslationIndex].get('txt_summary_services').value),
+        this.formBaseInformation.get('txt_btn_create_order').setValue(control.controls[newMainTranslationIndex].get('txt_btn_create_order').value),
+        this.formBaseInformation.get('txt_btn_send_order').setValue(control.controls[newMainTranslationIndex].get('txt_btn_send_order').value),
+        this.formBaseInformation.get('txt_msg_send_successful').setValue(control.controls[newMainTranslationIndex].get('txt_msg_send_successful').value),
+        this.formBaseInformation.get('txt_msg_send_error').setValue(control.controls[newMainTranslationIndex].get('txt_msg_send_error').value),
+        this.formBaseInformation.get('txt_msg_time_not_enable').setValue(control.controls[newMainTranslationIndex].get('txt_msg_time_not_enable').value),
+        this.formBaseInformation.get('txt_fld_your_name').setValue(control.controls[newMainTranslationIndex].get('txt_fld_your_name').value),
+        this.formBaseInformation.get('txt_fld_your_tel').setValue(control.controls[newMainTranslationIndex].get('txt_fld_your_tel').value),
+        this.formBaseInformation.get('txt_fld_your_email').setValue(control.controls[newMainTranslationIndex].get('txt_fld_your_email').value),
+        // delete new main translation from translations list (because now it is on the main form)
+        control.removeAt(newMainTranslationIndex);
+      }
+    }
+  }
+  refreshTableColumns(){
+    this.displayedLanguagesColumns=[];
+    setTimeout(() => { 
+      this.formLanguageTableColumns();
+    }, 1);
   }
 }

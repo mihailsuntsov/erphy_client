@@ -10,6 +10,7 @@
         "operations":   "Операции",
         "legal_data":   "Юридические реквизиты",
         "bank_data":    "Банковские реквизиты",
+        "online_bookng":"Онлайн-бронирование",
         "settings":     "Настройки",
         "store":        "Интернет-магазин",
         "general":      "Общие",
@@ -75,7 +76,11 @@
         "employee_info":"Информация о сотруднике",
         "resources":"Ресурсы",
         "work_shift":"Рабочая смена",
-        "vacation":"Нерабочий день"
+        "vacation":"Нерабочий день",
+        "languages":"Языки",
+        "labls_on_elmnts":"Надписи на элементах",
+        "styles":"Стили оформления",
+        "basic_settings":"Главные настройки"
     },
     "field":{
         "-- ОБЩИЕ":"--",
@@ -240,7 +245,7 @@
         "sku_supplier": "Артикул у поставщика",
         "legal_form":   "Правовая форма",
         "lang_code":    "Язык",
-        "default_lang": "Базовый язык интернет-магазина",
+        "default_lang": "Базовый язык предприятия",
         "stores":       "Интернет-магазины (соединения)",
         "balance":      "Остаток средств",
         "writeoff_day": "Списание в сутки",
@@ -410,8 +415,38 @@
         "time_to":"Время окончания",
         "date_range":"Диапазон дат",        
         "owner": "Владелец",
-        "id_card":"Паспорт или иной документ, удостоверяющий личность"
-
+        "id_card":"Паспорт или иной документ, удостоверяющий личность",
+        "os_step":"Шаг, минут",
+        "os_max_srvcs":"Максимальное количество услуг",
+        "os_duration":"Длительность",
+        "os_predef_durtn":"Предопределенная длителность",
+        "os_ask_tel":"Запрашивать телефон",
+        "os_ask_email":"Запрашивать e-mail",
+        "os_tel_prfx":"Префикс телефона",
+        "os_url_slug":"URL идентификатор",
+        "txt_btn_select_time":"Выбор времени (надпись на кнопке и раздел)",
+        "txt_btn_select_specialist":"Выбор специалиста (надпись на кнопке и раздел)",
+        "txt_btn_select_services":"Выбор услуги (надпись на кнопке и раздел)",
+        "txt_summary_header":"Детали записи",
+        "txt_summary_date":"Дата",
+        "txt_summary_time_start":"Время начала",
+        "txt_summary_time_end":"Время окончания",
+        "txt_summary_duration":"Длительность",
+        "txt_summary_specialist":"Специалист",
+        "txt_summary_services":"Услуги",
+        "txt_btn_create_order":"Готово",
+        "txt_btn_send_order":"Записаться",
+        "txt_fld_your_name":"Ваше имя",
+        "txt_fld_your_tel":"Ваш телефон",
+        "txt_fld_your_email":"E-mail",
+        "txt_msg_send_successful":"Успешно отправлено",
+        "txt_msg_send_error":"Ошибка создания записи",
+        "txt_msg_time_not_enable":"Выбранное время уже занято. Пожалуйста, выберите другое время.",
+        "stl_color_buttons":"Цвет кнопок",
+        "stl_color_buttons_text":"Цвет текста на кнопках",
+        "stl_color_text":"Цвет текста",
+        "stl_corner_radius":"Радиус углов, px",
+        "stl_font_family":"Семейство шрифтов"
     },
     "error":{
         "-- ОБЩИЕ":"--",
@@ -989,5 +1024,8 @@
         "reservations":"Бронирования",
         "resource":"Ресурс",
         "jobtitle":"Должность"      
+    },
+    "col":{
+        "main":"Базовый"
     }
 }
