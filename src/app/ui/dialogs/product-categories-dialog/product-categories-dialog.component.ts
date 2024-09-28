@@ -45,6 +45,7 @@ interface Image{
     parentCategoryId: number;
     companyId: number;
     isStoreCategory: boolean;
+    isBookingCategory: boolean;
     storesIds: number[]
   }
 
@@ -95,6 +96,7 @@ export class ProductCategoriesDialogComponent implements OnInit {
     companyId: null,
     parentCategoryId: 0,
     isStoreCategory: false,
+    isBookingCategory: false,
     storesIds: []
   };
   noImageAddress: string="../../../../../../assets_/images/no_foto.jpg"; // заглушка для главной картинки товара
@@ -158,6 +160,7 @@ export class ProductCategoriesDialogComponent implements OnInit {
       slug: new UntypedFormControl          ('',[Validators.maxLength(120)]),
       display: new UntypedFormControl       ('default',[]),
       isStoreCategory:new UntypedFormControl(false,[]),
+      isBookingCategory:new UntypedFormControl(false,[]),
       parent_catgr: new UntypedFormControl  (translate('modules.list.none'),[]),
       storeCategoryTranslations: new UntypedFormArray ([]) ,
       storesIds: new UntypedFormControl     ([],[]),
@@ -196,6 +199,7 @@ export class ProductCategoriesDialogComponent implements OnInit {
                             this.formBaseInformation.get('name').setValue(this.productCategory.name);
                             this.formBaseInformation.get('parentCategoryId').setValue(this.productCategory.parentCategoryId);
                             this.formBaseInformation.get('isStoreCategory').setValue(this.productCategory.isStoreCategory);
+                            this.formBaseInformation.get('isBookingCategory').setValue(this.productCategory.isBookingCategory);
                             this.formBaseInformation.get('storesIds').setValue(this.productCategory.storesIds);
                             if(this.productCategory.image) 
                               this.loadFileImage();

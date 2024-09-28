@@ -314,7 +314,8 @@
         "share_ex_y":   "Allow external access",
         "share_ex_n":   "Deny external access",
         "ch_cat_stores":"Edit Online stores",
-        "del_ctgrs":    "Delete categories"
+        "del_ctgrs":    "Delete categories",
+        "online_booking":"Online booking"
     },
     "docs":{
         "roles":        "roles",
@@ -403,7 +404,6 @@
         "accounts":     "bank accounts",
         "productattr":  "product attributes",
         "stores":       "online-stores (connections)",
-        "ch_cat_stores":"Сhange online stores",
         "subscription": "subscription",
         "del_ctgrs":    "Delete categories",
         "calendar":     "calendar",

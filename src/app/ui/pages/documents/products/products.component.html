@@ -88,10 +88,15 @@ class="spinner"
                                 <mat-icon>ballot</mat-icon>
                             </button>
                             <mat-menu #group_do_ctgs="matMenu" xPosition="before">
+                                <button mat-menu-item *ngIf="allowCategoryUpdate" [matMenuTriggerFor]="booking_ctgs"><mat-icon>today</mat-icon><span>{{t('menu.menu.online_booking')}}</span></button>
                                 <button mat-menu-item *ngIf="allowCategoryUpdate" (click)="openDialogStoresSelect()" matTooltip="{{t('menu.tip.ch_cat_stores')}}" matTooltipPosition="right"><mat-icon>store</mat-icon><span>{{t('menu.menu.ch_cat_stores')}}</span></button>
                                 <button mat-menu-item *ngIf="allowCategoryDelete" (click)="clickDeleteProductCategories()" matTooltip="{{t('menu.tip.del_ctgrs')}}" matTooltipPosition="right"><mat-icon>delete_forever</mat-icon><span>{{t('menu.menu.del_ctgrs')}}</span></button>
                             </mat-menu>
-                            <!-- {{checklistSelection.selected.length}} -->
+                            
+                            <mat-menu #booking_ctgs="matMenu" xPosition="before">
+                                <button mat-menu-item *ngIf="allowCategoryUpdate" (click)="setOnlineBookingCategories(true)"><mat-icon>check_circle_outline</mat-icon><span>{{t('modules.field.booking_ctg')}}</span></button>
+                                <button mat-menu-item *ngIf="allowCategoryUpdate" (click)="setOnlineBookingCategories(false)"><mat-icon>block</mat-icon><span>{{t('modules.field.n_booking_ctg')}}</span></button>
+                            </mat-menu>
                     </div>
                 <span style="flex-grow: 1;"></span>
             </div>
@@ -106,6 +111,7 @@ class="spinner"
                     </mat-checkbox>
                     <span class="node" [ngClass]="{selected_node:node.id==sendingQueryForm.selectedNodeId}" (click)="selectNode(node)">{{node.name}}</span>
                     <span *ngIf="node.is_store_category"><mat-icon class="store-category-icon" [matMenuTriggerFor]="basket" #tooltip="matTooltip" (click)="getCategoryStoresList(node.id);" fontIcon="shopping_basket" matTooltip="{{t('docs.tip.store_ctg')}}"></mat-icon></span>
+                    <span *ngIf="node.is_booking_category"><mat-icon class="store-category-icon" fontIcon="today" matTooltip="{{t('modules.field.booking_ctg')}}"></mat-icon></span>
                 </mat-tree-node>
                 <mat-tree-node *matTreeNodeDef="let node;when: hasChild" matTreeNodePadding>
                     <button mat-icon-button matTreeNodeToggle
@@ -121,6 +127,7 @@ class="spinner"
                     </mat-checkbox>
                     <span class="node" [ngClass]="{selected_node:node.id==sendingQueryForm.selectedNodeId}" (click)="selectNode(node)">{{node.name}}</span>
                     <span *ngIf="node.is_store_category"><mat-icon class="store-category-icon" [matMenuTriggerFor]="basket" #tooltip="matTooltip" (click)="getCategoryStoresList(node.id);" fontIcon="shopping_basket" matTooltip="{{t('docs.tip.store_ctg')}}"></mat-icon></span>
+                    <span *ngIf="node.is_booking_category"><mat-icon class="store-category-icon" fontIcon="today" matTooltip="{{t('modules.field.booking_ctg')}}"></mat-icon></span>
                 </mat-tree-node>
             </mat-tree>
             <mat-menu #basket="matMenu" xPosition="after">

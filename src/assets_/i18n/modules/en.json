@@ -266,6 +266,8 @@
         "slug":         "Slug",
         "display":      "Display",
         "store_ctg":    "Online store category",
+        "booking_ctg":  "Online booking category",
+        "n_booking_ctg":  "Not online booking category",
         "templ_type":   "Template type",
         "num_labels":   "In row",
         "start_tim_src":"Start time source",

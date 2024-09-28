@@ -29,6 +29,7 @@ export class TodoItemNode {
   children?: TodoItemNode[];
   name: string;
   is_store_category: boolean;
+  is_booking_category: boolean;
 }
 // interface TreeNode {
 //   id: string;
@@ -162,7 +163,8 @@ export class ProductsComponent implements OnInit {
         name: node.name,
         id: node.id,
         level: level,
-        is_store_category: node.is_store_category
+        is_store_category: node.is_store_category,
+        is_booking_category: node.is_booking_category,
       };
   }
   treeControl: FlatTreeControl<TodoItemFlatNode>;
@@ -892,10 +894,10 @@ export class ProductsComponent implements OnInit {
         let result=data as any;
         switch(result){
           case 1:{
-          this.openSnackBar(translate('docs.msg.deletet_succs'), translate('menu.msg.close'));
-          this.clearTreeCheckboxSelection();
-          this.loadTrees();
-          this.resetSelectedCategory(true);
+            this.openSnackBar(translate('docs.msg.deletet_succs'), translate('menu.msg.close'));
+            this.clearTreeCheckboxSelection();
+            this.loadTrees();
+            this.resetSelectedCategory(true);
           break;}
           case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:(translate('menu.msg.error_msg'))}});break;}
           case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.ne_perm')}});break;}
@@ -904,6 +906,28 @@ export class ProductsComponent implements OnInit {
                 },
       error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
     );  
+  }
+
+  setOnlineBookingCategories(isOnlineCategory){
+    let checkedCategoriesIds:number[]=[];
+    this.checklistSelection.selected.forEach(m =>{checkedCategoriesIds.push(+m.id)});
+    const body = {setOfLongs1: checkedCategoriesIds,id:this.sendingQueryForm.companyId,yesNo:isOnlineCategory}; 
+    return this.http.post('/api/auth/setProductCategoriesAsBookingOrUnbooking',body).subscribe(
+      (data) => {   
+        let result=data as any;
+        switch(result){
+          case 1:{
+            this.openSnackBar(translate('menu.msg.changed_succ'), translate('menu.msg.close'));
+            this.clearTreeCheckboxSelection();
+            this.loadTrees();
+            this.resetSelectedCategory(false);
+          break;}
+          case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:(translate('menu.msg.error_msg'))}});break;}
+          case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.ne_perm')}});break;}
+        }
+      },
+      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
+    );
   }
 
   clearTreeCheckboxSelection(){

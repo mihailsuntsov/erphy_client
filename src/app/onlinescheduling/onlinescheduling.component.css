@@ -1,0 +1,13 @@
+#outer {
+    width: 100%;
+    text-align: center;
+    background-color: rgb(245, 245, 245);
+    height: 100%;
+    position: absolute;
+  }
+  
+  #inner {
+    display: inline-block;
+    height: 100%;
+    margin: 0 auto;
+  }
