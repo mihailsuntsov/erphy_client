@@ -1,20 +1,300 @@
 <div id="outer">
-
+        <mat-toolbar class="toolbar"
+        [style.max-width]="panel_max_width+panel_max_width_uq">
+                <div class="toolbar-inner-wrapper">
+                        <button mat-icon-button class="example-icon" aria-label="Example icon-button with menu icon">
+                        <mat-icon>menu</mat-icon>
+                        </button>
+                        <span>My App</span>
+                        <span class="toolbar-spacer"></span>
+                        <!-- <button mat-icon-button class="example-icon favorite-icon" aria-label="Example icon-button with heart icon">
+                        <mat-icon>favorite</mat-icon>
+                        </button> -->
+                        <button 
+                        mat-icon-button 
+                        class="example-icon" 
+                        aria-label="Example icon-button with share icon"
+                        (click)="clickBtnToMainScreen()"
+                        *ngIf="currentView!='main'">
+                        <mat-icon>arrow_back_ios_new</mat-icon>
+                        </button>
+                </div>
+        </mat-toolbar>
         <div 
         id="inner"
         [style.background-color]="inner_background_color"
-        [style.width]="panel_max_width+panel_max_width_uq"
+        [style.max-width]="panel_max_width+panel_max_width_uq"
         >
 
+                
+
+                <div class="sections">
+                
+                        <section 
+                        class="hero-section"
+                        *ngIf="currentView=='main'">
+
+                                <div class="hero-image"
+                                style="
+                                        background-image: url('http://localhost:4200/api/public/getFile/2f7a20ac-84f-2024-10-01-12-11-38-722_encrypted.jpg');
+                                        background-color: #cccccc;
+                                        height: 250px;
+                                ">
+                                        <div class="hero-text">
+                                        <h1>Imagination</h1>
+                                        <h3>Beauty nails studio</h3>
+                                        <!-- <button (click)="setDynamicStyle()">Hire me</button> -->
+                                        </div>
+                                </div>
+
+                        </section>
 
 
-        <p>{{panel_max_width+panel_max_width_uq}}</p>
-        <p>Company URL: {{company}}</p>
-        <p>Language ID: {{lang}}</p>
+                        <mat-accordion 
+                        id="topaccordeon" 
+                        class="department-panel-headers-align" 
+                        *ngIf="currentView=='main'"
+                        multi>
 
+                                <mat-expansion-panel>
+                                        <mat-expansion-panel-header>
+                                        <mat-panel-title> {{selectedDepartment.department_name}} </mat-panel-title>
+                                        <span class="department-address">
+                                                {{selectedDepartment.department_address}}
+                                        </span>
+                                        </mat-expansion-panel-header>
+                                
+                                        <p>{{panel_max_width+panel_max_width_uq}}</p>
+                                        <p>Company URL: {{company}}</p>
+                                        <p (click)="setDynamicStyle()">Language ID: {{lang}}</p>
+                                        
+                                </mat-expansion-panel>
+
+
+
+                        </mat-accordion>
+
+
+                
+                        <section class="menu-section"
+                        *ngIf="currentView=='main'">
+                                <div class="main-menu-row">
+                                        <div class="main-menu-item" (click)="clickBtnSelectSpecialist()">
+                                                <button 
+                                                mat-mini-fab 
+                                                class="main-select-icon"
+                                                >
+                                                        <mat-icon>person</mat-icon>
+                                                </button>
+                                                <div matListItemTitle class="main-select-text">
+                                                        {{onlineSchedulingSettings.txt_btn_select_specialist}}
+                                                </div>
+                                                <span class="mat-expansion-indicator main-menu-arrow" style="transform: rotate(270deg);"></span>
+                                        </div>
+                                </div>
+                                <div class="main-menu-row">
+                                        <div class="main-menu-item" (click)="clickBtnSelectTime()">
+                                                <button 
+                                                mat-mini-fab 
+                                                class="main-select-icon"
+                                                >
+                                                        <mat-icon>today</mat-icon>
+                                                </button>
+                                                <div matListItemTitle class="main-select-text">
+                                                        {{onlineSchedulingSettings.txt_btn_select_time}}
+                                                </div>
+                                                <span class="mat-expansion-indicator main-menu-arrow" style="transform: rotate(270deg);"></span>
+                                        </div>
+                                </div>
+                                <div class="main-menu-row">
+                                        <div class="main-menu-item" (click)="clickBtnSelectServices()">
+                                                <button 
+                                                mat-mini-fab 
+                                                class="main-select-icon"
+                                                >
+                                                        <mat-icon>checklist</mat-icon>
+                                                </button>
+                                                <div matListItemTitle class="main-select-text">
+                                                        {{onlineSchedulingSettings.txt_btn_select_services}}
+                                                </div>
+                                                <span class="mat-expansion-indicator main-menu-arrow" style="transform: rotate(270deg);"></span>
+                                        </div>
+                                </div>
+                        </section>
+
+                        <section class="menu-section"
+                        *ngIf="currentView=='specialist'">
+
+                                <div 
+                                class="page-title"
+                                >
+                                        <span 
+                                        class="page-title-text"
+                                        [style.color]="onlineSchedulingSettings.stl_color_text">
+                                                {{onlineSchedulingSettings.txt_btn_select_specialist}}
+                                        </span>
+                                </div>
+
+                                <div class="main-menu-row">
+                                        <div class="main-menu-item" (click)="onSelectEmployee(0)">
+                                                <button 
+                                                mat-mini-fab 
+                                                class="main-select-icon"
+                                                >
+                                                        <mat-icon>person</mat-icon>
+                                                </button>
+                                                <div matListItemTitle class="main-select-text">
+                                                        {{onlineSchedulingSettings.txt_any_specialist}}
+                                                </div>
+                                                <mat-icon
+                                                class="checkbox"
+                                                [style.color]="onlineSchedulingSettings.stl_selected_elements_color"
+                                                >{{selectedEmployeeId==0?'radio_button_checked':'radio_button_unchecked'}}</mat-icon>
+                                        </div>
+                                </div>
+
+                                <ng-container *ngFor="let employee of allEmployeesList; index as i">
+
+                                        <div class="main-menu-row">
+                                                <div class="main-menu-item">
+                                                        <button 
+                                                        mat-mini-fab 
+                                                        class="main-select-icon"
+                                                        >
+                                                                <mat-icon>person</mat-icon>
+                                                        </button>
+                                                        <div matListItemTitle class="specialist-name"
+                                                        (click)="onSelectEmployee(employee.id)">
+                                                                {{employee.name}}
+                                                        </div>
+                                                        <span 
+                                                        class="specialist-jobtitle"
+                                                        (click)="onSelectEmployee(employee.id)"
+                                                        [style.color]="onlineSchedulingSettings.stl_job_title_color">
+                                                                {{employee.jobtitle_name}}
+                                                        </span>
+                                                        <mat-icon
+                                                        class="checkbox"
+                                                        (click)="onSelectEmployee(employee.id)"
+                                                        [style.color]="onlineSchedulingSettings.stl_selected_elements_color"
+                                                        >{{selectedEmployeeId==employee.id?'radio_button_checked':'radio_button_unchecked'}}</mat-icon>
+                                                </div>
+
+                                                <div class="main-menu-nearest-time">
+                                                        {{onlineSchedulingSettings.txt_nearest_app_time}}: {{getNearestTimeWord(employee.id)}}
+                                                </div>
+
+                                                <div class="main-menu-nearest-slots">
+                                                        <mat-chip-set aria-label="Fish selection">
+                                                                <mat-chip 
+                                                                [ngClass]="{'selected':isUserTimeSlotSelected(slot, employee.id)}"
+                                                                *ngFor="let slot of getNearestUserSlots(employee.id)"
+                                                                (click)="setSelectedDateTimeAndEmployee(slot, employee.id)">
+                                                                        {{getTimeFromSlot(slot)}}
+                                                                </mat-chip>
+                                                        </mat-chip-set>
+                                                </div>
+                                        </div>               
+
+
+                                </ng-container>
+                        </section>
+
+                        <section class="menu-section"
+                        *ngIf="currentView=='services'">
+
+                                <div 
+                                class="page-title"
+                                >
+                                        <span 
+                                        class="page-title-text"
+                                        [style.color]="onlineSchedulingSettings.stl_color_text">
+                                                {{onlineSchedulingSettings.txt_btn_select_services}}
+                                        </span>
+                                </div>
+                                
+                                <div 
+                                class="categories-row"
+                                >
+                                        <div 
+                                        class="categories-list"
+                                        >
+                                                
+                                                <mat-chip-set style="width: max-content;">
+                                                        <mat-chip
+                                                        (click)="goCategoriesHighLevel()"
+                                                        *ngIf="selectedCategoryId!=0;">
+                                                                <mat-icon style="margin-top: 5px;">arrow_upward</mat-icon>
+                                                        </mat-chip>
+                                                        <mat-chip 
+                                                        [ngClass]="{'selected':isCategorySelected(category.id)}"
+                                                        *ngFor="let category of getCurrentLevelCategories();"
+                                                        (click)="setSelectedCategoryId(category.id)">
+                                                                {{category.name}}
+                                                        </mat-chip>
+                                                </mat-chip-set>
+ 
+                                        </div>
+                                        
+                                        <div
+                                        class="categories-name"
+                                        [style.color]="onlineSchedulingSettings.stl_job_title_color"
+                                        >
+                                                <span >{{getSelectedCategoryName()}}</span>
+                                        </div>
+
+                                        
+                                </div>
+
+                                <div class="services-block">
+                                        
+
+
+                                        <ng-container *ngFor="let service of filteredServicesList; index as i">
+
+                                                <div class="service-row">
+                                                        <div class="service-item">
+                                                                
+                                                                <div matListItemTitle class="service-name"
+                                                                (click)="onSelectService(service.id)">
+                                                                        {{service.name}}
+                                                                </div>
+                                                                <span 
+                                                                class="service-price"
+                                                                
+                                                                [style.color]="onlineSchedulingSettings.stl_job_title_color">
+                                                                        {{service.price}}
+                                                                </span>
+                                                                <mat-icon
+                                                                class="service-checkbox"
+                                                                (click)="onSelectService(service.id)"
+                                                                [style.color]="onlineSchedulingSettings.stl_selected_elements_color"
+                                                                >{{selectedServicesIds.includes(service.id)?'check_box':'check_box_outline_blank'}}</mat-icon>
+                                                        </div>
+        
+                                                </div>               
+        
+        
+                                        </ng-container>
+                                </div>
+
+                        </section>
+                </div>
+
+
+                
 
 
         </div>
-
-
+        <div class="action-button-wrapper" *ngIf="currentView=='specialist' && ((selectedDateTime!='' && selectedEmployeeId!=null) || selectedEmployeeId==0)">
+                <button 
+                mat-fab 
+                extended
+                class="action-button"
+                (click)="onClickBtnSelectServices()"
+                >
+                        <mat-icon>checklist</mat-icon>
+                        {{onlineSchedulingSettings.txt_btn_select_services}}
+                </button>
+        </div>
 </div>

@@ -147,6 +147,26 @@ interface docResponse {//интерфейс для получения ответ
   stl_color_text: string;
   stl_corner_radius: string;
   stl_font_family: string;
+  // fld_privce_type_id: number;
+  fld_creator_id: number;
+  txt_any_specialist: string;
+  txt_hour: string;
+  txt_minute: string;
+  txt_nearest_app_time: string;
+  txt_today: string;
+  txt_tomorrow: string;
+  txt_morning: string;
+  txt_day: string;
+  txt_evening: string;
+  txt_night: string;
+  stl_background_color: string;
+  stl_panel_color: string;
+  stl_panel_max_width: number;
+  stl_panel_max_width_unit: string;
+  stl_not_selected_elements_color: string;
+  stl_selected_elements_color: string;
+  stl_job_title_color: string;
+  fld_creator: string;
   onlineSchedulingLanguagesList: OnlineSchedulingLanguage[];
   onlineSchedulingFieldsTranslations: OnlineSchedulingFieldsTranslation[];
 }
@@ -170,6 +190,16 @@ interface OnlineSchedulingFieldsTranslation{
   txt_fld_your_name: string;
   txt_fld_your_tel: string;
   txt_fld_your_email: string;
+  txt_any_specialist: string;
+  txt_hour: string;
+  txt_minute: string;
+  txt_nearest_app_time: string;
+  txt_today: string;
+  txt_tomorrow: string;
+  txt_morning: string;
+  txt_day: string;
+  txt_evening: string;
+  txt_night: string;
 }
 
 interface OnlineSchedulingLanguage{
@@ -234,23 +264,23 @@ export class CompaniesDocComponent implements OnInit {
   filteredSpravSysJrCountries: Observable<IdAndName_ru[]>; //массив для отфильтрованных Юр Страна
   // Регионы
   //для поиска района по подстроке
-  searchRegionCtrl = new UntypedFormControl();//поле для поиска
-  isRegionListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
-  canRegionAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
+  // searchRegionCtrl = new UntypedFormControl();//поле для поиска
+  // isRegionListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
+  // canRegionAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
   // filteredRegions: Region[];//массив для загрузки найденных по подстроке регионов
-  searchJrRegionCtrl = new UntypedFormControl();//поле для поиска
-  isJrRegionListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
-  canJrRegionAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
+  // searchJrRegionCtrl = new UntypedFormControl();//поле для поиска
+  // isJrRegionListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
+  // canJrRegionAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
   // filteredJrRegions: Region[];//массив для загрузки найденных по подстроке регионов
   // Города
   //для поиска района по подстроке
-  searchCityCtrl = new UntypedFormControl();//поле для поиска
-  isCityListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
-  canCityAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
+  // searchCityCtrl = new UntypedFormControl();//поле для поиска
+  // isCityListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
+  // canCityAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
   // filteredCities: City[];//массив для загрузки найденных по подстроке городов
-  searchJrCityCtrl = new UntypedFormControl();//поле для поиска
-  isJrCityListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
-  canJrCityAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
+  // searchJrCityCtrl = new UntypedFormControl();//поле для поиска
+  // isJrCityListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
+  // canJrCityAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
   // filteredJrCities: City[];//массив для загрузки найденных по подстроке городов
   spravSysTimeZones: IdAndName[] = [];// массив, куда будут грузиться все зоны
   filteredSpravSysTimeZones: Observable<IdAndName[]>; // here will be filtered time zones for showing in select list
@@ -433,9 +463,9 @@ constructor(private activateRoute: ActivatedRoute,
       txt_summary_services:             new UntypedFormControl('',[Validators.maxLength(20)]),
       txt_btn_create_order:             new UntypedFormControl('',[Validators.maxLength(20)]),
       txt_btn_send_order:               new UntypedFormControl('',[Validators.maxLength(20)]),
-      txt_msg_send_successful:          new UntypedFormControl('',[Validators.maxLength(100)]),
-      txt_msg_send_error:               new UntypedFormControl('',[Validators.maxLength(100)]),
-      txt_msg_time_not_enable:          new UntypedFormControl('',[Validators.maxLength(100)]),
+      txt_msg_send_successful:          new UntypedFormControl('',[Validators.maxLength(200)]),
+      txt_msg_send_error:               new UntypedFormControl('',[Validators.maxLength(200)]),
+      txt_msg_time_not_enable:          new UntypedFormControl('',[Validators.maxLength(200)]),
       txt_fld_your_name:                new UntypedFormControl('',[Validators.maxLength(200)]),
       txt_fld_your_tel:                 new UntypedFormControl('',[Validators.maxLength(200)]),
       txt_fld_your_email:               new UntypedFormControl('',[Validators.maxLength(200)]),
@@ -444,6 +474,27 @@ constructor(private activateRoute: ActivatedRoute,
       stl_color_text:                   new UntypedFormControl('',[Validators.maxLength(7)]),
       stl_corner_radius:                new UntypedFormControl('',[Validators.maxLength(7)]),
       stl_font_family:                  new UntypedFormControl('',[Validators.maxLength(200)]),
+      
+      // fld_privce_type_id:               new UntypedFormControl('',[Validators.required]),
+      fld_creator_id:                   new UntypedFormControl('',[Validators.required]),
+      txt_any_specialist:               new UntypedFormControl('',[Validators.maxLength(100)]),
+      txt_hour:                         new UntypedFormControl('',[Validators.maxLength(20)]),
+      txt_minute:                       new UntypedFormControl('',[Validators.maxLength(20)]),
+      txt_nearest_app_time:             new UntypedFormControl('',[Validators.maxLength(100)]),
+      txt_today:                        new UntypedFormControl('',[Validators.maxLength(20)]),
+      txt_tomorrow:                     new UntypedFormControl('',[Validators.maxLength(20)]),
+      txt_morning:                      new UntypedFormControl('',[Validators.maxLength(20)]),
+      txt_day:                          new UntypedFormControl('',[Validators.maxLength(20)]),
+      txt_evening:                      new UntypedFormControl('',[Validators.maxLength(20)]),
+      txt_night:                        new UntypedFormControl('',[Validators.maxLength(20)]),
+      stl_background_color:             new UntypedFormControl('',[Validators.maxLength(7)]),
+      stl_panel_color:                  new UntypedFormControl('',[Validators.maxLength(7)]),
+      stl_panel_max_width:              new UntypedFormControl('',[]),
+      stl_panel_max_width_unit:         new UntypedFormControl('',[Validators.maxLength(2)]),
+      stl_not_selected_elements_color:  new UntypedFormControl('',[Validators.maxLength(7)]),
+      stl_selected_elements_color:      new UntypedFormControl('',[Validators.maxLength(7)]),
+      stl_job_title_color:              new UntypedFormControl('',[Validators.maxLength(7)]),
+
       onlineSchedulingFieldsTranslations:new UntypedFormArray ([]) ,
       onlineSchedulingLanguagesList:    new UntypedFormArray ([]) ,
     });
@@ -618,10 +669,10 @@ onDefaultCreatorSearchValueChanges(){
       this.filteredDefaultCreators = data as any;
   }});}
   onSelectDefaultCreator(id:any,name:string){
-    this.formBaseInformation.get('store_default_creator_id').setValue(+id);}
+    this.formBaseInformation.get('fld_creator_id').setValue(+id);}
   checkEmptyDefaultCreatorField(){
     if(this.searchDefaultCreatorCtrl.value.length==0){
-      this.formBaseInformation.get('store_default_creator_id').setValue(null);
+      this.formBaseInformation.get('fld_creator_id').setValue(null);
   }}
   getDefaultCreatorsList(){ //заполнение Autocomplete для поля Товар
     try {
@@ -631,6 +682,11 @@ onDefaultCreatorSearchValueChanges(){
       }else return [];
     } catch (e) {
     return [];}}
+  clearDefaultCreatorField(){
+    this.searchDefaultCreatorCtrl.setValue('');
+    this.checkEmptyDefaultCreatorField();
+    this.formBaseInformation.get('fld_creator_id').setValue(null);
+  }
 //  -------------     ***** конец поиска по подстроке для создателя заказов ***    --------------------------
   getData(){
       if(+this.id>0){
@@ -776,20 +832,35 @@ onDefaultCreatorSearchValueChanges(){
                   this.formBaseInformation.get('stl_color_text').setValue(documentValues.stl_color_text);
                   this.formBaseInformation.get('stl_corner_radius').setValue(documentValues.stl_corner_radius);
                   this.formBaseInformation.get('stl_font_family').setValue(documentValues.stl_font_family);
+                  // this.formBaseInformation.get('fld_privce_type_id').setValue(documentValues.fld_privce_type_id);
+                  this.formBaseInformation.get('fld_creator_id').setValue(documentValues.fld_creator_id);
+                  this.formBaseInformation.get('txt_any_specialist').setValue(documentValues.txt_any_specialist);
+                  this.formBaseInformation.get('txt_hour').setValue(documentValues.txt_hour);
+                  this.formBaseInformation.get('txt_minute').setValue(documentValues.txt_minute);
+                  this.formBaseInformation.get('txt_nearest_app_time').setValue(documentValues.txt_nearest_app_time);
+                  this.formBaseInformation.get('txt_today').setValue(documentValues.txt_today);
+                  this.formBaseInformation.get('txt_tomorrow').setValue(documentValues.txt_tomorrow);
+                  this.formBaseInformation.get('txt_morning').setValue(documentValues.txt_morning);
+                  this.formBaseInformation.get('txt_day').setValue(documentValues.txt_day);
+                  this.formBaseInformation.get('txt_evening').setValue(documentValues.txt_evening);
+                  this.formBaseInformation.get('txt_night').setValue(documentValues.txt_night);
+                  this.formBaseInformation.get('stl_background_color').setValue(documentValues.stl_background_color);
+                  this.formBaseInformation.get('stl_panel_color').setValue(documentValues.stl_panel_color);
+                  this.formBaseInformation.get('stl_panel_max_width').setValue(documentValues.stl_panel_max_width);
+                  this.formBaseInformation.get('stl_panel_max_width_unit').setValue(documentValues.stl_panel_max_width_unit);
+                  this.formBaseInformation.get('stl_not_selected_elements_color').setValue(documentValues.stl_not_selected_elements_color);
+                  this.formBaseInformation.get('stl_selected_elements_color').setValue(documentValues.stl_selected_elements_color);
+                  this.formBaseInformation.get('stl_job_title_color').setValue(documentValues.stl_job_title_color);
+                  this.searchDefaultCreatorCtrl.setValue(documentValues.fld_creator);
                   this.onlineSchedulingFieldsTranslations = documentValues.onlineSchedulingFieldsTranslations;
-                  
 
-
-
-
-                  this.searchRegionCtrl.setValue(documentValues.region);
-                  this.searchJrRegionCtrl.setValue(documentValues.jr_region);
+                  // this.searchRegionCtrl.setValue(documentValues.region);
+                  // this.searchJrRegionCtrl.setValue(documentValues.jr_region);
                   this.area=documentValues.area;
                   this.jr_area=documentValues.jr_area;
-                  this.searchCityCtrl.setValue(this.area!=''?(documentValues.city+' ('+this.area+')'):documentValues.city);
-                  this.searchJrCityCtrl.setValue(this.jr_area!=''?(documentValues.jr_city+' ('+this.jr_area+')'):documentValues.jr_city);
+                  // this.searchCityCtrl.setValue(this.area!=''?(documentValues.city+' ('+this.area+')'):documentValues.city);
+                  // this.searchJrCityCtrl.setValue(this.jr_area!=''?(documentValues.jr_city+' ('+this.jr_area+')'):documentValues.jr_city);
                   this.updateValues('time_zone_id','timeZoneName',this.spravSysTimeZones);
-                  // this.getStatusesList();
                   this.getCompaniesPaymentAccounts();
                   this.fillLanguagesListFromApiResponse(documentValues.onlineSchedulingLanguagesList);
                   this.fillTranslationsListFromApiResponse();
@@ -869,6 +940,16 @@ onDefaultCreatorSearchValueChanges(){
       txt_fld_your_name: new UntypedFormControl (row.txt_fld_your_name,[]),
       txt_fld_your_tel: new UntypedFormControl (row.txt_fld_your_tel,[]),
       txt_fld_your_email: new UntypedFormControl (row.txt_fld_your_email,[]),
+      txt_any_specialist: new UntypedFormControl (row.txt_any_specialist,[]),
+      txt_hour: new UntypedFormControl (row.txt_hour,[]),
+      txt_minute: new UntypedFormControl (row.txt_minute,[]),
+      txt_nearest_app_time: new UntypedFormControl (row.txt_nearest_app_time,[]),
+      txt_today: new UntypedFormControl (row.txt_today,[]),
+      txt_tomorrow: new UntypedFormControl (row.txt_tomorrow,[]),
+      txt_morning: new UntypedFormControl (row.txt_morning,[]),
+      txt_day: new UntypedFormControl (row.txt_day,[]),
+      txt_evening: new UntypedFormControl (row.txt_evening,[]),
+      txt_night: new UntypedFormControl (row.txt_night,[]),
     });
   }
   translationsArrayHasThisLang(suffix:string):boolean{
@@ -930,7 +1011,7 @@ onDefaultCreatorSearchValueChanges(){
       langCode:     currLangCode,      
       txt_btn_select_time: '',
       txt_btn_select_specialist: '',
-       txt_btn_select_services: '',
+      txt_btn_select_services: '',
       txt_summary_header: '',
       txt_summary_date: '',
       txt_summary_time_start: '',
@@ -945,29 +1026,49 @@ onDefaultCreatorSearchValueChanges(){
       txt_msg_time_not_enable: '',
       txt_fld_your_name: '',
       txt_fld_your_tel: '',
-      txt_fld_your_email: ''
+      txt_fld_your_email: '',
+      txt_any_specialist: '',
+      txt_hour: '',
+      txt_minute: '',
+      txt_nearest_app_time: '',
+      txt_today: '',
+      txt_tomorrow: '',
+      txt_morning: '',
+      txt_day: '',
+      txt_evening: '',
+      txt_night: '',
     }
     this.onlineSchedulingFieldsTranslations.forEach(translation =>{
       if(currLangCode==translation.langCode)
         result = {
-        txt_btn_select_time: translation.txt_btn_select_time,
-        txt_btn_select_specialist: translation.txt_btn_select_specialist,
-        txt_btn_select_services: translation.txt_btn_select_services,
-        txt_summary_header: translation.txt_summary_header,
-        txt_summary_date: translation.txt_summary_date,
-        txt_summary_time_start: translation.txt_summary_time_start,
-        txt_summary_time_end: translation.txt_summary_time_end,
-        txt_summary_duration: translation.txt_summary_duration,
-        txt_summary_specialist: translation.txt_summary_specialist,
-        txt_summary_services: translation.txt_summary_services, 
-        txt_btn_create_order: translation.txt_btn_create_order,
-        txt_btn_send_order: translation.txt_btn_send_order,
-        txt_msg_send_successful: translation.txt_msg_send_successful,
-        txt_msg_send_error: translation.txt_msg_send_error,
-        txt_msg_time_not_enable: translation.txt_msg_time_not_enable,
-        txt_fld_your_name: translation.txt_fld_your_name,
-        txt_fld_your_tel: translation.txt_fld_your_tel,
-        txt_fld_your_email: translation.txt_fld_your_email,
+        txt_btn_select_time:        translation.txt_btn_select_time,
+        txt_btn_select_specialist:  translation.txt_btn_select_specialist,
+        txt_btn_select_services:    translation.txt_btn_select_services,
+        txt_summary_header:         translation.txt_summary_header,
+        txt_summary_date:           translation.txt_summary_date,
+        txt_summary_time_start:     translation.txt_summary_time_start,
+        txt_summary_time_end:       translation.txt_summary_time_end,
+        txt_summary_duration:       translation.txt_summary_duration,
+        txt_summary_specialist:     translation.txt_summary_specialist,
+        txt_summary_services:       translation.txt_summary_services, 
+        txt_btn_create_order:       translation.txt_btn_create_order,
+        txt_btn_send_order:         translation.txt_btn_send_order,
+        txt_msg_send_successful:    translation.txt_msg_send_successful,
+        txt_msg_send_error:         translation.txt_msg_send_error,
+        txt_msg_time_not_enable:    translation.txt_msg_time_not_enable,
+        txt_fld_your_name:          translation.txt_fld_your_name,
+        txt_fld_your_tel:           translation.txt_fld_your_tel,
+        txt_fld_your_email:         translation.txt_fld_your_email,
+        txt_any_specialist:         translation.txt_any_specialist,
+        txt_hour:                   translation.txt_hour,
+        txt_minute:                 translation.txt_minute,
+        txt_nearest_app_time:       translation.txt_nearest_app_time,
+        txt_today:                  translation.txt_today,
+        txt_tomorrow:               translation.txt_tomorrow,
+        txt_morning:                translation.txt_morning,
+        txt_day:                    translation.txt_day,
+        txt_evening:                translation.txt_evening,
+        txt_night:                  translation.txt_night,
         langCode: currLangCode,
         }
     });
@@ -1206,10 +1307,10 @@ onDefaultCreatorSearchValueChanges(){
         this.formBaseInformation.get('country').setValue(this.formBaseInformation.get('jr_country').value);
         // this.formBaseInformation.get('region_id').setValue(this.formBaseInformation.get('jr_region_id').value);        
         this.formBaseInformation.get('region').setValue(this.formBaseInformation.get('jr_region').value);
-        this.searchRegionCtrl.setValue(this.searchJrRegionCtrl.value);
+        // this.searchRegionCtrl.setValue(this.searchJrRegionCtrl.value);
         // this.formBaseInformation.get('city_id').setValue(this.formBaseInformation.get('jr_city_id').value);
         this.formBaseInformation.get('city').setValue(this.formBaseInformation.get('jr_city').value);
-        this.searchCityCtrl.setValue(this.searchJrCityCtrl.value);
+        // this.searchCityCtrl.setValue(this.searchJrCityCtrl.value);
         this.formBaseInformation.get('street').setValue(this.formBaseInformation.get('jr_street').value);
         this.formBaseInformation.get('home').setValue(this.formBaseInformation.get('jr_home').value);
         this.formBaseInformation.get('flat').setValue(this.formBaseInformation.get('jr_flat').value);
@@ -1233,10 +1334,10 @@ onDefaultCreatorSearchValueChanges(){
         this.formBaseInformation.get('jr_country').setValue(this.formBaseInformation.get('country').value);
         // this.formBaseInformation.get('jr_region_id').setValue(this.formBaseInformation.get('region_id').value);
         this.formBaseInformation.get('jr_region').setValue(this.formBaseInformation.get('region').value);
-        this.searchJrRegionCtrl.setValue(this.searchRegionCtrl.value);
+        // this.searchJrRegionCtrl.setValue(this.searchRegionCtrl.value);
         // this.formBaseInformation.get('jr_city_id').setValue(this.formBaseInformation.get('city_id').value);
         this.formBaseInformation.get('jr_city').setValue(this.formBaseInformation.get('city').value);
-        this.searchJrCityCtrl.setValue(this.searchCityCtrl.value);
+        // this.searchJrCityCtrl.setValue(this.searchCityCtrl.value);
         this.formBaseInformation.get('jr_street').setValue(this.formBaseInformation.get('street').value);
         this.formBaseInformation.get('jr_home').setValue(this.formBaseInformation.get('home').value);
         this.formBaseInformation.get('jr_flat').setValue(this.formBaseInformation.get('flat').value);
@@ -1652,6 +1753,16 @@ onDefaultCreatorSearchValueChanges(){
         txt_fld_your_name: this.formBaseInformation.get('txt_fld_your_name').value,
         txt_fld_your_tel: this.formBaseInformation.get('txt_fld_your_tel').value,
         txt_fld_your_email: this.formBaseInformation.get('txt_fld_your_email').value,
+        txt_any_specialist: this.formBaseInformation.get('txt_any_specialist').value,
+        txt_hour: this.formBaseInformation.get('txt_hour').value,
+        txt_minute: this.formBaseInformation.get('txt_minute').value,
+        txt_nearest_app_time: this.formBaseInformation.get('txt_nearest_app_time').value,
+        txt_today: this.formBaseInformation.get('txt_today').value,
+        txt_tomorrow: this.formBaseInformation.get('txt_tomorrow').value,
+        txt_morning: this.formBaseInformation.get('txt_morning').value,
+        txt_day: this.formBaseInformation.get('txt_day').value,
+        txt_evening: this.formBaseInformation.get('txt_evening').value,
+        txt_night: this.formBaseInformation.get('txt_night').value,
       }));
   
       let newMainTranslationIndex = this.getTranslationIndexBySuffix(suffix);
@@ -1676,6 +1787,19 @@ onDefaultCreatorSearchValueChanges(){
         this.formBaseInformation.get('txt_fld_your_name').setValue(control.controls[newMainTranslationIndex].get('txt_fld_your_name').value),
         this.formBaseInformation.get('txt_fld_your_tel').setValue(control.controls[newMainTranslationIndex].get('txt_fld_your_tel').value),
         this.formBaseInformation.get('txt_fld_your_email').setValue(control.controls[newMainTranslationIndex].get('txt_fld_your_email').value),
+        this.formBaseInformation.get('txt_any_specialist').setValue(control.controls[newMainTranslationIndex].get('txt_any_specialist').value),
+        this.formBaseInformation.get('txt_hour').setValue(control.controls[newMainTranslationIndex].get('txt_hour').value),
+        this.formBaseInformation.get('txt_minute').setValue(control.controls[newMainTranslationIndex].get('txt_minute').value),
+        this.formBaseInformation.get('txt_nearest_app_time').setValue(control.controls[newMainTranslationIndex].get('txt_nearest_app_time').value),
+        this.formBaseInformation.get('txt_today').setValue(control.controls[newMainTranslationIndex].get('txt_today').value),
+        this.formBaseInformation.get('txt_tomorrow').setValue(control.controls[newMainTranslationIndex].get('txt_tomorrow').value),
+        this.formBaseInformation.get('txt_morning').setValue(control.controls[newMainTranslationIndex].get('txt_morning').value),
+        this.formBaseInformation.get('txt_day').setValue(control.controls[newMainTranslationIndex].get('txt_day').value),
+        this.formBaseInformation.get('txt_evening').setValue(control.controls[newMainTranslationIndex].get('txt_evening').value),
+        this.formBaseInformation.get('txt_night').setValue(control.controls[newMainTranslationIndex].get('txt_night').value)
+        
+        
+        
         // delete new main translation from translations list (because now it is on the main form)
         control.removeAt(newMainTranslationIndex);
       }

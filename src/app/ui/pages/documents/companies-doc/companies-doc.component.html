@@ -1321,8 +1321,56 @@
                                                             formControlName="fld_url_slug"/>
                                                     <mat-hint align="end" *ngIf="formBaseInformation.get('fld_url_slug').value.length>40">{{formBaseInformation.get('fld_url_slug').value.length}} / 50</mat-hint>
                                                 </mat-form-field>
-                                            </div>
+                                            </div>  
                                         </div>
+
+                                        <div class="row">
+                                            <div class="col-12">
+                                                <mat-form-field style="display: none">
+                                                    <input  matInput
+                                                            formControlName="fld_creator_id"/>
+                                                </mat-form-field>
+                                                <mat-form-field  class="mat-form-field-100">
+                                                    <mat-label>{{t('docs.field.def_creator_book')}} <span *ngIf="formBaseInformation.get('fld_creator_id').value==null" class="star">*</span></mat-label>
+                                                    <input  matInput 
+                                                    [matAutocomplete]="auto1"
+                                                    [formControl]="searchDefaultCreatorCtrl"
+                                                    (input)="canDefaultCreatorAutocompleteQuery=true; checkEmptyDefaultCreatorField();"
+                                                    (change)="canDefaultCreatorAutocompleteQuery=false; checkEmptyDefaultCreatorField();">
+                                                    <mat-icon 
+                                                        matTooltip="{{t('docs.tip.clear_field')}}" 
+                                                        class="clear_field"
+                                                        *ngIf="+formBaseInformation.get('fld_creator_id').value>0 && editability"
+                                                        (click)="clearDefaultCreatorField()" >
+                                                        close
+                                                    </mat-icon>
+                                                    <mat-autocomplete #auto1="matAutocomplete">
+                                                        <ng-container *ngIf="!isDefaultCreatorListLoading" style="width:320px;">
+                                                            <mat-option style="padding:0px" *ngFor="let value of filteredDefaultCreators" [value]="value.name">
+                                                            <div (click)="onSelectDefaultCreator(value.id,value.name)">
+                                                                <span style="margin:10px;"><b>{{value.name}}</b></span>
+                                                            </div>
+                                                            </mat-option>
+                                                        </ng-container>
+                                                    </mat-autocomplete>
+                                                    <mat-hint align="start">
+                                                        <i *ngIf="formBaseInformation.get('fld_creator_id').value==null" class="form-invalid">{{t('docs.error.field_miss')}}</i>
+                                                    </mat-hint>
+                                                </mat-form-field>
+                                                <mat-progress-bar *ngIf="isDefaultCreatorListLoading" mode="indeterminate"></mat-progress-bar>
+                                            </div>
+                                            <!-- <div class="col-lg-6  col-md-12">
+                                                <mat-form-field class="mat-form-field-100" >
+                                                    <mat-label>{{t('modules.field.price_type')}}</mat-label>
+                                                    <mat-select  formControlName="fld_privce_type_id">                          
+                                                    <mat-option  *ngFor="let rt of receivedPriceTypesList" [value]="rt.id">
+                                                                    {{rt.name}}
+                                                            </mat-option> 
+                                                    </mat-select>
+                                                </mat-form-field>
+                                            </div> -->
+                                        </div>
+
 
                                     </mat-card-content>
                                 </mat-card>
@@ -1357,7 +1405,7 @@
                                                 <div class="col-xl-8 col-lg-8 col-md-12">
                                                     <mat-form-field  class="mat-form-field-100">
                                                         <mat-label>
-                                                            {{t('docs.field.language')}}
+                                                            {{t('modules.field.language')}}
                                                             <span *ngIf="formLanguageAdding.get('name').value==''||formLanguageAdding.get('name').value==null" class="star">*</span>
                                                         </mat-label>
                                                         <input   matInput
@@ -1518,7 +1566,6 @@
                                     <mat-card-content class="input-form">
                                         <div class="row">
                                             <div class="col-lg-6  col-md-12">   
-
                                                 <mat-form-field class="mat-form-field-100">
                                                     <mat-label>{{t('docs.field.txt_btn_select_time')}}</mat-label>
                                                     <input   matInput
@@ -1527,10 +1574,8 @@
                                                             formControlName="txt_btn_select_time"/>
                                                     <mat-hint align="end" *ngIf="formBaseInformation.get('txt_btn_select_time').value.length>17">{{formBaseInformation.get('txt_btn_select_time').value.length}} / 20</mat-hint>
                                                 </mat-form-field>
-
                                             </div>
                                             <div class="col-lg-6  col-md-12">  
-
                                                 <mat-form-field class="mat-form-field-100">
                                                     <mat-label>{{t('docs.field.txt_btn_select_specialist')}}</mat-label>
                                                     <input   matInput
@@ -1539,12 +1584,11 @@
                                                             formControlName="txt_btn_select_specialist"/>
                                                     <mat-hint align="end" *ngIf="formBaseInformation.get('txt_btn_select_specialist').value.length>17">{{formBaseInformation.get('txt_btn_select_specialist').value.length}} / 20</mat-hint>
                                                 </mat-form-field>
-
                                             </div>
                                         </div>
+
                                         <div class="row">
                                             <div class="col-lg-6  col-md-12">   
-
                                                 <mat-form-field class="mat-form-field-100">
                                                     <mat-label>{{t('docs.field.txt_btn_select_services')}}</mat-label>
                                                     <input   matInput
@@ -1553,10 +1597,8 @@
                                                             formControlName="txt_btn_select_services"/>
                                                     <mat-hint align="end" *ngIf="formBaseInformation.get('txt_btn_select_services').value.length>17">{{formBaseInformation.get('txt_btn_select_services').value.length}} / 20</mat-hint>
                                                 </mat-form-field>
-
                                             </div>
                                             <div class="col-lg-6  col-md-12">  
-
                                                 <mat-form-field class="mat-form-field-100">
                                                     <mat-label>{{t('docs.field.txt_summary_header')}}</mat-label>
                                                     <input   matInput
@@ -1565,12 +1607,35 @@
                                                             formControlName="txt_summary_header"/>
                                                     <mat-hint align="end" *ngIf="formBaseInformation.get('txt_summary_header').value.length>17">{{formBaseInformation.get('txt_summary_header').value.length}} / 20</mat-hint>
                                                 </mat-form-field>
-
                                             </div>
                                         </div>
+
                                         <div class="row">
                                             <div class="col-lg-6  col-md-12">   
+                                                <mat-form-field class="mat-form-field-100">
+                                                    <mat-label>{{t('docs.field.txt_any_specialist')}}</mat-label>
+                                                    <input   matInput
+                                                            [readonly]=!editability                                                                                                                   
+                                                            maxlength="100"
+                                                            formControlName="txt_any_specialist"/>
+                                                    <mat-hint align="end" *ngIf="formBaseInformation.get('txt_any_specialist').value.length>90">{{formBaseInformation.get('txt_any_specialist').value.length}} / 100</mat-hint>
+                                                </mat-form-field>
+                                            </div>
+                                            <div class="col-lg-6  col-md-12">  
+                                                <mat-form-field class="mat-form-field-100">
+                                                    <mat-label>{{t('docs.field.txt_nearest_app_time')}}</mat-label>
+                                                    <input   matInput
+                                                            [readonly]=!editability                                                                                                                   
+                                                            maxlength="100"
+                                                            formControlName="txt_nearest_app_time"/>
+                                                    <mat-hint align="end" *ngIf="formBaseInformation.get('txt_nearest_app_time').value.length>90">{{formBaseInformation.get('txt_nearest_app_time').value.length}} / 100</mat-hint>
+                                                </mat-form-field>
+                                            </div>
+                                        </div>
 
+
+                                        <div class="row">
+                                            <div class="col-lg-6  col-md-12">   
                                                 <mat-form-field class="mat-form-field-100">
                                                     <mat-label>{{t('docs.field.txt_summary_date')}}</mat-label>
                                                     <input   matInput
@@ -1579,10 +1644,8 @@
                                                             formControlName="txt_summary_date"/>
                                                     <mat-hint align="end" *ngIf="formBaseInformation.get('txt_summary_date').value.length>17">{{formBaseInformation.get('txt_summary_date').value.length}} / 20</mat-hint>
                                                 </mat-form-field>
-
                                             </div>
-                                            <div class="col-lg-6  col-md-12">  
-
+                                            <div class="col-lg-6  col-md-12">
                                                 <mat-form-field class="mat-form-field-100">
                                                     <mat-label>{{t('docs.field.txt_summary_time_start')}}</mat-label>
                                                     <input   matInput
@@ -1591,12 +1654,11 @@
                                                             formControlName="txt_summary_time_start"/>
                                                     <mat-hint align="end" *ngIf="formBaseInformation.get('txt_summary_time_start').value.length>17">{{formBaseInformation.get('txt_summary_time_start').value.length}} / 20</mat-hint>
                                                 </mat-form-field>
-
                                             </div>
                                         </div>
-                                        <div class="row">
-                                            <div class="col-lg-6  col-md-12">   
 
+                                        <div class="row">
+                                            <div class="col-lg-6  col-md-12">
                                                 <mat-form-field class="mat-form-field-100">
                                                     <mat-label>{{t('docs.field.txt_summary_time_end')}}</mat-label>
                                                     <input   matInput
@@ -1605,10 +1667,8 @@
                                                             formControlName="txt_summary_time_end"/>
                                                     <mat-hint align="end" *ngIf="formBaseInformation.get('txt_summary_time_end').value.length>17">{{formBaseInformation.get('txt_summary_time_end').value.length}} / 20</mat-hint>
                                                 </mat-form-field>
-
                                             </div>
-                                            <div class="col-lg-6  col-md-12">  
-
+                                            <div class="col-lg-6  col-md-12">
                                                 <mat-form-field class="mat-form-field-100">
                                                     <mat-label>{{t('docs.field.txt_summary_duration')}}</mat-label>
                                                     <input   matInput
@@ -1617,12 +1677,11 @@
                                                             formControlName="txt_summary_duration"/>
                                                     <mat-hint align="end" *ngIf="formBaseInformation.get('txt_summary_duration').value.length>17">{{formBaseInformation.get('txt_summary_duration').value.length}} / 20</mat-hint>
                                                 </mat-form-field>
-
                                             </div>
                                         </div>
-                                        <div class="row">
-                                            <div class="col-lg-6  col-md-12">   
 
+                                        <div class="row">
+                                            <div class="col-lg-6  col-md-12">
                                                 <mat-form-field class="mat-form-field-100">
                                                     <mat-label>{{t('docs.field.txt_summary_specialist')}}</mat-label>
                                                     <input   matInput
@@ -1631,10 +1690,8 @@
                                                             formControlName="txt_summary_specialist"/>
                                                     <mat-hint align="end" *ngIf="formBaseInformation.get('txt_summary_specialist').value.length>17">{{formBaseInformation.get('txt_summary_specialist').value.length}} / 20</mat-hint>
                                                 </mat-form-field>
-
                                             </div>
                                             <div class="col-lg-6  col-md-12">  
-
                                                 <mat-form-field class="mat-form-field-100">
                                                     <mat-label>{{t('docs.field.txt_summary_services')}}</mat-label>
                                                     <input   matInput
@@ -1643,12 +1700,11 @@
                                                             formControlName="txt_summary_services"/>
                                                     <mat-hint align="end" *ngIf="formBaseInformation.get('txt_summary_services').value.length>17">{{formBaseInformation.get('txt_summary_services').value.length}} / 20</mat-hint>
                                                 </mat-form-field>
-
                                             </div>
                                         </div>
-                                        <div class="row">
-                                            <div class="col-lg-6  col-md-12">   
 
+                                        <div class="row">
+                                            <div class="col-lg-6  col-md-12">
                                                 <mat-form-field class="mat-form-field-100">
                                                     <mat-label>{{t('docs.field.txt_btn_create_order')}}</mat-label>
                                                     <input   matInput
@@ -1657,10 +1713,8 @@
                                                             formControlName="txt_btn_create_order"/>
                                                     <mat-hint align="end" *ngIf="formBaseInformation.get('txt_btn_create_order').value.length>17">{{formBaseInformation.get('txt_btn_create_order').value.length}} / 20</mat-hint>
                                                 </mat-form-field>
-
                                             </div>
-                                            <div class="col-lg-6  col-md-12">  
-
+                                            <div class="col-lg-6  col-md-12">
                                                 <mat-form-field class="mat-form-field-100">
                                                     <mat-label>{{t('docs.field.txt_btn_send_order')}}</mat-label>
                                                     <input   matInput
@@ -1669,12 +1723,11 @@
                                                             formControlName="txt_btn_send_order"/>
                                                     <mat-hint align="end" *ngIf="formBaseInformation.get('txt_btn_send_order').value.length>17">{{formBaseInformation.get('txt_btn_send_order').value.length}} / 20</mat-hint>
                                                 </mat-form-field>
-
                                             </div>
                                         </div>
-                                        <div class="row">
-                                            <div class="col-lg-4  col-md-12">   
 
+                                        <div class="row">
+                                            <div class="col-lg-4  col-md-12">
                                                 <mat-form-field class="mat-form-field-100">
                                                     <mat-label>{{t('docs.field.txt_fld_your_name')}}</mat-label>
                                                     <input   matInput
@@ -1683,10 +1736,8 @@
                                                             formControlName="txt_fld_your_name"/>
                                                     <mat-hint align="end" *ngIf="formBaseInformation.get('txt_fld_your_name').value.length>90">{{formBaseInformation.get('txt_fld_your_name').value.length}} / 100</mat-hint>
                                                 </mat-form-field>
-
                                             </div>
-                                            <div class="col-lg-4  col-md-12">  
-
+                                            <div class="col-lg-4  col-md-12">
                                                 <mat-form-field class="mat-form-field-100">
                                                     <mat-label>{{t('docs.field.txt_fld_your_tel')}}</mat-label>
                                                     <input   matInput
@@ -1695,11 +1746,8 @@
                                                             formControlName="txt_fld_your_tel"/>
                                                     <mat-hint align="end" *ngIf="formBaseInformation.get('txt_fld_your_tel').value.length>90">{{formBaseInformation.get('txt_fld_your_tel').value.length}} / 100</mat-hint>
                                                 </mat-form-field>
-
-                                            </div>
-                                            
-                                            <div class="col-lg-4  col-md-12">  
-
+                                            </div>                                            
+                                            <div class="col-lg-4  col-md-12">
                                                 <mat-form-field class="mat-form-field-100">
                                                     <mat-label>{{t('docs.field.txt_fld_your_email')}}</mat-label>
                                                     <input   matInput
@@ -1708,9 +1756,93 @@
                                                             formControlName="txt_fld_your_email"/>
                                                     <mat-hint align="end" *ngIf="formBaseInformation.get('txt_fld_your_email').value.length>90">{{formBaseInformation.get('txt_fld_your_email').value.length}} / 100</mat-hint>
                                                 </mat-form-field>
-
                                             </div>
+                                        </div>
 
+                                        <div class="row">
+                                            <div class="col-lg-3  col-md-12">   
+                                                <mat-form-field class="mat-form-field-100">
+                                                    <mat-label>{{t('docs.field.txt_hour')}}</mat-label>
+                                                    <input   matInput
+                                                            [readonly]=!editability                                                                                                                   
+                                                            maxlength="20"
+                                                            formControlName="txt_hour"/>
+                                                    <mat-hint align="end" *ngIf="formBaseInformation.get('txt_hour').value.length>17">{{formBaseInformation.get('txt_hour').value.length}} / 20</mat-hint>
+                                                </mat-form-field>
+                                            </div>
+                                            <div class="col-lg-3  col-md-12">  
+                                                <mat-form-field class="mat-form-field-100">
+                                                    <mat-label>{{t('docs.field.txt_minute')}}</mat-label>
+                                                    <input   matInput
+                                                            [readonly]=!editability                                                                                                                   
+                                                            maxlength="20"
+                                                            formControlName="txt_minute"/>
+                                                    <mat-hint align="end" *ngIf="formBaseInformation.get('txt_minute').value.length>17">{{formBaseInformation.get('txt_minute').value.length}} / 20</mat-hint>
+                                                </mat-form-field>
+                                            </div>
+                                            <div class="col-lg-3  col-md-12">
+                                                <mat-form-field class="mat-form-field-100">
+                                                    <mat-label>{{t('docs.field.txt_today')}}</mat-label>
+                                                    <input   matInput
+                                                            [readonly]=!editability                                                                                                                   
+                                                            maxlength="20"
+                                                            formControlName="txt_today"/>
+                                                    <mat-hint align="end" *ngIf="formBaseInformation.get('txt_today').value.length>17">{{formBaseInformation.get('txt_today').value.length}} / 20</mat-hint>
+                                                </mat-form-field>
+                                            </div>
+                                            <div class="col-lg-3  col-md-12">
+                                                <mat-form-field class="mat-form-field-100">
+                                                    <mat-label>{{t('docs.field.txt_tomorrow')}}</mat-label>
+                                                    <input   matInput
+                                                            [readonly]=!editability                                                                                                                   
+                                                            maxlength="20"
+                                                            formControlName="txt_tomorrow"/>
+                                                    <mat-hint align="end" *ngIf="formBaseInformation.get('txt_tomorrow').value.length>17">{{formBaseInformation.get('txt_tomorrow').value.length}} / 20</mat-hint>
+                                                </mat-form-field>
+                                            </div>      
+                                        </div>
+
+                                        <div class="row">                  
+                                            <div class="col-lg-3  col-md-12">
+                                                <mat-form-field class="mat-form-field-100">
+                                                    <mat-label>{{t('docs.field.txt_morning')}}</mat-label>
+                                                    <input   matInput
+                                                            [readonly]=!editability                                                                                                                   
+                                                            maxlength="20"
+                                                            formControlName="txt_morning"/>
+                                                    <mat-hint align="end" *ngIf="formBaseInformation.get('txt_morning').value.length>17">{{formBaseInformation.get('txt_morning').value.length}} / 20</mat-hint>
+                                                </mat-form-field>
+                                            </div>
+                                             <div class="col-lg-3  col-md-12">
+                                                <mat-form-field class="mat-form-field-100">
+                                                    <mat-label>{{t('docs.field.txt_day')}}</mat-label>
+                                                    <input   matInput
+                                                            [readonly]=!editability                                                                                                                   
+                                                            maxlength="20"
+                                                            formControlName="txt_day"/>
+                                                    <mat-hint align="end" *ngIf="formBaseInformation.get('txt_day').value.length>17">{{formBaseInformation.get('txt_day').value.length}} / 20</mat-hint>
+                                                </mat-form-field>
+                                            </div>
+                                            <div class="col-lg-3  col-md-12">
+                                               <mat-form-field class="mat-form-field-100">
+                                                   <mat-label>{{t('docs.field.txt_evening')}}</mat-label>
+                                                   <input   matInput
+                                                           [readonly]=!editability                                                                                                                   
+                                                           maxlength="20"
+                                                           formControlName="txt_evening"/>
+                                                   <mat-hint align="end" *ngIf="formBaseInformation.get('txt_evening').value.length>17">{{formBaseInformation.get('txt_evening').value.length}} / 20</mat-hint>
+                                               </mat-form-field>
+                                           </div>
+                                           <div class="col-lg-3  col-md-12">
+                                              <mat-form-field class="mat-form-field-100">
+                                                  <mat-label>{{t('docs.field.txt_night')}}</mat-label>
+                                                  <input   matInput
+                                                          [readonly]=!editability                                                                                                                   
+                                                          maxlength="20"
+                                                          formControlName="txt_night"/>
+                                                  <mat-hint align="end" *ngIf="formBaseInformation.get('txt_night').value.length>17">{{formBaseInformation.get('txt_night').value.length}} / 20</mat-hint>
+                                              </mat-form-field>
+                                          </div>
                                         </div>
 
                                         <mat-form-field class="mat-form-field-100">
@@ -1741,7 +1873,6 @@
                                     </mat-card-content>
                                 </mat-card>
 
-
                                 <mat-card appearance="outlined" *ngIf="onlineSchedulingTranslationModeOn">
                                     <mat-card-header>
                                         <mat-card-title class="top-bar container-fluid">
@@ -1769,7 +1900,7 @@
                                                             <div class="row">
                                                                 <div class="col-12">
                                                                     <div class="row">
-                                                                        <div class="col-lg-6  col-md-12">                               
+                                                                        <div class="col-lg-6  col-md-12">   
                                                                             <mat-form-field class="mat-form-field-100">
                                                                                 <mat-label>{{t('docs.field.txt_btn_select_time')}}</mat-label>
                                                                                 <input   matInput
@@ -1777,9 +1908,9 @@
                                                                                         maxlength="20"
                                                                                         formControlName="txt_btn_select_time"/>
                                                                                 <mat-hint align="end" *ngIf="formBaseInformation.get('txt_btn_select_time').value.length>17">{{formBaseInformation.get('txt_btn_select_time').value.length}} / 20</mat-hint>
-                                                                            </mat-form-field>                            
+                                                                            </mat-form-field>
                                                                         </div>
-                                                                        <div class="col-lg-6  col-md-12">                              
+                                                                        <div class="col-lg-6  col-md-12">  
                                                                             <mat-form-field class="mat-form-field-100">
                                                                                 <mat-label>{{t('docs.field.txt_btn_select_specialist')}}</mat-label>
                                                                                 <input   matInput
@@ -1787,11 +1918,12 @@
                                                                                         maxlength="20"
                                                                                         formControlName="txt_btn_select_specialist"/>
                                                                                 <mat-hint align="end" *ngIf="formBaseInformation.get('txt_btn_select_specialist').value.length>17">{{formBaseInformation.get('txt_btn_select_specialist').value.length}} / 20</mat-hint>
-                                                                            </mat-form-field>                            
+                                                                            </mat-form-field>
                                                                         </div>
                                                                     </div>
+                            
                                                                     <div class="row">
-                                                                        <div class="col-lg-6  col-md-12">                               
+                                                                        <div class="col-lg-6  col-md-12">   
                                                                             <mat-form-field class="mat-form-field-100">
                                                                                 <mat-label>{{t('docs.field.txt_btn_select_services')}}</mat-label>
                                                                                 <input   matInput
@@ -1799,9 +1931,9 @@
                                                                                         maxlength="20"
                                                                                         formControlName="txt_btn_select_services"/>
                                                                                 <mat-hint align="end" *ngIf="formBaseInformation.get('txt_btn_select_services').value.length>17">{{formBaseInformation.get('txt_btn_select_services').value.length}} / 20</mat-hint>
-                                                                            </mat-form-field>                            
+                                                                            </mat-form-field>
                                                                         </div>
-                                                                        <div class="col-lg-6  col-md-12">                              
+                                                                        <div class="col-lg-6  col-md-12">  
                                                                             <mat-form-field class="mat-form-field-100">
                                                                                 <mat-label>{{t('docs.field.txt_summary_header')}}</mat-label>
                                                                                 <input   matInput
@@ -1809,11 +1941,36 @@
                                                                                         maxlength="20"
                                                                                         formControlName="txt_summary_header"/>
                                                                                 <mat-hint align="end" *ngIf="formBaseInformation.get('txt_summary_header').value.length>17">{{formBaseInformation.get('txt_summary_header').value.length}} / 20</mat-hint>
-                                                                            </mat-form-field>                            
+                                                                            </mat-form-field>
                                                                         </div>
                                                                     </div>
+                            
                                                                     <div class="row">
-                                                                        <div class="col-lg-6  col-md-12">                            
+                                                                        <div class="col-lg-6  col-md-12">   
+                                                                            <mat-form-field class="mat-form-field-100">
+                                                                                <mat-label>{{t('docs.field.txt_any_specialist')}}</mat-label>
+                                                                                <input   matInput
+                                                                                        [readonly]=!editability                                                                                                                   
+                                                                                        maxlength="100"
+                                                                                        formControlName="txt_any_specialist"/>
+                                                                                <mat-hint align="end" *ngIf="formBaseInformation.get('txt_any_specialist').value.length>90">{{formBaseInformation.get('txt_any_specialist').value.length}} / 100</mat-hint>
+                                                                            </mat-form-field>
+                                                                        </div>
+                                                                        <div class="col-lg-6  col-md-12">  
+                                                                            <mat-form-field class="mat-form-field-100">
+                                                                                <mat-label>{{t('docs.field.txt_nearest_app_time')}}</mat-label>
+                                                                                <input   matInput
+                                                                                        [readonly]=!editability                                                                                                                   
+                                                                                        maxlength="100"
+                                                                                        formControlName="txt_nearest_app_time"/>
+                                                                                <mat-hint align="end" *ngIf="formBaseInformation.get('txt_nearest_app_time').value.length>90">{{formBaseInformation.get('txt_nearest_app_time').value.length}} / 100</mat-hint>
+                                                                            </mat-form-field>
+                                                                        </div>
+                                                                    </div>
+                            
+                            
+                                                                    <div class="row">
+                                                                        <div class="col-lg-6  col-md-12">   
                                                                             <mat-form-field class="mat-form-field-100">
                                                                                 <mat-label>{{t('docs.field.txt_summary_date')}}</mat-label>
                                                                                 <input   matInput
@@ -1821,9 +1978,9 @@
                                                                                         maxlength="20"
                                                                                         formControlName="txt_summary_date"/>
                                                                                 <mat-hint align="end" *ngIf="formBaseInformation.get('txt_summary_date').value.length>17">{{formBaseInformation.get('txt_summary_date').value.length}} / 20</mat-hint>
-                                                                            </mat-form-field>                            
+                                                                            </mat-form-field>
                                                                         </div>
-                                                                        <div class="col-lg-6  col-md-12">                            
+                                                                        <div class="col-lg-6  col-md-12">
                                                                             <mat-form-field class="mat-form-field-100">
                                                                                 <mat-label>{{t('docs.field.txt_summary_time_start')}}</mat-label>
                                                                                 <input   matInput
@@ -1831,11 +1988,12 @@
                                                                                         maxlength="20"
                                                                                         formControlName="txt_summary_time_start"/>
                                                                                 <mat-hint align="end" *ngIf="formBaseInformation.get('txt_summary_time_start').value.length>17">{{formBaseInformation.get('txt_summary_time_start').value.length}} / 20</mat-hint>
-                                                                            </mat-form-field>                            
+                                                                            </mat-form-field>
                                                                         </div>
                                                                     </div>
+                            
                                                                     <div class="row">
-                                                                        <div class="col-lg-6  col-md-12">                           
+                                                                        <div class="col-lg-6  col-md-12">
                                                                             <mat-form-field class="mat-form-field-100">
                                                                                 <mat-label>{{t('docs.field.txt_summary_time_end')}}</mat-label>
                                                                                 <input   matInput
@@ -1845,7 +2003,7 @@
                                                                                 <mat-hint align="end" *ngIf="formBaseInformation.get('txt_summary_time_end').value.length>17">{{formBaseInformation.get('txt_summary_time_end').value.length}} / 20</mat-hint>
                                                                             </mat-form-field>
                                                                         </div>
-                                                                        <div class="col-lg-6  col-md-12">                            
+                                                                        <div class="col-lg-6  col-md-12">
                                                                             <mat-form-field class="mat-form-field-100">
                                                                                 <mat-label>{{t('docs.field.txt_summary_duration')}}</mat-label>
                                                                                 <input   matInput
@@ -1853,11 +2011,12 @@
                                                                                         maxlength="20"
                                                                                         formControlName="txt_summary_duration"/>
                                                                                 <mat-hint align="end" *ngIf="formBaseInformation.get('txt_summary_duration').value.length>17">{{formBaseInformation.get('txt_summary_duration').value.length}} / 20</mat-hint>
-                                                                            </mat-form-field>                            
+                                                                            </mat-form-field>
                                                                         </div>
                                                                     </div>
+                            
                                                                     <div class="row">
-                                                                        <div class="col-lg-6  col-md-12">                            
+                                                                        <div class="col-lg-6  col-md-12">
                                                                             <mat-form-field class="mat-form-field-100">
                                                                                 <mat-label>{{t('docs.field.txt_summary_specialist')}}</mat-label>
                                                                                 <input   matInput
@@ -1865,9 +2024,9 @@
                                                                                         maxlength="20"
                                                                                         formControlName="txt_summary_specialist"/>
                                                                                 <mat-hint align="end" *ngIf="formBaseInformation.get('txt_summary_specialist').value.length>17">{{formBaseInformation.get('txt_summary_specialist').value.length}} / 20</mat-hint>
-                                                                            </mat-form-field>                           
+                                                                            </mat-form-field>
                                                                         </div>
-                                                                        <div class="col-lg-6  col-md-12">                            
+                                                                        <div class="col-lg-6  col-md-12">  
                                                                             <mat-form-field class="mat-form-field-100">
                                                                                 <mat-label>{{t('docs.field.txt_summary_services')}}</mat-label>
                                                                                 <input   matInput
@@ -1875,11 +2034,12 @@
                                                                                         maxlength="20"
                                                                                         formControlName="txt_summary_services"/>
                                                                                 <mat-hint align="end" *ngIf="formBaseInformation.get('txt_summary_services').value.length>17">{{formBaseInformation.get('txt_summary_services').value.length}} / 20</mat-hint>
-                                                                            </mat-form-field>                            
+                                                                            </mat-form-field>
                                                                         </div>
                                                                     </div>
+                            
                                                                     <div class="row">
-                                                                        <div class="col-lg-6  col-md-12">                            
+                                                                        <div class="col-lg-6  col-md-12">
                                                                             <mat-form-field class="mat-form-field-100">
                                                                                 <mat-label>{{t('docs.field.txt_btn_create_order')}}</mat-label>
                                                                                 <input   matInput
@@ -1887,9 +2047,9 @@
                                                                                         maxlength="20"
                                                                                         formControlName="txt_btn_create_order"/>
                                                                                 <mat-hint align="end" *ngIf="formBaseInformation.get('txt_btn_create_order').value.length>17">{{formBaseInformation.get('txt_btn_create_order').value.length}} / 20</mat-hint>
-                                                                            </mat-form-field>                            
+                                                                            </mat-form-field>
                                                                         </div>
-                                                                        <div class="col-lg-6  col-md-12">                            
+                                                                        <div class="col-lg-6  col-md-12">
                                                                             <mat-form-field class="mat-form-field-100">
                                                                                 <mat-label>{{t('docs.field.txt_btn_send_order')}}</mat-label>
                                                                                 <input   matInput
@@ -1897,11 +2057,12 @@
                                                                                         maxlength="20"
                                                                                         formControlName="txt_btn_send_order"/>
                                                                                 <mat-hint align="end" *ngIf="formBaseInformation.get('txt_btn_send_order').value.length>17">{{formBaseInformation.get('txt_btn_send_order').value.length}} / 20</mat-hint>
-                                                                            </mat-form-field>                            
+                                                                            </mat-form-field>
                                                                         </div>
                                                                     </div>
+                            
                                                                     <div class="row">
-                                                                        <div class="col-lg-4  col-md-12">                            
+                                                                        <div class="col-lg-4  col-md-12">
                                                                             <mat-form-field class="mat-form-field-100">
                                                                                 <mat-label>{{t('docs.field.txt_fld_your_name')}}</mat-label>
                                                                                 <input   matInput
@@ -1909,9 +2070,9 @@
                                                                                         maxlength="100"
                                                                                         formControlName="txt_fld_your_name"/>
                                                                                 <mat-hint align="end" *ngIf="formBaseInformation.get('txt_fld_your_name').value.length>90">{{formBaseInformation.get('txt_fld_your_name').value.length}} / 100</mat-hint>
-                                                                            </mat-form-field>                            
+                                                                            </mat-form-field>
                                                                         </div>
-                                                                        <div class="col-lg-4  col-md-12">                            
+                                                                        <div class="col-lg-4  col-md-12">
                                                                             <mat-form-field class="mat-form-field-100">
                                                                                 <mat-label>{{t('docs.field.txt_fld_your_tel')}}</mat-label>
                                                                                 <input   matInput
@@ -1919,9 +2080,9 @@
                                                                                         maxlength="100"
                                                                                         formControlName="txt_fld_your_tel"/>
                                                                                 <mat-hint align="end" *ngIf="formBaseInformation.get('txt_fld_your_tel').value.length>90">{{formBaseInformation.get('txt_fld_your_tel').value.length}} / 100</mat-hint>
-                                                                            </mat-form-field>                            
-                                                                        </div>                                                                       
-                                                                        <div class="col-lg-4  col-md-12">                            
+                                                                            </mat-form-field>
+                                                                        </div>                                            
+                                                                        <div class="col-lg-4  col-md-12">
                                                                             <mat-form-field class="mat-form-field-100">
                                                                                 <mat-label>{{t('docs.field.txt_fld_your_email')}}</mat-label>
                                                                                 <input   matInput
@@ -1929,9 +2090,96 @@
                                                                                         maxlength="100"
                                                                                         formControlName="txt_fld_your_email"/>
                                                                                 <mat-hint align="end" *ngIf="formBaseInformation.get('txt_fld_your_email').value.length>90">{{formBaseInformation.get('txt_fld_your_email').value.length}} / 100</mat-hint>
-                                                                            </mat-form-field>                            
-                                                                        </div>                            
-                                                                    </div>                            
+                                                                            </mat-form-field>
+                                                                        </div>
+                                                                    </div>
+                            
+                                                                    <div class="row">
+                                                                        <div class="col-lg-3  col-md-12">   
+                                                                            <mat-form-field class="mat-form-field-100">
+                                                                                <mat-label>{{t('docs.field.txt_hour')}}</mat-label>
+                                                                                <input   matInput
+                                                                                        [readonly]=!editability                                                                                                                   
+                                                                                        maxlength="20"
+                                                                                        formControlName="txt_hour"/>
+                                                                                <mat-hint align="end" *ngIf="formBaseInformation.get('txt_hour').value.length>17">{{formBaseInformation.get('txt_hour').value.length}} / 20</mat-hint>
+                                                                            </mat-form-field>
+                                                                        </div>
+                                                                        <div class="col-lg-3  col-md-12">  
+                                                                            <mat-form-field class="mat-form-field-100">
+                                                                                <mat-label>{{t('docs.field.txt_minute')}}</mat-label>
+                                                                                <input   matInput
+                                                                                        [readonly]=!editability                                                                                                                   
+                                                                                        maxlength="20"
+                                                                                        formControlName="txt_minute"/>
+                                                                                <mat-hint align="end" *ngIf="formBaseInformation.get('txt_minute').value.length>17">{{formBaseInformation.get('txt_minute').value.length}} / 20</mat-hint>
+                                                                            </mat-form-field>
+                                                                        </div>
+                                                                        <div class="col-lg-3  col-md-12">
+                                                                            <mat-form-field class="mat-form-field-100">
+                                                                                <mat-label>{{t('docs.field.txt_today')}}</mat-label>
+                                                                                <input   matInput
+                                                                                        [readonly]=!editability                                                                                                                   
+                                                                                        maxlength="20"
+                                                                                        formControlName="txt_today"/>
+                                                                                <mat-hint align="end" *ngIf="formBaseInformation.get('txt_today').value.length>17">{{formBaseInformation.get('txt_today').value.length}} / 20</mat-hint>
+                                                                            </mat-form-field>
+                                                                        </div>
+                                                                        <div class="col-lg-3  col-md-12">
+                                                                            <mat-form-field class="mat-form-field-100">
+                                                                                <mat-label>{{t('docs.field.txt_tomorrow')}}</mat-label>
+                                                                                <input   matInput
+                                                                                        [readonly]=!editability                                                                                                                   
+                                                                                        maxlength="20"
+                                                                                        formControlName="txt_tomorrow"/>
+                                                                                <mat-hint align="end" *ngIf="formBaseInformation.get('txt_tomorrow').value.length>17">{{formBaseInformation.get('txt_tomorrow').value.length}} / 20</mat-hint>
+                                                                            </mat-form-field>
+                                                                        </div>      
+                                                                    </div>
+                            
+                                                                    <div class="row">                  
+                                                                        <div class="col-lg-3  col-md-12">
+                                                                            <mat-form-field class="mat-form-field-100">
+                                                                                <mat-label>{{t('docs.field.txt_morning')}}</mat-label>
+                                                                                <input   matInput
+                                                                                        [readonly]=!editability                                                                                                                   
+                                                                                        maxlength="20"
+                                                                                        formControlName="txt_morning"/>
+                                                                                <mat-hint align="end" *ngIf="formBaseInformation.get('txt_morning').value.length>17">{{formBaseInformation.get('txt_morning').value.length}} / 20</mat-hint>
+                                                                            </mat-form-field>
+                                                                        </div>
+                                                                         <div class="col-lg-3  col-md-12">
+                                                                            <mat-form-field class="mat-form-field-100">
+                                                                                <mat-label>{{t('docs.field.txt_day')}}</mat-label>
+                                                                                <input   matInput
+                                                                                        [readonly]=!editability                                                                                                                   
+                                                                                        maxlength="20"
+                                                                                        formControlName="txt_day"/>
+                                                                                <mat-hint align="end" *ngIf="formBaseInformation.get('txt_day').value.length>17">{{formBaseInformation.get('txt_day').value.length}} / 20</mat-hint>
+                                                                            </mat-form-field>
+                                                                        </div>
+                                                                        <div class="col-lg-3  col-md-12">
+                                                                           <mat-form-field class="mat-form-field-100">
+                                                                               <mat-label>{{t('docs.field.txt_evening')}}</mat-label>
+                                                                               <input   matInput
+                                                                                       [readonly]=!editability                                                                                                                   
+                                                                                       maxlength="20"
+                                                                                       formControlName="txt_evening"/>
+                                                                               <mat-hint align="end" *ngIf="formBaseInformation.get('txt_evening').value.length>17">{{formBaseInformation.get('txt_evening').value.length}} / 20</mat-hint>
+                                                                           </mat-form-field>
+                                                                       </div>
+                                                                       <div class="col-lg-3  col-md-12">
+                                                                          <mat-form-field class="mat-form-field-100">
+                                                                              <mat-label>{{t('docs.field.txt_night')}}</mat-label>
+                                                                              <input   matInput
+                                                                                      [readonly]=!editability                                                                                                                   
+                                                                                      maxlength="20"
+                                                                                      formControlName="txt_night"/>
+                                                                              <mat-hint align="end" *ngIf="formBaseInformation.get('txt_night').value.length>17">{{formBaseInformation.get('txt_night').value.length}} / 20</mat-hint>
+                                                                          </mat-form-field>
+                                                                      </div>
+                                                                    </div>
+                            
                                                                     <mat-form-field class="mat-form-field-100">
                                                                         <mat-label>{{t('docs.field.txt_msg_send_successful')}}</mat-label>
                                                                         <input   matInput
@@ -1990,16 +2238,14 @@
                                     </mat-card-header>
                                     <mat-card-content class="input-form">
                                         <div class="row">
-                                            <div class="col-lg-6  col-md-12">   
-
+                                            <div class="col-lg-6  col-md-12">
                                                 <mat-form-field class="mat-form-field-100" style="position: relative;">
                                                     <label class="mat-form-field-label color-label">{{t('docs.field.stl_color_buttons')}}</label>
                                                     <input type="color" formControlName="stl_color_buttons" name="stl_color_buttons">
                                                     <input matInput hidden/>
                                                 </mat-form-field>
                                             </div>
-                                            <div class="col-lg-6  col-md-12">  
-
+                                            <div class="col-lg-6  col-md-12">
                                                 <mat-form-field class="mat-form-field-100" style="position: relative;">
                                                     <label class="mat-form-field-label color-label">{{t('docs.field.stl_color_buttons_text')}}</label>
                                                     <input type="color" formControlName="stl_color_buttons_text" name="stl_color_buttons_text">
@@ -2008,32 +2254,61 @@
 
                                             </div>
                                         </div>
-                                        <div class="row">
-                                            <div class="col-lg-6  col-md-12">   
 
+                                        <div class="row">
+                                            <div class="col-lg-6  col-md-12">
                                                 <mat-form-field class="mat-form-field-100" style="position: relative;">
                                                     <label class="mat-form-field-label color-label">{{t('docs.field.stl_color_text')}}</label>
                                                     <input type="color" formControlName="stl_color_text" name="stl_color_text">
                                                     <input matInput hidden/>
                                                 </mat-form-field>
-
                                             </div>
-                                            <div class="col-lg-6  col-md-12">  
+                                            <div class="col-lg-6  col-md-12">
+                                                <mat-form-field class="mat-form-field-100" style="position: relative;">
+                                                    <label class="mat-form-field-label color-label">{{t('docs.field.stl_background_color')}}</label>
+                                                    <input type="color" formControlName="stl_background_color" name="stl_background_color">
+                                                    <input matInput hidden/>
+                                                </mat-form-field>
+                                            </div>
+                                        </div>
 
-                                                <mat-form-field class="mat-form-field-100">
-                                                    <mat-label>{{t('docs.field.stl_corner_radius')}}</mat-label>
-                                                    <input   matInput
-                                                            [readonly]=!editability                                                                                                                   
-                                                            (keypress)="lettersAndNumbersOnly($event)"
-                                                            maxlength="7"
-                                                            formControlName="stl_corner_radius"/>
+                                        <div class="row">
+                                            <div class="col-lg-6  col-md-12">
+                                                <mat-form-field class="mat-form-field-100" style="position: relative;">
+                                                    <label class="mat-form-field-label color-label">{{t('docs.field.stl_panel_color')}}</label>
+                                                    <input type="color" formControlName="stl_panel_color" name="stl_panel_color">
+                                                    <input matInput hidden/>
+                                                </mat-form-field>
+                                            </div>
+                                            <div class="col-lg-6  col-md-12">
+                                                <mat-form-field class="mat-form-field-100" style="position: relative;">
+                                                    <label class="mat-form-field-label color-label">{{t('docs.field.stl_not_selected_elements_color')}}</label>
+                                                    <input type="color" formControlName="stl_not_selected_elements_color" name="stl_not_selected_elements_color">
+                                                    <input matInput hidden/>
+                                                </mat-form-field>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-lg-6  col-md-12">   
+                                                <mat-form-field class="mat-form-field-100" style="position: relative;">
+                                                    <label class="mat-form-field-label color-label">{{t('docs.field.stl_selected_elements_color')}}</label>
+                                                    <input type="color" formControlName="stl_selected_elements_color" name="stl_selected_elements_color">
+                                                    <input matInput hidden/>
+                                                </mat-form-field>
+                                            </div>
+                                            <div class="col-lg-6  col-md-12">
+                                                <mat-form-field class="mat-form-field-100" style="position: relative;">
+                                                    <label class="mat-form-field-label color-label">{{t('docs.field.stl_job_title_color')}}</label>
+                                                    <input type="color" formControlName="stl_job_title_color" name="stl_job_title_color">
+                                                    <input matInput hidden/>
                                                 </mat-form-field>
 
                                             </div>
                                         </div>
-                                        <div class="row">
-                                            <div class="col-12">   
 
+                                        <div class="row">
+                                            <div class="col-lg-8  col-md-12">
                                                 <mat-form-field class="mat-form-field-100">
                                                     <mat-label>{{t('docs.field.stl_font_family')}}</mat-label>
                                                     <input   matInput
@@ -2043,9 +2318,53 @@
                                                             formControlName="stl_font_family"/>
                                                     <mat-hint align="end" *ngIf="formBaseInformation.get('stl_font_family').value.length>190">{{formBaseInformation.get('stl_font_family').value.length}} / 200</mat-hint>
                                                 </mat-form-field>
-
+                                            </div>
+                                            <div class="col-lg-4  col-md-12">  
+                                                <mat-form-field class="mat-form-field-100">
+                                                    <mat-label>{{t('docs.field.stl_corner_radius')}}</mat-label>
+                                                    <input   matInput
+                                                            [readonly]=!editability                                                                                                                   
+                                                            (keypress)="lettersAndNumbersOnly($event)"
+                                                            maxlength="7"
+                                                            formControlName="stl_corner_radius"/>
+                                                </mat-form-field>
                                             </div>
                                         </div>
+
+                                        <div class="row">
+                                            <div class="col-lg-8  col-md-12">    
+
+                                                <mat-form-field class="mat-form-field-100">
+                                                    <mat-label>{{t('docs.field.stl_panel_max_width')}}</mat-label>
+                                                    <input   matInput
+                                                            [readonly]=!editability                                                                                                                   
+                                                            (keypress)="numberOnly($event)"
+                                                            maxlength="4"
+                                                            formControlName="stl_panel_max_width"/>
+                                                </mat-form-field>
+
+                                            </div>
+                                            <div class="col-lg-4  col-md-12">  
+
+                                                <mat-form-field  class="mat-form-field-100">
+                                                    <mat-select  
+                                                        formControlName="stl_panel_max_width_unit"
+                                                    >                          
+                                                        <mat-option 
+                                                            value="px" 
+                                                        >
+                                                                px
+                                                        </mat-option>                     
+                                                        <mat-option 
+                                                            value="%"
+                                                        >
+                                                                %
+                                                        </mat-option>                                                 
+                                                    </mat-select>
+                                                </mat-form-field>
+                                            </div>
+                                        </div>
+
                                     </mat-card-content>
                                 </mat-card>
                             </div>
