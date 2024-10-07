@@ -5,24 +5,22 @@
                         <button mat-icon-button class="example-icon" aria-label="Example icon-button with menu icon">
                         <mat-icon>menu</mat-icon>
                         </button>
-                        <span>My App</span>
+                        <span></span>
                         <span class="toolbar-spacer"></span>
-                        <!-- <button mat-icon-button class="example-icon favorite-icon" aria-label="Example icon-button with heart icon">
-                        <mat-icon>favorite</mat-icon>
-                        </button> -->
-                        <button 
+
+                        <!-- <button 
                         mat-icon-button 
                         class="example-icon" 
                         aria-label="Example icon-button with share icon"
                         (click)="clickBtnToMainScreen()"
                         *ngIf="currentView!='main'">
                         <mat-icon>arrow_back_ios_new</mat-icon>
-                        </button>
+                        </button> -->
                 </div>
         </mat-toolbar>
         <div 
         id="inner"
-        [style.background-color]="inner_background_color"
+        [style.background-color]="onlineSchedulingSettings.stl_background_color"
         [style.max-width]="panel_max_width+panel_max_width_uq"
         >
 
@@ -133,10 +131,18 @@
                                         [style.color]="onlineSchedulingSettings.stl_color_text">
                                                 {{onlineSchedulingSettings.txt_btn_select_specialist}}
                                         </span>
+                                        <span></span>
+                                        <span class="toolbar-spacer"></span>
+                                        <button 
+                                        mat-icon-button 
+                                        class="example-icon"
+                                        (click)="clickBtnToMainScreen()">
+                                        <mat-icon>arrow_back_ios_new</mat-icon>
+                                        </button>
                                 </div>
 
                                 <div class="main-menu-row">
-                                        <div class="main-menu-item" (click)="onSelectEmployee(0)">
+                                        <div class="main-menu-item" (click)="onSelectAnyEmployee()">
                                                 <button 
                                                 mat-mini-fab 
                                                 class="main-select-icon"
@@ -157,27 +163,37 @@
 
                                         <div class="main-menu-row">
                                                 <div class="main-menu-item">
+                                                        <div 
+                                                        class="main-menu-item-pale"
+                                                        [style.background-color]="onlineSchedulingSettings.stl_background_color"
+                                                        *ngIf="!employee.available_by_departament || !employee.available_by_selected_services"
+                                                        >
+                                                        </div>
                                                         <button 
                                                         mat-mini-fab 
                                                         class="main-select-icon"
                                                         >
                                                                 <mat-icon>person</mat-icon>
                                                         </button>
-                                                        <div matListItemTitle class="specialist-name"
-                                                        (click)="onSelectEmployee(employee.id)">
+                                                        <div matListItemTitle 
+                                                        class="specialist-name"
+                                                        [style.color]="(employee.available_by_departament && employee.available_by_selected_services && employee.available_by_time) ? onlineSchedulingSettings.stl_color_text:((!employee.available_by_departament || !employee.available_by_selected_services)?onlineSchedulingSettings.stl_color_text:'gainsboro')"
+                                                        (click)="onSelectEmployee(employee)">
                                                                 {{employee.name}}
                                                         </div>
                                                         <span 
                                                         class="specialist-jobtitle"
-                                                        (click)="onSelectEmployee(employee.id)"
+                                                        (click)="onSelectEmployee(employee)"
                                                         [style.color]="onlineSchedulingSettings.stl_job_title_color">
                                                                 {{employee.jobtitle_name}}
+                                                                <!-- <br>{{employee.available_by_departament}} {{employee.available_by_selected_services}} {{employee.available_by_time}}  -->
                                                         </span>
                                                         <mat-icon
                                                         class="checkbox"
-                                                        (click)="onSelectEmployee(employee.id)"
-                                                        [style.color]="onlineSchedulingSettings.stl_selected_elements_color"
-                                                        >{{selectedEmployeeId==employee.id?'radio_button_checked':'radio_button_unchecked'}}</mat-icon>
+                                                        (click)="onSelectEmployee(employee)"
+                                                        [style.color]="(employee.available_by_departament && employee.available_by_selected_services && employee.available_by_time) ? onlineSchedulingSettings.stl_selected_elements_color:((!employee.available_by_departament || !employee.available_by_selected_services)?onlineSchedulingSettings.stl_color_text:'gainsboro')"
+
+                                                        >{{(employee.available_by_departament && employee.available_by_selected_services && employee.available_by_time)?(selectedEmployeeId==employee.id?'radio_button_checked':'radio_button_unchecked'):'help'}}</mat-icon>
                                                 </div>
 
                                                 <div class="main-menu-nearest-time">
@@ -189,7 +205,7 @@
                                                                 <mat-chip 
                                                                 [ngClass]="{'selected':isUserTimeSlotSelected(slot, employee.id)}"
                                                                 *ngFor="let slot of getNearestUserSlots(employee.id)"
-                                                                (click)="setSelectedDateTimeAndEmployee(slot, employee.id)">
+                                                                (click)="setSelectedDateTimeAndEmployee(slot, employee)">
                                                                         {{getTimeFromSlot(slot)}}
                                                                 </mat-chip>
                                                         </mat-chip-set>
@@ -211,6 +227,14 @@
                                         [style.color]="onlineSchedulingSettings.stl_color_text">
                                                 {{onlineSchedulingSettings.txt_btn_select_services}}
                                         </span>
+                                <span></span>
+                                <span class="toolbar-spacer"></span>
+                                <button 
+                                mat-icon-button 
+                                class="example-icon"
+                                (click)="clickBtnToMainScreen()">
+                                <mat-icon>arrow_back_ios_new</mat-icon>
+                                </button>
                                 </div>
                                 
                                 <div 
@@ -250,26 +274,28 @@
                                         
 
 
-                                        <ng-container *ngFor="let service of filteredServicesList; index as i">
+                                        <ng-container *ngFor="let service of allServicesList; index as i">
 
-                                                <div class="service-row">
+                                                <div class="service-row" *ngIf="selectedCategoryId == 0 || service.categories.includes(selectedCategoryId)">
                                                         <div class="service-item">
-                                                                
-                                                                <div matListItemTitle class="service-name"
-                                                                (click)="onSelectService(service.id)">
+                                                                <div matListItemTitle 
+                                                                [style.color]="(service.available_by_selected_employee && service.available_by_departament && service.available_by_employees_who_available_by_selected_services) ? onlineSchedulingSettings.stl_color_text:'gainsboro'"
+                                                                class="service-name"
+                                                                (click)="onSelectService(service)">
                                                                         {{service.name}}
                                                                 </div>
                                                                 <span 
                                                                 class="service-price"
                                                                 
-                                                                [style.color]="onlineSchedulingSettings.stl_job_title_color">
+                                                                [style.color]="(service.available_by_selected_employee && service.available_by_departament && service.available_by_employees_who_available_by_selected_services) ? onlineSchedulingSettings.stl_job_title_color:'gainsboro'">
                                                                         {{service.price}}
+                                                                         <!-- - {{service.available_by_selected_employee}} - {{service.available_by_departament}} -->
                                                                 </span>
                                                                 <mat-icon
                                                                 class="service-checkbox"
-                                                                (click)="onSelectService(service.id)"
-                                                                [style.color]="onlineSchedulingSettings.stl_selected_elements_color"
-                                                                >{{selectedServicesIds.includes(service.id)?'check_box':'check_box_outline_blank'}}</mat-icon>
+                                                                (click)="onSelectService(service)"
+                                                                [style.color]="(service.available_by_selected_employee && service.available_by_departament && service.available_by_employees_who_available_by_selected_services) ? onlineSchedulingSettings.stl_selected_elements_color:'gainsboro'"
+                                                                >{{(service.available_by_selected_employee && service.available_by_departament && service.available_by_employees_who_available_by_selected_services)?(selectedServicesIds.includes(service.id)?'check_box':'check_box_outline_blank'):'help_center'}}</mat-icon>
                                                         </div>
         
                                                 </div>               

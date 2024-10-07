@@ -149,6 +149,9 @@ interface Employee{
   jobtitle_name:string;
   departmentPartsWithServicesIds: DepartmentPartWithServicesIds[];
   state: string; // free / busyByAppointments / busyBySchedule
+  available_by_selected_services:boolean;
+  available_by_departament:boolean;
+  available_by_time:boolean;
 }
 interface DepartmentPartWithServicesIds{
   id: number;
@@ -179,6 +182,9 @@ interface Service{
   sku: string;
   categories: number[];
   images: Image[];
+  available_by_selected_employee:boolean;
+  available_by_employees_who_available_by_selected_services:boolean;
+  available_by_departament:boolean;
 }
 interface TimeSlot{
   id:number;
@@ -279,20 +285,26 @@ export class OnlineschedulingComponent implements AfterViewInit {
   events: CalendarEvent[] = [];
   // employeesHaveScheduleInSelectedDepartment:      number[]=[]; //* IDs of employees which have work shifts in selected department 
   // employeesHaveServicesInSelectedDepartment:      number[]=[]; //* IDs of employees which have services in selected department
-  employeesHaveServicesSelectedByUser:            number[]=[]; //* IDs of employees who can provide services selected by user
+  // employeesHaveServicesSelectedByUser:            number[]=[]; //* IDs of employees who can provide services selected by user
   // employeesFreeByScheduleForSelectedUserTime:     number[]=[]; //* IDs of available by schedule employees (minimum 1 hour) for the time selected by the user 
   // employeesFreeByAppointmentsForSelectedUserTime: number[]=[]; // IDs of available by appointments employees (minimum 1 hour) for the time selected by the user 
-  availableTimeSlots: TimeSlot[]=[]; // includes all available time slots for all employees
+  allTimeSlots: TimeSlot[]=[]; // includes all time slots for all employees
+  resultTimeSlotsList: TimeSlot[]=[]; // result united list of non-repeating time slots of all available employees
   // filteredServices:            number[]=[]; //
 
   allServicesList: Service[]=[];
-  filteredServicesList: Service[]=[];
+  // selectedCategoryServicesList: Service[]=[];
+  // servicesIdsNotAccessibleBySelectedEmployee:number[]=[];
+  // allServicesIdsOfSelectedEmployee:number[]=[];
+  // allServicesIdsOfSelectedDepartment:number[]=[];
+
+
   formBaseInformation:any;// the form of main information
   actionsBeforeGetChilds:number=0;// количество выполненных действий, необходимых чтобы загрузить дочерние модули (кассу и форму товаров)
   currentView: string = 'main'; // main, location, specialist, services, time,
   selectedDepartment:Department={department_id:null,department_name:'',department_address: '',parts: []};
   selectedEmployeeId:number=null; // null: not selected;  0: any specialist; 1,2,...: ID of specialist
-  selectedDateTime:string=null; // selected appointment date in ISO 8601 format
+  selectedDateTime:string=''; // selected appointment date in ISO 8601 format
   selectedCategoryId:number=0; // 0 -no selected category
   selectedServicesIds:number[]=[];
 
@@ -300,7 +312,7 @@ export class OnlineschedulingComponent implements AfterViewInit {
   locale:string='en-us';// locale (for dates, calendar etc.)
   // Styles variables
   corner_radius:number = 15;
-  inner_background_color='#ffffff';
+  // inner_background_color='#ffffff';
   panel_max_width=600;
   panel_max_width_uq='px';
   color_buttons='gray';
@@ -439,15 +451,7 @@ export class OnlineschedulingComponent implements AfterViewInit {
       }
     })
   }
-  // get departmentName(){
-  //   let result='';
-  //   if(this.receivedDepartmentsWithPartsList.length>0){
-  //     this.receivedDepartmentsWithPartsList.map(dep=>{
-  //       if(dep.)
-  //     })
-  //   }
-  //   return result;
-  // }
+
   getDepartmentsWithPartsList(){ 
     return this.http.get('/api/public/getDepartmentsWithPartsList?company_id='+this.company).subscribe(data => {  
       this.receivedDepartmentsWithPartsList=data as Department[];
@@ -520,8 +524,8 @@ export class OnlineschedulingComponent implements AfterViewInit {
     if(this.actionsBeforeGetChilds==2){
       this.getAllDepartmentPartsIdsOfEmployees();
       this.getAllServicesIdsOfEmployees();
-      this.getOnlineSchedulingServices();
-      this.getCalendarEventsList();
+      this.getOnlineSchedulingServices();   // --> recalculateServices
+      this.getCalendarEventsList();         // --> calculateTimeSlots, recalculateEmployees
       console.log('this.allServicesIdsOfEmployees=',this.allServicesIdsOfEmployees)
     }
   }
@@ -547,7 +551,8 @@ export class OnlineschedulingComponent implements AfterViewInit {
           this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Error',message:'Executing query error!'}})
         }
         this.events = data as CalendarEvent[];
-        this.recalculateFreeTimeSlots();
+        this.calculateTimeSlots();
+        this.recalculateEmployees();
       })
   }
 
@@ -556,72 +561,16 @@ export class OnlineschedulingComponent implements AfterViewInit {
     return(moment(slot_start).isBefore(moment(range_end)) && moment(slot_end).isAfter(moment(range_start)));
   }
 
-  recalculateFreeTimeSlots(){
-    this.availableTimeSlots = [];
-    let slotId=0;
-    this.setDynamicStyle();
-    this.workShiftParts.map(workShiftPart=>{
-      // if employee in this work shift part is working in one of department parts that belong to the selected department
-      if(this.isArraysIntersect(workShiftPart.department_parts_ids, this.getSelectedDeppartsIds())){
-        let slotCount = 0;
-        while(
-          moment(workShiftPart.start).
-          add((this.onlineSchedulingSettings.fld_step * slotCount),'minutes').
-          // add((this.onlineSchedulingSettings.fld_step),'minutes').
-          add(60,'minutes'). // за 60 минут до окончания рабочего отрезка (до конца смены или перерыва на обед) заказы не принимаются
-                             // 60 minutes before the end of the working period (before the end of the shift or lunch break) orders are not accepted
-          isSameOrBefore(workShiftPart.end)
-        ){
-
-          let canAddSlot = true;
-          for (var i = 0; i < this.events.length; i++) {
-            if( moment(workShiftPart.start).
-                add((this.onlineSchedulingSettings.fld_step * slotCount),'minutes').
-                add(60,'minutes').// за 60 минут до начала уже запланированной встречи (с другим клиентом) заказы не принимаются
-                                  // 60 minutes before the start of an already scheduled appointment (with another client) orders are not accepted
-                isBetween(this.events[i].start, moment(this.events[i].end).add(60,'minutes')) // это те же самые 60 минут выше
-            )                                                                                 // it's the same 60 minutes above
-            canAddSlot=false;
-            break; // that is because I do not use ".map" here
-          }
-
-          // check that the time of slot is not in the past
-          if((moment(workShiftPart.start).
-              subtract(60,'minutes').   // не принимать заказы менее чем за 60 минут до начала встречи
-                                        // do not accept orders less than 60 minutes before the Acceptance starts
-              add((this.onlineSchedulingSettings.fld_step * slotCount),'minutes')).
-              isSameOrBefore(moment())
-          )
-            canAddSlot=false;
-
-          if(canAddSlot){
-            this.availableTimeSlots.push(
-              {
-                id: slotId,
-                employeeId: workShiftPart.employee_id,
-                start: (moment(workShiftPart.start).
-                add((this.onlineSchedulingSettings.fld_step * slotCount),'minutes')).toDate().toISOString()
-              }
-            )
-            slotId++;
-          }
-          slotCount++;
-        }
-      }
-    });
-    // console.log(this.availableTimeSlots);
-  }
-
   // calculate te word for the nearest dates
   // return 'today','tomorrow','date'
   getNearestTimeWord(employeeId):string{
     let result='date';
     let today = moment();
     let firstSlotDate: string='';
-    for (var i = 0; i < this.availableTimeSlots.length; i++) {
-      if(employeeId == this.availableTimeSlots[i].employeeId){
-        firstSlotDate = moment(this.availableTimeSlots[i].start).format(this.onlineSchedulingSettings.date_format);
-        let currentSlotStart = moment(this.availableTimeSlots[i].start);
+    for (var i = 0; i < this.allTimeSlots.length; i++) {
+      if(employeeId == this.allTimeSlots[i].employeeId){
+        firstSlotDate = moment(this.allTimeSlots[i].start).format(this.onlineSchedulingSettings.date_format);
+        let currentSlotStart = moment(this.allTimeSlots[i].start);
         if(currentSlotStart.isBefore(today.endOf('day'))){
             result = 'today';
         }
@@ -648,11 +597,11 @@ export class OnlineschedulingComponent implements AfterViewInit {
     let slotCounter=0;
     let maxUserSlots:number = this.onlineSchedulingSettings.fld_time_format=='12'?3:4;
     // let timeFormat = this.onlineSchedulingSettings.fld_time_format=='12'?'hh:mm A':'HH:mm';
-    for (var i = 0; i < this.availableTimeSlots.length; i++) {
-      if(employeeId == this.availableTimeSlots[i].employeeId){
-        if(firstSlotDay=='') firstSlotDay = moment(this.availableTimeSlots[i].start).format("DD");
-        result.push(moment(this.availableTimeSlots[i].start).toDate().toISOString());
-        // result.push(moment(this.availableTimeSlots[i].start).format(timeFormat));
+    for (var i = 0; i < this.allTimeSlots.length; i++) {
+      if(employeeId == this.allTimeSlots[i].employeeId){
+        if(firstSlotDay=='') firstSlotDay = moment(this.allTimeSlots[i].start).format("DD");
+        result.push(moment(this.allTimeSlots[i].start).toDate().toISOString());
+        // result.push(moment(this.allTimeSlots[i].start).format(timeFormat));
         slotCounter++;
       }
       if(slotCounter >=maxUserSlots) break;
@@ -665,9 +614,10 @@ export class OnlineschedulingComponent implements AfterViewInit {
     return moment(dateTime).format(this.onlineSchedulingSettings.fld_time_format=='12'?'hh:mm A':'HH:mm')
   }
 
-  setSelectedDateTimeAndEmployee(dateTime:string, employeeId:number){
-    this.onSelectEmployee(employeeId); // if it is new employee - it will be changed, and acceptible services will be recalculated
+  setSelectedDateTimeAndEmployee(dateTime:string, employee:Employee){
     this.selectedDateTime = dateTime;
+    this.recalculateEmployees();
+    this.onSelectEmployee(employee); // if it is new employee - it will be changed, and acceptible services will be recalculated
     setTimeout(() => {this.setDynamicStyle(); }, 10);
   }
   
@@ -679,33 +629,124 @@ export class OnlineschedulingComponent implements AfterViewInit {
     return array1.filter(value => array2.includes(value)).length > 0;
   }
 
-  recalculateAvailableServices(){
-    this.filteredServicesList=[]; 
-    let employeeServicesIds:number[]=[];
+  recalculateServices(){
+    let allServicesIdsOfSelectedEmployee:number[]=[];
     if(this.selectedEmployeeId==null || this.selectedEmployeeId==0)
-      employeeServicesIds=this.allServicesIdsOfEmployees;
+      allServicesIdsOfSelectedEmployee=this.allServicesIdsOfEmployees;
     else 
-    employeeServicesIds = this.getAllServicesIdsOfEmployeeInCurrentDepartment(this.selectedEmployeeId);
-
-    console.log('employeeServicesIds',employeeServicesIds);
-    let selectedCategoryServicesIds = this.getSelectedCategoryServicesIds();
-    console.log('selectedCategoryServicesIds',selectedCategoryServicesIds);
-    //intersection of these arrays will be the result set of IDs that belong to selected category and selected employee can provide  
-    let resultServicesIds = [employeeServicesIds,selectedCategoryServicesIds].reduce((a, b) => a.filter(c => b.includes(c)));  
-    console.log('resultServicesIds',resultServicesIds);
-    console.log('allServicesList',this.allServicesList)
+      allServicesIdsOfSelectedEmployee=this.getAllServicesIdsOfSelectedEmployee(this.selectedEmployeeId);
+    let allServicesIdsOfSelectedDepartment:number[]= this.getAllServicesIdsOfSelectedDepartment();
+    // console.log('allServicesIdsOfSelectedEmployee',allServicesIdsOfSelectedEmployee);
+    // console.log('allServicesIdsOfSelectedDepartment',allServicesIdsOfSelectedDepartment);
     this.allServicesList.map(service=>{
-      if(resultServicesIds.includes(service.id))
-        this.filteredServicesList.push(service);
+      service.available_by_selected_employee=(this.selectedEmployeeId==null || this.selectedEmployeeId==0) || allServicesIdsOfSelectedEmployee.includes(service.id);
+      service.available_by_departament=allServicesIdsOfSelectedDepartment.includes(service.id);
+      service.available_by_employees_who_available_by_selected_services = this.getServicesIdsAvailableByEmployeesWhoAvailableBySelectedServices().includes(service.id);
+      // service.available_by_employees_who_available_by_selected_services = this.getAllServicesIds().includes(service.id);
     })
-    console.log('Available services:', this.filteredServicesList);
+  }
+  
+  recalculateEmployees(){
+    let allEmployeesIdsOfSelectedDepartment:number[] = this.getAllEmployeesIdsOfSelectedDepartment();
+    let allEmployeesIdsOfSelectedServices:number[] = this.getEmployeesIdsAvailableBySelectedServices();
+    let allEmployeesIdsOfSelectedTimeSlot:number[] = this.getAllEmployeesIdsOfSelectedTimeSlot();
+    this.allEmployeesList.map(employee=>{
+      employee.available_by_departament=allEmployeesIdsOfSelectedDepartment.includes(employee.id);
+      employee.available_by_selected_services=allEmployeesIdsOfSelectedServices.includes(employee.id); //employees who can provide all selected services in selected department
+      employee.available_by_time=allEmployeesIdsOfSelectedTimeSlot.includes(employee.id);
+    });
   }
 
-  onSelectService(serviceId:number){
-    if(!this.selectedServicesIds.includes(serviceId))
-      this.selectedServicesIds.push(serviceId);
-    else
-      this.selectedServicesIds.splice(this.selectedServicesIds.indexOf(serviceId),1);
+  // Calculating of result united list of non-repeating time slots of all available employees
+  recalculateTimeSlots(){
+    let resultTimeSlotsList:TimeSlot[]=[...this.allTimeSlots];
+
+    // Sorting by "Oldest first"
+    resultTimeSlotsList.sort((a, b) => a.start.localeCompare(b.start));
+
+    console.log('resultTimeSlotsList',resultTimeSlotsList)
+
+  }
+
+  // Calculating start slots time for each employee
+  // Runs only once, because the result array of this function is not changing
+  // result like:   
+  // employee: 1; start: date_time
+  // employee: 1; start: date_time
+  // employee: 2; start: date_time
+  // employee: 2; start: date_time
+  // ...
+  calculateTimeSlots(){
+    this.allTimeSlots = [];
+    let slotId=0;
+    this.setDynamicStyle();
+    this.workShiftParts.map(workShiftPart=>{
+      // if employee in this work shift part is working in one of department parts that belong to the selected department
+      if(this.isArraysIntersect(workShiftPart.department_parts_ids, this.getSelectedDeppartsIds())){
+        let slotCount = 0;
+        while(
+          moment(workShiftPart.start).
+          add((this.onlineSchedulingSettings.fld_step * slotCount),'minutes').
+          add(60,'minutes'). // за 60 минут до окончания рабочего отрезка (до конца смены или перерыва на обед) заказы не принимаются
+                             // 60 minutes before the end of the working period (before the end of the shift or lunch break) orders are not accepted
+          isSameOrBefore(workShiftPart.end)
+        ){
+          let canAddSlot = true;
+          for (var i = 0; i < this.events.length; i++) {
+            if( moment(workShiftPart.start).
+                add((this.onlineSchedulingSettings.fld_step * slotCount),'minutes').
+                add(60,'minutes').// за 60 минут до начала уже запланированной встречи (с другим клиентом) заказы не принимаются
+                                  // 60 minutes before the start of an already scheduled appointment (with another client) orders are not accepted
+                isBetween(this.events[i].start, moment(this.events[i].end).add(60,'minutes')) // это те же самые 60 минут выше
+            ){
+              canAddSlot=false;
+              break; // that is because I do not use ".map" here
+            }                                                                                 // it's the same 60 minutes above
+            
+          }
+          // check that the time of slot is not in the past
+          if((moment(workShiftPart.start).
+              subtract(60,'minutes').   // не принимать заказы менее чем за 60 минут до начала встречи
+                                        // do not accept orders less than 60 minutes before the Acceptance starts
+              add((this.onlineSchedulingSettings.fld_step * slotCount),'minutes')).
+              isSameOrBefore(moment())
+          )
+            canAddSlot=false;
+          if(canAddSlot){
+            this.allTimeSlots.push(
+              {
+                id: slotId,
+                employeeId: workShiftPart.employee_id,
+                start: (moment(workShiftPart.start).
+                add((this.onlineSchedulingSettings.fld_step * slotCount),'minutes')).toDate().toISOString()
+              }
+            )
+            slotId++;
+          }
+          slotCount++;
+        }
+      }
+    });
+    // console.log(this.allTimeSlots);
+    this.recalculateTimeSlots();
+  }
+  onSelectService(service:Service){
+    
+    if(service.available_by_selected_employee && service.available_by_departament && service.available_by_employees_who_available_by_selected_services){
+      console.log('service in onSelectService',service)
+
+      if(!this.selectedServicesIds.includes(service.id)){
+        this.selectedServicesIds.push(service.id);
+        console.log('this.selectedServicesIds1',this.selectedServicesIds) 
+      }else
+        this.selectedServicesIds.splice(this.selectedServicesIds.indexOf(service.id),1);
+
+
+      console.log('this.selectedServicesIds2',this.selectedServicesIds)  
+      this.recalculateEmployees();
+      this.recalculateServices();
+    }
+     
     // console.log('indexOf(serviceId)=',this.selectedServicesIds.indexOf(serviceId))
     // console.log('selectedServicesIds', this.selectedServicesIds)
 
@@ -774,7 +815,7 @@ export class OnlineschedulingComponent implements AfterViewInit {
 
   setSelectedCategoryId(categoryId){
     this.selectedCategoryId = categoryId;
-    this.recalculateAvailableServices();
+    this.recalculateServices();
     setTimeout(() => {this.setDynamicStyle(); }, 10);
   }
 
@@ -791,13 +832,11 @@ export class OnlineschedulingComponent implements AfterViewInit {
   isCategorySelected(categoryId){
     return(categoryId == this.selectedCategoryId)
   }
+
   goCategoriesHighLevel(){
     // if(!this.selectedCategoryHasChildrens())
     this.selectedCategoryId=this.getParentOfSelectedCategory();
-    this.recalculateAvailableServices();
-    // else {
-
-    // }
+    this.recalculateServices();
     setTimeout(() => {this.setDynamicStyle(); }, 10);
   }
   getSelectedCategoryName():string{
@@ -808,6 +847,35 @@ export class OnlineschedulingComponent implements AfterViewInit {
     })
     return result;
   }
+  
+  getServicesIdsAvailableByEmployeesWhoAvailableBySelectedServices(){
+    let employeesIdsAvailableBySelectedServices = this.getEmployeesIdsAvailableBySelectedServices();
+    let result:number[]=[];
+    let allDepPartsOfSelectedDepartment = this.getSelectedDeppartsIds();
+    if(this.selectedServicesIds.length==0) return(this.getAllServicesIds())
+    else {
+      this.allEmployeesList.map(employee=>{
+        if(employeesIdsAvailableBySelectedServices.includes(employee.id)){
+          employee.departmentPartsWithServicesIds.map(depPart=>{
+            if(allDepPartsOfSelectedDepartment.includes(depPart.id)){
+              depPart.servicesIds.map(serviceId=>{
+                if(result.indexOf(serviceId) === -1)
+                  result.push(serviceId);
+              })
+            }
+          })
+        }
+      })
+      return result;
+    }    
+  }
+
+  getAllServicesIds(){
+    let result:number[]=[];
+    this.allServicesList.map(service=>{result.push(service.id)});
+    return result;
+  }
+
   getAllServicesIdsOfEmployees(){
     this.allServicesIdsOfEmployees=[];
     this.allEmployeesList.map(employee=>{
@@ -822,19 +890,113 @@ export class OnlineschedulingComponent implements AfterViewInit {
     })
   }
 
-  getAllServicesIdsOfEmployeeInCurrentDepartment(employeeId):number[]{
+  // Returns IDs of all employees who can provide its services in selected department
+  getAllEmployeesIdsOfSelectedDepartment():number[]{
     let result:number[]=[];
     let allDepPartsOfSelectedDepartment = this.getSelectedDeppartsIds();
     this.allEmployeesList.map(employee=>{
+      employee.departmentPartsWithServicesIds.map(depPart=>{
+        if(allDepPartsOfSelectedDepartment.indexOf(depPart.id) !== -1 && result.indexOf(employee.id) === -1){
+          result.push(employee.id)
+        }
+      })
+    })
+    return result;
+  }
+
+  // Returns IDs of employees who can provide services at the time of selected time slot (selectedDateTime)
+  getAllEmployeesIdsOfSelectedTimeSlot():number[]{
+    if(this.selectedDateTime=='')
+      return this.getAllIdsOfEmployees();
+    else{
+      let result:number[]=[];
+      this.allEmployeesList.map(employee=>{
+        for (var i = 0; i < this.allTimeSlots.length; i++) {
+          // if time slot of employee is the same than selected time slot (selectedDateTime)
+          if(this.allTimeSlots[i].employeeId == employee.id && this.allTimeSlots[i].start==this.selectedDateTime){
+            result.push(employee.id);
+            break;
+          }
+        }
+      })
+      return result;
+    }
+  }
+
+  // Returns IDs of employees who can provide all selected services in selected department
+  getEmployeesIdsAvailableBySelectedServices():number[]{
+    if(this.selectedServicesIds.length==0)
+      return this.getAllIdsOfEmployees();
+    else{
+      let result:number[]=[];
+      let allDepPartsOfSelectedDepartment = this.getSelectedDeppartsIds();
+      this.allEmployeesList.map(employee=>{
+        let employeeServicesIds:number[]=[];
+        employee.departmentPartsWithServicesIds.map(depPart=>{
+          if(allDepPartsOfSelectedDepartment.includes(depPart.id)){
+            depPart.servicesIds.map(serviceId=>{
+              employeeServicesIds.push(serviceId);
+            })
+          }
+        })
+        // if employee services includes all selected services - this employee can be selected as employee who can provide all selected services in selected department
+        // let checker = (arr, target) => target.every(v => arr.includes(v))
+        if(this.selectedServicesIds.every(r => employeeServicesIds.includes(r))){
+          result.push(employee.id);
+          // console.log('Found all of ', this.selectedServicesIds, ' in ', employeeServicesIds);
+        }else{
+          // console.log('Did not find all of ', this.selectedServicesIds, ' in ', employeeServicesIds);
+        }
+      })
+      return result;
+    }
+  }
+
+  // getAllServicesIdsOfEmployeeInCurrentDepartment(employeeId):number[]{
+  //   let result:number[]=[];
+  //   let allDepPartsOfSelectedDepartment = this.getSelectedDeppartsIds();
+  //   this.allEmployeesList.map(employee=>{
+  //     if(employee.id==employeeId)
+  //       employee.departmentPartsWithServicesIds.map(depPart=>{
+  //         if(allDepPartsOfSelectedDepartment.indexOf(depPart.id) !== -1){
+  //           depPart.servicesIds.map(serviceId=>{
+  //             if(result.indexOf(serviceId) === -1)
+  //               result.push(serviceId)
+  //           })
+  //         }
+  //       })
+  //   })
+  //   return result;
+  // }
+
+  // All employee's services IDs (selected department is mo matter)
+  getAllServicesIdsOfSelectedEmployee(employeeId):number[]{
+    let result:number[]=[];
+    this.allEmployeesList.map(employee=>{
       if(employee.id==employeeId)
         employee.departmentPartsWithServicesIds.map(depPart=>{
-          if(allDepPartsOfSelectedDepartment.indexOf(depPart.id) !== -1){
             depPart.servicesIds.map(serviceId=>{
               if(result.indexOf(serviceId) === -1)
                 result.push(serviceId)
             })
-          }
         })
+    })
+    return result;
+  }
+
+  // All selected department's services IDs  (selected employee is mo matter)
+  getAllServicesIdsOfSelectedDepartment():number[]{
+    let result:number[]=[];
+    let allDepPartsOfSelectedDepartment = this.getSelectedDeppartsIds();
+    this.allEmployeesList.map(employee=>{
+      employee.departmentPartsWithServicesIds.map(depPart=>{
+        if(allDepPartsOfSelectedDepartment.indexOf(depPart.id) !== -1){
+          depPart.servicesIds.map(serviceId=>{
+            if(result.indexOf(serviceId) === -1)
+              result.push(serviceId)
+          })
+        }
+      })
     })
     return result;
   }
@@ -872,7 +1034,7 @@ export class OnlineschedulingComponent implements AfterViewInit {
             if(this.allServicesList.find(obj => obj.id === service.id) == null)
               this.allServicesList.push(service)
           })
-          this.recalculateAvailableServices();
+          this.recalculateServices();
         },error => {
           this.initialLoading=false;
           this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:'Error',message:error.error}})},);
@@ -895,14 +1057,21 @@ export class OnlineschedulingComponent implements AfterViewInit {
     this.currentView = 'services'
     setTimeout(() => {this.setDynamicStyle(); }, 1);
   }
-  onSelectEmployee(employeeId:number){
-    // iа employee has changed - need to reset the time of an appointment
-    if(this.selectedEmployeeId != employeeId){
-      this.selectedDateTime='';
-      this.selectedEmployeeId=employeeId;
-      this.recalculateAvailableServices();
-      setTimeout(() => {this.setDynamicStyle(); }, 1);
-    }
+  onSelectEmployee(employee:Employee){
+    // if employee has changed - need to reset the time of an appointment
+      if(employee.available_by_departament && employee.available_by_selected_services && employee.available_by_time && this.selectedEmployeeId != employee.id){
+        // this.selectedDateTime='';
+        this.selectedEmployeeId=employee.id;
+        this.recalculateServices();
+        setTimeout(() => {this.setDynamicStyle(); }, 1);
+      }
+  }
+  onSelectAnyEmployee(){
+    this.selectedEmployeeId=0;
+    this.selectedDateTime='';
+    this.recalculateServices();
+    this.recalculateEmployees();
+    setTimeout(() => {this.setDynamicStyle(); }, 1);
   }
   onClickBtnSelectServices(){
     this.currentView = 'services';
