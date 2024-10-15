@@ -142,12 +142,11 @@
         "ap_s_suit_manyday":"Погодно ако ваше услуге трају један дан или више",
         "hide_employee_field":"Омогућите ово ако ваше услуге не захтевају запослене.",
         "amnt_res":"Количина ресурса",
-        "precent_work":"Share of payment for an hour of break from payment for a working hour",
-        "select":"Select",
-        "paid_break":"This break is paid for by the employer",
         "precent_work":"Удео у плаћању за сат паузе од плаћања за радни сат",
         "select":"Изаберите",
-        "paid_break":"Ову паузу плаћа послодавац"
+        "paid_break":"Ову паузу плаћа послодавац",
+        "vertical_list":"Прикажи контакт у блоку листе контаката",
+        "horizontal_icons":"Прикажи икону контакта на траци са иконама"
     },
     "tab":{
     },
@@ -281,7 +280,10 @@
         "end_time":"Време завршетка",
         "end_date_time":"Датум и време завршетка",
         "hide_employee_field":"Сакријте поља \"Назив посла\" и \"Запослени\".",
-        "calc_date_but_time":"Узмите време завршетка из подешавања"
+        "calc_date_but_time":"Узмите време завршетка из подешавања",
+        "contact_type": "Контакт",
+        "location_os":  "Плаче",
+        "contact_value":"Вредност"
     },
     "error":{
         "field_miss":   "Поље је празно",
@@ -379,7 +381,9 @@
         "ap_s_strt_time_man":"Из подешавања",
         "ap_s_no_calc":"Не рачунај",
         "ap_s_sum_all_length":"Израчунајте на основу збира свих услуга",
-        "ap_s_max_length":"Израчунајте по најдуже услуге"
+        "ap_s_max_length":"Израчунајте по најдуже услуге",
+        "vertical_list":    "Листа контаката",
+        "horizontal_icons": "Икона линија"
     },
     "kpi":{
         "hour":         "Чac",

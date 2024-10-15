@@ -61,10 +61,29 @@
                                                 {{selectedDepartment.department_address}}
                                         </span>
                                         </mat-expansion-panel-header>
-                                
-                                        <p>{{panel_max_width+panel_max_width_uq}}</p>
+                                        <form [formGroup]="formBaseInformation" *ngIf="receivedDepartmentsWithPartsList.length>1">
+                                                <mat-form-field class="company-select" style="width:100%">
+                                                        <mat-label>Branch</mat-label>
+                                                        <mat-select 
+                                                        (selectionChange)="onDepartmentSelect()"
+                                                        formControlName="departmentId">                          
+                                                                <mat-option  *ngFor="let rdl of receivedDepartmentsWithPartsList" [value]="rdl.department_id">
+                                                                        {{rdl.department_name}}
+                                                                </mat-option>
+                                                        </mat-select>
+                                                </mat-form-field>
+                                        </form>
+
+
+
+                                        <div style="width:100%; padding: 0;">
+						<iframe style="border:0; height: 250px; width: 100%;" loading="lazy" class="map" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2947.1992393145356!2d18.753389514991305!3d42.380901941778575!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x134c2d813d6eed01%3A0x7fd4258ebda47356!2z0JDQstGC0L7RgdC10YDQstC40YEgVHJpIFRvbmE!5e0!3m2!1sru!2sru!4v1492598871822" frameborder="0"  allowfullscreen></iframe>
+					</div>
+
+
+                                        <!-- <p>{{panel_max_width+panel_max_width_uq}}</p>
                                         <p>Company URL: {{company}}</p>
-                                        <p (click)="setDynamicStyle()">Language ID: {{lang}}</p>
+                                        <p (click)="setDynamicStyle()">Language ID: {{lang}}</p> -->
                                         
                                 </mat-expansion-panel>
 
@@ -120,7 +139,7 @@
                                 </div>
                         </section>
 
-                        <section class="menu-section"
+                        <section class="screen-section"
                         *ngIf="currentView=='specialist'">
 
                                 <div 
@@ -134,7 +153,7 @@
                                         <span></span>
                                         <span class="toolbar-spacer"></span>
                                         <button 
-                                        mat-icon-button 
+                                        mat-mini-fab 
                                         class="example-icon"
                                         (click)="clickBtnToMainScreen()">
                                         <mat-icon>arrow_back_ios_new</mat-icon>
@@ -165,6 +184,7 @@
                                                 <div class="main-menu-item">
                                                         <div 
                                                         class="main-menu-item-pale"
+                                                        (click)="openOsDialog('employee_reason',employee)"
                                                         [style.background-color]="onlineSchedulingSettings.stl_background_color"
                                                         *ngIf="!employee.available_by_departament || !employee.available_by_selected_services"
                                                         >
@@ -201,7 +221,7 @@
                                                 </div>
 
                                                 <div class="main-menu-nearest-slots">
-                                                        <mat-chip-set aria-label="Fish selection">
+                                                        <mat-chip-set style="width: calc(100% + 50px);">
                                                                 <mat-chip 
                                                                 [ngClass]="{'selected':isUserTimeSlotSelected(slot, employee.id)}"
                                                                 *ngFor="let slot of getNearestUserSlots(employee.id)"
@@ -216,9 +236,8 @@
                                 </ng-container>
                         </section>
 
-                        <section class="menu-section"
+                        <section class="screen-section"
                         *ngIf="currentView=='services'">
-
                                 <div 
                                 class="page-title"
                                 >
@@ -230,20 +249,18 @@
                                 <span></span>
                                 <span class="toolbar-spacer"></span>
                                 <button 
-                                mat-icon-button 
+                                mat-mini-fab 
                                 class="example-icon"
                                 (click)="clickBtnToMainScreen()">
                                 <mat-icon>arrow_back_ios_new</mat-icon>
                                 </button>
-                                </div>
-                                
+                                </div>                                
                                 <div 
                                 class="categories-row"
                                 >
                                         <div 
                                         class="categories-list"
-                                        >
-                                                
+                                        >                                                
                                                 <mat-chip-set style="width: max-content;">
                                                         <mat-chip
                                                         (click)="goCategoriesHighLevel()"
@@ -256,26 +273,17 @@
                                                         (click)="setSelectedCategoryId(category.id)">
                                                                 {{category.name}}
                                                         </mat-chip>
-                                                </mat-chip-set>
- 
-                                        </div>
-                                        
+                                                </mat-chip-set> 
+                                        </div>                                        
                                         <div
                                         class="categories-name"
-                                        [style.color]="onlineSchedulingSettings.stl_job_title_color"
+                                        [style.color]="onlineSchedulingSettings.stl_color_buttons"
                                         >
                                                 <span >{{getSelectedCategoryName()}}</span>
-                                        </div>
-
-                                        
+                                        </div>                                        
                                 </div>
-
-                                <div class="services-block">
-                                        
-
-
+                                <div class="services-block">      
                                         <ng-container *ngFor="let service of allServicesList; index as i">
-
                                                 <div class="service-row" *ngIf="selectedCategoryId == 0 || service.categories.includes(selectedCategoryId)">
                                                         <div class="service-item">
                                                                 <div matListItemTitle 
@@ -285,23 +293,78 @@
                                                                         {{service.name}}
                                                                 </div>
                                                                 <span 
-                                                                class="service-price"
-                                                                
+                                                                class="service-price"                                                                
                                                                 [style.color]="(service.available_by_selected_employee && service.available_by_departament && service.available_by_employees_who_available_by_selected_services) ? onlineSchedulingSettings.stl_job_title_color:'gainsboro'">
                                                                         {{service.price}}
-                                                                         <!-- - {{service.available_by_selected_employee}} - {{service.available_by_departament}} -->
                                                                 </span>
                                                                 <mat-icon
                                                                 class="service-checkbox"
                                                                 (click)="onSelectService(service)"
                                                                 [style.color]="(service.available_by_selected_employee && service.available_by_departament && service.available_by_employees_who_available_by_selected_services) ? onlineSchedulingSettings.stl_selected_elements_color:'gainsboro'"
                                                                 >{{(service.available_by_selected_employee && service.available_by_departament && service.available_by_employees_who_available_by_selected_services)?(selectedServicesIds.includes(service.id)?'check_box':'check_box_outline_blank'):'help_center'}}</mat-icon>
-                                                        </div>
-        
-                                                </div>               
-        
-        
+                                                        </div>        
+                                                </div>                   
                                         </ng-container>
+                                </div>
+                        </section>
+
+                        <section class="screen-section"
+                        *ngIf="currentView=='time'">
+
+                                <div 
+                                class="page-title"
+                                >
+                                        <span 
+                                        class="page-title-text"
+                                        [style.color]="onlineSchedulingSettings.stl_color_text">
+                                                {{onlineSchedulingSettings.txt_btn_select_time}}
+                                        </span>
+                                <span></span>
+                                <span class="toolbar-spacer"></span>
+                                <button 
+                                mat-mini-fab
+                                class="example-icon"
+                                (click)="clickBtnToMainScreen()">
+                                <mat-icon>arrow_back_ios_new</mat-icon>
+                                </button>
+                                </div>
+                                
+                                <div 
+                                class="dates-block"
+                                >
+                                        <mat-calendar #calendar 
+                                                [(selected)]="selected"
+                                                [dateFilter]="myFilter"
+                                                (selectedChange)="matCalendarOnclickDay($event)">
+                                        </mat-calendar>
+
+                                        
+                                </div>
+
+                                <div class="time-block" style="position: relative;">
+                                        <!-- -{{viewDate}}- -->
+
+                                        <mat-chip-set 
+                                        class="time-mat-chip-set"
+                                        [style.background-color]="onlineSchedulingSettings.stl_background_color">
+                                                <ng-container *ngFor="let slot of resultTimeSlotsList">
+                                                        <mat-chip *ngIf="isDateEqualsViewDate(slot.start)"
+                                                        [ngClass]="{'selected':isTimeSlotSelected(slot.start)}"                                                        
+                                                        (click)="setSelectedDateTime(slot.start)"
+                                                        style="width: calc(25% - 8px); margin-top: 10px;"
+                                                        >
+                                                                {{getTimeFromSlot(slot.start)}}
+                                                        </mat-chip>
+                                                </ng-container>
+                                                
+                                        </mat-chip-set>
+
+                                        <div class="no-timeslot">
+                                                <span
+                                                [style.color]="onlineSchedulingSettings.stl_color_text"
+                                                >There are no time slots available for the selected date.</span>
+                                        </div>
+                                        
                                 </div>
 
                         </section>
@@ -312,7 +375,7 @@
 
 
         </div>
-        <div class="action-button-wrapper" *ngIf="currentView=='specialist' && ((selectedDateTime!='' && selectedEmployeeId!=null) || selectedEmployeeId==0)">
+        <div class="action-button-wrapper" *ngIf="['time','specialist'].includes(currentView) && selectedServicesIds.length==0 && selectedDateTime!='' && selectedEmployeeId!=null">
                 <button 
                 mat-fab 
                 extended
@@ -321,6 +384,42 @@
                 >
                         <mat-icon>checklist</mat-icon>
                         {{onlineSchedulingSettings.txt_btn_select_services}}
+                </button>                
+        </div>
+        <div class="action-button-wrapper" *ngIf="['specialist','services'].includes(currentView) && ((currentView=='specialist' && selectedDateTime=='' && selectedEmployeeId!=null) || (currentView=='services' && selectedServicesIds.length>0 && selectedEmployeeId!=null))">
+                <button 
+                mat-fab 
+                extended
+                class="action-button"
+                (click)="onClickBtnSelectTime()"
+                >
+                        <mat-icon>today</mat-icon>
+                        {{onlineSchedulingSettings.txt_btn_select_time}}
                 </button>
+                
+        </div>
+        <div class="action-button-wrapper" *ngIf="['time','services'].includes(currentView) && ((currentView=='time' && selectedEmployeeId==null && selectedDateTime!='') || (currentView=='services' && selectedServicesIds.length>0 && selectedEmployeeId==null))">
+                <button 
+                mat-fab 
+                extended
+                class="action-button"
+                (click)="onClickBtnSelectEmployee()"
+                >
+                        <mat-icon>person</mat-icon>
+                        {{onlineSchedulingSettings.txt_btn_select_specialist}}
+                </button>
+                
+        </div>
+        <div class="action-button-wrapper" *ngIf="['specialist','time','services'].includes(currentView) && (selectedDateTime!='' && selectedEmployeeId!=null && selectedServicesIds.length>0)">
+                <button 
+                mat-fab 
+                extended
+                class="action-button"
+                (click)="onClickBtnReady()"
+                >
+                        <mat-icon>done</mat-icon>
+                        {{onlineSchedulingSettings.txt_btn_create_order}}
+                </button>
+                
         </div>
 </div>

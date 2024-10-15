@@ -1,0 +1,82 @@
+<section class="dialog-body">
+
+    <div class="top">
+        <mat-icon class="close-icon" (click)="onNoClick()">close</mat-icon>
+    </div>
+
+
+    <div *ngIf="data.screen == 'employee_reason'" class="screen">
+        <div class="header">
+            <h3>
+                {{data.txt_spec_unavlbl_reasons}}
+            </h3>
+        </div>
+        <div class="explanation">
+            <ul>
+                <li *ngIf = "data.object.available_by_time == false" class="reason">
+                    <span class="reason-icon">
+                        <mat-icon>today</mat-icon>
+                    </span>
+                    <span class="reason-text">
+                        {{data.txt_unav_by_time}}
+                    </span>
+                </li>
+                <li *ngIf = "data.object.available_by_departament == false" class="reason">
+                    <span class="reason-icon">
+                        <mat-icon>place</mat-icon>
+                    </span>
+                    <span class="reason-text">
+                        {{data.txt_unav_spec_by_departament}}
+                    </span>
+                </li>
+                <li *ngIf = "data.object.available_by_selected_services == false" class="reason">
+                    <span class="reason-icon">
+                        <mat-icon>checklist</mat-icon>
+                    </span>
+                    <span class="reason-text">
+                        {{data.txt_unav_by_selected_services}}
+                    </span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div *ngIf="data.screen == 'service_reason'" class="screen">
+        <div class="header">
+            <h3>
+                {{data.txt_srvc_unavlbl_reasons}}
+            </h3>
+        </div>
+        <div class="explanation">
+            <ul>
+                <li *ngIf = "data.object.available_by_selected_employee == false" class="reason">
+                    <span class="reason-icon">
+                        <mat-icon>person</mat-icon>
+                    </span>
+                    <span class="reason-text">
+                        {{data.txt_unav_by_selected_employee}}
+                    </span>
+                </li>
+                <li *ngIf = "data.object.available_by_employees_who_available_by_selected_services == false" class="reason">
+                    <span class="reason-icon">
+                        <mat-icon>checklist</mat-icon>
+                    </span>
+                    <span class="reason-text">
+                        {{data.txt_unav_by_employees_who_available_by_selected_services}}
+                    </span>
+                </li>
+                <li *ngIf = "data.object.available_by_departament == false" class="reason">
+                    <span class="reason-icon">
+                        <mat-icon>place</mat-icon>
+                    </span>
+                    <span class="reason-text">
+                        {{data.txt_unav_srvc_by_departament}}
+                    </span>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    
+
+</section>

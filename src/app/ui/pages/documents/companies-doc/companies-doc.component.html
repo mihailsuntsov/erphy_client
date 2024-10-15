@@ -9,13 +9,13 @@
                     (click)="clickBtnUpdate()"
                     [style.display]="id>0?'flex':'none'"
                     *ngIf="allowToView"
-                    [disabled]="!formBaseInformation.valid||oneClickSaveControl" 
+                    [disabled]="!formBaseInformation.valid||!contactsComponent.formContacts.valid||oneClickSaveControl" 
                     matTooltip="{{t('docs.tip.save')}}"
                     color="primary"
                     class="button small-button">
                     <i class="material-icons">save</i>
                 </button>
-                <button 
+                <!-- <button 
                     mat-raised-button 
                     [style.display]="id>0?'none':'flex'"
                     (click)="clickBtnCreateNewDocument()" 
@@ -25,7 +25,7 @@
                     color="primary"
                     class="button small-button">
                     <i class="material-icons">done</i>
-                </button>
+                </button> -->
                 <a routerLink="../{{+id>0?'../':''}}companies" style="text-decoration: none;" [style.display]="(mode=='standart')?'block':'none'" >
                     <button 
                         mat-raised-button 
@@ -709,8 +709,22 @@
                                         <mat-card-title>{{t('docs.card.contacts')}}</mat-card-title>
                                     </mat-card-header>
                                     <mat-card-content class="input-form">
-                                        <!-- Телефон -->
-                                        <mat-form-field>
+
+
+                                        <app-contacts
+                                            [contactsList]="onlineSchedulingContactsList"
+                                            [companyId]="id"
+                                            [editability]="editability">
+                                        </app-contacts>
+
+
+
+
+
+
+
+
+                                        <!-- <mat-form-field>
                                             <mat-label>{{t('docs.field.telephone')}}</mat-label>
                                             <input   matInput
                                                     [readonly]=!editability
@@ -719,7 +733,6 @@
                                                     formControlName="telephone"/>
                                             <mat-hint align="end" *ngIf="formBaseInformation.get('telephone').value.length>50">{{formBaseInformation.get('telephone').value.length}} / 60</mat-hint>
                                         </mat-form-field>
-                                        <!-- e-mail -->
                                         <mat-form-field>
                                             <mat-label>e-mail</mat-label>
                                             <input   matInput
@@ -729,7 +742,6 @@
                                                     formControlName="email"/>
                                             <mat-hint align="end" *ngIf="formBaseInformation.get('email').value.length>200">{{formBaseInformation.get('email').value.length}} / 254</mat-hint>
                                         </mat-form-field>
-                                        <!-- Сайт -->
                                         <mat-form-field>
                                             <mat-label>{{t('docs.field.site')}}</mat-label>
                                             <input   matInput
@@ -738,7 +750,7 @@
                                                     maxlength="120"
                                                     formControlName="site"/>
                                             <mat-hint align="end" *ngIf="formBaseInformation.get('site').value.length>100">{{formBaseInformation.get('site').value.length}} / 120</mat-hint>
-                                        </mat-form-field>
+                                        </mat-form-field> -->
                                     </mat-card-content>
                                 </mat-card> 
                                 <mat-card appearance="outlined" *ngIf="+id>0">

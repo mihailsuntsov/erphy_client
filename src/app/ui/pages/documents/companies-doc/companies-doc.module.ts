@@ -7,6 +7,7 @@ import { MaterialModule } from '../../../../modules/material.module';
 import { SharedModule } from '../../../../modules/shared.module';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
+import { ContactsModule } from 'src/app/modules/other/contacts/contacts.module';
 
 @NgModule({
   declarations: [CompaniesDocComponent],
@@ -18,7 +19,8 @@ import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
     ReactiveFormsModule,
     SharedModule,
     DragDropModule,
-    TranslocoModule
+    TranslocoModule,
+    ContactsModule
   ],
   providers:[{ provide: TRANSLOCO_SCOPE, useValue: ['docs','menu','modules']},]
 })

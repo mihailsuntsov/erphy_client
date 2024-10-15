@@ -1,9 +1,10 @@
-import { Component, OnInit, Inject, Renderer2, ElementRef, SimpleChanges, AfterViewInit } from '@angular/core';
+import { Component, OnInit, Inject, Renderer2, ElementRef, SimpleChanges, AfterViewInit, ViewChild, ChangeDetectorRef, ChangeDetectionStrategy } from '@angular/core';
 import {  Validators, UntypedFormGroup, UntypedFormControl } from '@angular/forms';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { MatDialog } from '@angular/material/dialog';
 import { ActivatedRoute } from '@angular/router'; //import package from module
 import { HttpParams, HttpClient } from '@angular/common/http';
+import { OsDialogComponent } from './osdialog.component';
 
 import { MomentDefault } from 'src/app/services/moment-default';
 import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
@@ -11,6 +12,8 @@ import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/materia
 import { Observable } from 'rxjs';
 import { CalendarEvent, CalendarDateFormatter, DAYS_OF_WEEK, CalendarEventTimesChangedEvent, CalendarEventTitleFormatter } from 'angular-calendar';
 import { DOCUMENT } from '@angular/common';
+import { Moment } from 'moment';
+import { MatCalendar } from '@angular/material/datepicker';
 const MY_FORMATS = MomentDefault.getMomentFormat();
 const moment = MomentDefault.getMomentDefault();
 
@@ -112,6 +115,36 @@ interface CompanySettings{
   date_format: string;
   onlineSchedulingLanguagesList: OnlineSchedulingLanguage[];
   onlineSchedulingFieldsTranslations: OnlineSchedulingFieldsTranslation[];
+
+  // to add (there are no in database at this moment)
+  fld_toolbar_show: boolean;
+  fld_toolbar_title: string;
+  fld_show_hero: boolean;
+  fld_hero_heigth: string;
+  fld_hero_img_link: string;
+  fld_hero_cover_width: string; // (%)
+  fld_hero_cover_color: string;
+  fld_hero_big_sign: string;
+  fld_hero_small_sign: string;
+  fld_currency_place: string; //      (before/after price)
+  
+  txt_srvc_unavlbl_reasons: string; // This service is unavailable next reasons:
+  txt_unav_by_selected_employee: string;
+  txt_unav_by_employees_who_available_by_selected_services: string;
+  txt_unav_srvc_by_departament: string;
+  txt_spec_unavlbl_reasons: string; // This specialist is unavailable next reasons:
+  txt_unav_by_selected_services: string;
+  txt_unav_spec_by_departament: string;
+  txt_unav_by_time: string;
+
+  stl_color_no_active_element: string;
+
+
+
+
+
+
+
 }
 
 interface Department{
@@ -198,7 +231,8 @@ interface TimeSlot{
   providers:[    
     { provide: DateAdapter, useClass: MomentDateAdapter,deps: [MAT_DATE_LOCALE, MAT_MOMENT_DATE_ADAPTER_OPTIONS]},
     {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},
-  ]
+  ],
+  changeDetection: ChangeDetectionStrategy.Default,
 })
 export class OnlineschedulingComponent implements AfterViewInit {
 
@@ -207,6 +241,8 @@ export class OnlineschedulingComponent implements AfterViewInit {
     public MessageDialog: MatDialog,
     private renderer: Renderer2, 
     private el: ElementRef,
+    private osDialogComponent: MatDialog,
+    private ref: ChangeDetectorRef,
     // private rendererFactory: RendererFactory2,
     private _adapter: DateAdapter<any>,
     private route: ActivatedRoute //dependency injection
@@ -276,6 +312,30 @@ export class OnlineschedulingComponent implements AfterViewInit {
     stl_job_title_color: '#545454',
     onlineSchedulingLanguagesList: [],
     onlineSchedulingFieldsTranslations: [],
+    
+    // to add (there are no in database at this moment)
+    fld_toolbar_show: true,
+    fld_toolbar_title: '',
+    fld_show_hero: true,
+    fld_hero_heigth: '250',
+    fld_hero_img_link: '2f7a20ac-84f-2024-10-01-12-11-38-722_encrypted.jpg',
+    fld_hero_cover_width: '80', // (%)
+    fld_hero_cover_color: '17003476',
+    fld_hero_big_sign: 'Imagination',
+    fld_hero_small_sign: 'Beauty nails studio',
+    fld_currency_place: 'before', //      (before/after price)
+    
+    txt_srvc_unavlbl_reasons: 'This service is unavailable for the following reasons:', // This service is unavailable next reasons:
+    txt_unav_by_selected_employee: 'The selected specialist does not perform this service',
+    txt_unav_by_employees_who_available_by_selected_services: 'This service cannot be provided together with selected services within the same appointment.',
+    txt_unav_srvc_by_departament: 'This service is not available at the selected location.',
+    txt_spec_unavlbl_reasons: 'This specialist is unavailable for the following reasons:', // This specialist is unavailable next reasons:
+    txt_unav_by_selected_services: 'This specialist does not provide the selected services',
+    txt_unav_spec_by_departament: 'This specialist is not available in the selected location.',
+    txt_unav_by_time: 'This specialist is not available at the selected time.',
+  
+    stl_color_no_active_element: '#dcdcdc',
+  
   };
   initialLoading=true;// to handle the end of loading document
   employeesListLoadQtt = 0; // if == 3 then indication of list loading will shown
@@ -310,6 +370,22 @@ export class OnlineschedulingComponent implements AfterViewInit {
 
   // Time variables
   locale:string='en-us';// locale (for dates, calendar etc.)
+  viewDate: Date = new Date();
+  selected: Date | null;
+  @ViewChild('calendar', {static: false}) calendar: MatCalendar<Date>;
+  // displayNoAccessibleSlotsMessage:boolean = true;
+  // myFilter = (d: Date | null): boolean => {
+  //   const day = (d || new Date()).getDay();
+  //   return day !== 0 && day !== 6;
+  // };
+  myFilter = (date: Date | null): boolean => {
+    const today = new Date()
+    console.log('date.toDateString()',moment(date).format('DD.MM.YYYY').toString())
+    // console.log('today',today)
+    // if(!date) { return false }
+    return date >= today || (moment(date).format('DD.MM.YYYY').toString() === moment(today).format('DD.MM.YYYY').toString());
+  };
+  
   // Styles variables
   corner_radius:number = 15;
   // inner_background_color='#ffffff';
@@ -377,21 +453,21 @@ export class OnlineschedulingComponent implements AfterViewInit {
     }
 
     // wide buttons
-    this.element = this.el.nativeElement.querySelector("button.mat-mdc-extended-fab");
-    if(this.element){
-      this.renderer.setStyle(this.element, "border-radius", this.onlineSchedulingSettings.stl_corner_radius+'px');
-      this.renderer.setStyle(this.element, "background-color", this.onlineSchedulingSettings.stl_color_buttons);
-      this.renderer.setStyle(this.element, "color", this.onlineSchedulingSettings.stl_color_buttons_text);
-      this.renderer.setStyle(this.element, "max-width", this.panel_max_width+this.panel_max_width_uq);
-      // this.renderer.setStyle(this.element, "box-shadow", 'none');
-    }
-      this.element = this.el.nativeElement.querySelector("button.mat-mdc-mini-fab .mat-mdc-button-persistent-ripple");
-    if(this.element){
-      this.renderer.setStyle(this.element, "border-radius", this.onlineSchedulingSettings.stl_corner_radius+'px');
-    }
+    let elements = this.el.nativeElement.querySelectorAll("button.mat-mdc-extended-fab");
+    elements.forEach(element => {
+      this.renderer.setStyle(element, "border-radius", this.onlineSchedulingSettings.stl_corner_radius+'px');
+      this.renderer.setStyle(element, "background-color", this.onlineSchedulingSettings.stl_color_buttons);
+      this.renderer.setStyle(element, "color", this.onlineSchedulingSettings.stl_color_buttons_text);
+      this.renderer.setStyle(element, "max-width", this.panel_max_width+this.panel_max_width_uq);
+      // this.renderer.setStyle(element, "box-shadow", 'none');
+    });
+    elements = this.el.nativeElement.querySelectorAll("button.mat-mdc-mini-fab .mat-mdc-button-persistent-ripple");
+    elements.forEach(element => {
+      this.renderer.setStyle(element, "border-radius", this.onlineSchedulingSettings.stl_corner_radius+'px');
+    });
 
-    
-    let elements = this.el.nativeElement.querySelectorAll("button.mat-mdc-mini-fab");
+    // mini-buttons
+    elements = this.el.nativeElement.querySelectorAll("button.mat-mdc-mini-fab");
     elements.forEach(element => {
       this.renderer.setStyle(element, "border-radius", this.onlineSchedulingSettings.stl_corner_radius+'px');
       this.renderer.setStyle(element, "background-color", this.onlineSchedulingSettings.stl_color_buttons);
@@ -424,7 +500,7 @@ export class OnlineschedulingComponent implements AfterViewInit {
       userSlotsChips.forEach(element => {
         this.renderer.setStyle(element, "color", this.onlineSchedulingSettings.stl_color_buttons_text);
     })
-
+    console.log('Dynamic styles refreshed')
 }
   getOnlineSchedulingSettings(){ 
     this.http.get('/api/public/getOnlineSchedulingSettings?company_id='+this.company).subscribe(data => { 
@@ -437,6 +513,32 @@ export class OnlineschedulingComponent implements AfterViewInit {
                   this.panel_max_width=this.onlineSchedulingSettings.stl_panel_max_width;
                   this.panel_max_width_uq=this.onlineSchedulingSettings.stl_panel_max_width_unit;
                   this.color_buttons=this.onlineSchedulingSettings.stl_color_buttons;
+
+                  // non-created backend parameters
+
+                  this.onlineSchedulingSettings.fld_toolbar_show=true;
+                  this.onlineSchedulingSettings.fld_toolbar_title='';
+                  this.onlineSchedulingSettings.fld_show_hero=true;
+                  this.onlineSchedulingSettings.fld_hero_heigth='250';
+                  this.onlineSchedulingSettings.fld_hero_img_link='2f7a20ac-84f-2024-10-01-12-11-38-722_encrypted.jpg';
+                  this.onlineSchedulingSettings.fld_hero_cover_width='80'; // (%)
+                  this.onlineSchedulingSettings.fld_hero_cover_color='17003476';
+                  this.onlineSchedulingSettings.fld_hero_big_sign='Imagination';
+                  this.onlineSchedulingSettings.fld_hero_small_sign='Beauty nails studio';
+                  this.onlineSchedulingSettings.fld_currency_place='before'; //      (before/after price)
+                  
+                  this.onlineSchedulingSettings.txt_srvc_unavlbl_reasons='This service is unavailable for the following reasons:'; // This service is unavailable next reasons:
+                  this.onlineSchedulingSettings.txt_unav_by_selected_employee='The selected specialist does not perform this service';
+                  this.onlineSchedulingSettings.txt_unav_by_employees_who_available_by_selected_services='This service cannot be provided together with selected services within the same appointment.';
+                  this.onlineSchedulingSettings.txt_unav_srvc_by_departament='This service is not available at the selected location.';
+                  this.onlineSchedulingSettings.txt_spec_unavlbl_reasons='This specialist is unavailable for the following reasons:'; // This specialist is unavailable next reasons:
+                  this.onlineSchedulingSettings.txt_unav_by_selected_services='This specialist does not provide the selected services';
+                  this.onlineSchedulingSettings.txt_unav_spec_by_departament='This specialist is not available in the selected location.';
+                  this.onlineSchedulingSettings.txt_unav_by_time='This specialist is not available at the selected time.';
+                
+                  this.onlineSchedulingSettings.stl_color_no_active_element='#dcdcdc';
+
+
                   this.setDynamicStyle();
                   break;}
             }this.gettingData = false;},
@@ -553,6 +655,7 @@ export class OnlineschedulingComponent implements AfterViewInit {
         this.events = data as CalendarEvent[];
         this.calculateTimeSlots();
         this.recalculateEmployees();
+        this.recalculateTimeSlots();
       })
   }
 
@@ -600,7 +703,8 @@ export class OnlineschedulingComponent implements AfterViewInit {
     for (var i = 0; i < this.allTimeSlots.length; i++) {
       if(employeeId == this.allTimeSlots[i].employeeId){
         if(firstSlotDay=='') firstSlotDay = moment(this.allTimeSlots[i].start).format("DD");
-        result.push(moment(this.allTimeSlots[i].start).toDate().toISOString());
+        if(moment(this.allTimeSlots[i].start).format("DD") === firstSlotDay) // to not get slots of the next day
+          result.push(moment(this.allTimeSlots[i].start).toDate().toISOString());
         // result.push(moment(this.allTimeSlots[i].start).format(timeFormat));
         slotCounter++;
       }
@@ -611,6 +715,7 @@ export class OnlineschedulingComponent implements AfterViewInit {
   }
 
   getTimeFromSlot(dateTime:string){
+    // this.hideNoAccessibleSlotsMessage();
     return moment(dateTime).format(this.onlineSchedulingSettings.fld_time_format=='12'?'hh:mm A':'HH:mm')
   }
 
@@ -620,11 +725,17 @@ export class OnlineschedulingComponent implements AfterViewInit {
     this.onSelectEmployee(employee); // if it is new employee - it will be changed, and acceptible services will be recalculated
     setTimeout(() => {this.setDynamicStyle(); }, 10);
   }
-  
+  setSelectedDateTime(dateTime:string){
+    this.selectedDateTime = dateTime;
+    this.recalculateEmployees();
+    setTimeout(() => {this.setDynamicStyle(); }, 10);
+  }
   isUserTimeSlotSelected(dateTime:string, employeeId:number){
     return(dateTime == this.selectedDateTime && employeeId == this.selectedEmployeeId)
   }
-
+  isTimeSlotSelected(dateTime:string){
+    return(dateTime == this.selectedDateTime)
+  }
   isArraysIntersect(array1:number[],array2:number[]){
     return array1.filter(value => array2.includes(value)).length > 0;
   }
@@ -664,7 +775,20 @@ export class OnlineschedulingComponent implements AfterViewInit {
     // Sorting by "Oldest first"
     resultTimeSlotsList.sort((a, b) => a.start.localeCompare(b.start));
 
-    console.log('resultTimeSlotsList',resultTimeSlotsList)
+    this.resultTimeSlotsList = [];
+    
+    let availableEmployeesIds = (this.selectedEmployeeId==null || this.selectedEmployeeId==0)?this.getEmployeesIdsAvailableBySelectedServicesAndDepartment():[this.selectedEmployeeId];
+    let currentTime = '';
+    resultTimeSlotsList.map(slot=>{
+      if(availableEmployeesIds.includes(slot.employeeId) && currentTime != slot.start){
+        this.resultTimeSlotsList.push(slot);
+        currentTime=slot.start;
+      }        
+    })
+
+
+
+    console.log('resultTimeSlotsList',this.resultTimeSlotsList)
 
   }
 
@@ -728,7 +852,6 @@ export class OnlineschedulingComponent implements AfterViewInit {
       }
     });
     // console.log(this.allTimeSlots);
-    this.recalculateTimeSlots();
   }
   onSelectService(service:Service){
     
@@ -745,7 +868,10 @@ export class OnlineschedulingComponent implements AfterViewInit {
       console.log('this.selectedServicesIds2',this.selectedServicesIds)  
       this.recalculateEmployees();
       this.recalculateServices();
-    }
+      this.recalculateTimeSlots();
+      
+      setTimeout(() => {this.setDynamicStyle(); }, 10);
+    } else this.openOsDialog('service_reason', service);
      
     // console.log('indexOf(serviceId)=',this.selectedServicesIds.indexOf(serviceId))
     // console.log('selectedServicesIds', this.selectedServicesIds)
@@ -951,7 +1077,14 @@ export class OnlineschedulingComponent implements AfterViewInit {
       return result;
     }
   }
-
+  getEmployeesIdsAvailableBySelectedServicesAndDepartment():number[]{
+    let result:number[]=[];
+    this.allEmployeesList.map(employee=>{
+      if(employee.available_by_departament && employee.available_by_selected_services)
+        result.push(employee.id);
+    });
+    return result;
+  }
   // getAllServicesIdsOfEmployeeInCurrentDepartment(employeeId):number[]{
   //   let result:number[]=[];
   //   let allDepPartsOfSelectedDepartment = this.getSelectedDeppartsIds();
@@ -1046,38 +1179,64 @@ export class OnlineschedulingComponent implements AfterViewInit {
     
   }
   clickBtnSelectSpecialist(){
-    this.currentView = 'specialist'
+    this.currentView = 'specialist';
     setTimeout(() => {this.setDynamicStyle(); }, 1);
   }
   clickBtnSelectTime(){
-    this.currentView = 'time'
+    this.currentView = 'time';
     setTimeout(() => {this.setDynamicStyle(); }, 1);
   }
   clickBtnSelectServices(){
-    this.currentView = 'services'
+    this.currentView = 'services';
     setTimeout(() => {this.setDynamicStyle(); }, 1);
   }
-  onSelectEmployee(employee:Employee){
-    // if employee has changed - need to reset the time of an appointment
-      if(employee.available_by_departament && employee.available_by_selected_services && employee.available_by_time && this.selectedEmployeeId != employee.id){
-        // this.selectedDateTime='';
-        this.selectedEmployeeId=employee.id;
-        this.recalculateServices();
-        setTimeout(() => {this.setDynamicStyle(); }, 1);
-      }
+  onSelectEmployee(employee:Employee){    
+      if(employee.available_by_departament && employee.available_by_selected_services && employee.available_by_time){
+        if(this.selectedEmployeeId != employee.id){
+          this.selectedEmployeeId=employee.id;
+          this.recalculateServices();
+          this.recalculateEmployees();
+          this.recalculateTimeSlots();
+          setTimeout(() => {this.setDynamicStyle(); }, 1);
+        }        
+      } else this.openOsDialog('employee_reason',employee);
   }
   onSelectAnyEmployee(){
     this.selectedEmployeeId=0;
     this.selectedDateTime='';
     this.recalculateServices();
     this.recalculateEmployees();
+    this.recalculateTimeSlots();
     setTimeout(() => {this.setDynamicStyle(); }, 1);
   }
   onClickBtnSelectServices(){
     this.currentView = 'services';
     setTimeout(() => {this.setDynamicStyle(); }, 1);
   }
+  onClickBtnSelectTime(){
+    this.currentView = 'time';
+    this.ref.detectChanges();
+  }
 
+  onClickBtnReady(){}
+  
+  onClickBtnSelectEmployee(){
+    this.currentView = 'specialist';
+    setTimeout(() => {this.setDynamicStyle(); }, 1);
+  }
+
+  matCalendarOnclickDay(event:Moment): void {
+    this.viewDate = event.toDate();
+    setTimeout(() => {this.setDynamicStyle(); }, 10);    
+  }
+  isDateEqualsViewDate(dateIso:string){
+    return(moment(dateIso).format('YYYY-MM-DD') === moment(this.viewDate).format('YYYY-MM-DD'));
+  }
+  changeDateMatCalendar(date: Date) {
+    let date_ = this._adapter.parse(moment(date).format('YYYY-MM-DD'), 'YYYY-MM-DD');
+    this.calendar._goToDateInView(this._adapter.getValidDateOrNull(date_), 'month');
+    this.calendar.selected=this._adapter.getValidDateOrNull(date_);
+  }
   timeTo24h(time:string){
     // In ru locale MomentJs has 'утра' and 'вечера' instead of AM and PM
     // if current locale is ru - moment to convert string to time format needs to have string contained 'утра','вечера' instead of AM PM  
@@ -1091,4 +1250,49 @@ export class OnlineschedulingComponent implements AfterViewInit {
   handleEndOfInitialLoading(){
   }
 
+  // screen: 
+  // 'employee_reason'
+  // 'service_reason'
+
+  openOsDialog(screen:string, object:any) {
+    let data:any = {};
+    switch (screen){
+      case 'employee_reason':{
+        data.object = object;
+        data.screen = screen;
+        data.txt_spec_unavlbl_reasons = this.onlineSchedulingSettings.txt_spec_unavlbl_reasons;
+        data.txt_unav_by_selected_services = this.onlineSchedulingSettings.txt_unav_by_selected_services;
+        data.txt_unav_spec_by_departament = this.onlineSchedulingSettings.txt_unav_spec_by_departament;
+        data.txt_unav_by_time = this.onlineSchedulingSettings.txt_unav_by_time;
+      };
+      case 'service_reason':{
+        data.object = object;
+        data.screen = screen;
+        data.txt_srvc_unavlbl_reasons = this.onlineSchedulingSettings.txt_srvc_unavlbl_reasons;
+        data.txt_unav_by_selected_employee = this.onlineSchedulingSettings.txt_unav_by_selected_employee;
+        data.txt_unav_by_employees_who_available_by_selected_services = this.onlineSchedulingSettings.txt_unav_by_employees_who_available_by_selected_services;
+        data.txt_unav_srvc_by_departament = this.onlineSchedulingSettings.txt_unav_srvc_by_departament;
+      }
+    }
+    const dialogFastDcedule = this.osDialogComponent.open(OsDialogComponent, {
+      width: '80vw',
+      maxWidth: '400px',
+      data: data,
+    });
+    dialogFastDcedule.afterClosed().subscribe(result => {
+      // console.log(`Dialog result: ${result}`);
+      if(result){
+        
+      }
+    });
+  }
+
+  onDepartmentSelect(){
+    this.receivedDepartmentsWithPartsList.map(department=>{
+      if(department.department_id == this.formBaseInformation.get('departmentId').value){
+        this.selectedDepartment = department;        
+      }
+    });
+  }
+  
 }

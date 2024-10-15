@@ -8,6 +8,7 @@ import { httpInterceptorProviders } from './auth/auth-interceptor';
 // import { ValidationService } from './services/validation.service';
 import { MatDialogRef } from '@angular/material/dialog';
 import { TranslocoRootModule } from './transloco-root.module';
+import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 
 @NgModule({
   declarations: [
@@ -19,6 +20,7 @@ import { TranslocoRootModule } from './transloco-root.module';
     AppRoutingModule,
     HttpClientModule,
     TranslocoRootModule,
+    FontAwesomeModule,
   ],
   exports: [
   ],

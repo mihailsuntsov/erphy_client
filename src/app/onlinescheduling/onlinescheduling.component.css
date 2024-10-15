@@ -23,7 +23,7 @@ h3{
   margin: 0 auto;
   width: 100%;
   text-align: left;
-  overflow: hidden;
+  /* overflow: hidden; */
   padding-top: 55px;
 }
 
@@ -47,7 +47,15 @@ h3{
   margin-top:-16px;
   left: 25px;
 }
-
+::ng-deep .mdc-evolution-chip__cell{
+  display: grid!important;
+}
+::ng-deep .mat-calendar-body-cell-content{
+  font-size: 16px;
+}
+::ng-deep .mat-calendar-table-header th {
+  font-size: 16px;
+}
 .department-panel-headers-align .mat-expansion-panel-header-description {
   justify-content: space-between;
   align-items: center;
@@ -93,6 +101,11 @@ h3{
   padding: 15px 22px;
   position: relative;
 }
+.screen-section{
+  margin-top:15px;
+  width:100%;
+  padding-bottom: 100px;
+}
 ::ng-deep .mat-mdc-extended-fab{
   width:100%!important;
 }
@@ -116,19 +129,27 @@ h3{
   line-height: 44px;
 }
 .main-menu-nearest-time{
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
   font-size: 14px;
   font-weight: 600;
   margin-left: 55px;
   margin-top: 6px;
 }
-.main-menu-nearest-slots{
+.main-menu-nearest-slots{    
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
   margin-left: 55px;
   margin-top: 6px;
+  width: calc(100% - 40px);
+  height: 40px;
 }
 .main-menu-item-pale{
   width: 106%;
   position: absolute;
-  height: 112px;
+  height: 105px;
   background-color: #ffffff;
   z-index: 100;
   -moz-opacity: 0.5;
@@ -170,18 +191,9 @@ h3{
   background-color: rgb(255, 255, 174);
 }
 .categories-list{
-  /* width:calc(100% - 50px);
-  height: 50px;
-  background-color: rgb(146, 255, 146);
-  overflow-x: auto;
-  overflow-y: hidden;
-  white-space: nowrap; */
   padding-top: 10px;
-  /* padding-bottom: 5px; */
   display: block;
-  /* width: 100%; */
-  width: calc(100% + 52px);
-  /* max-width: 600px; */
+  /* width: calc(100% + 52px); */
   padding-left: 26px;
   padding-right: 26px;
   overflow-x: scroll !important;
@@ -189,8 +201,8 @@ h3{
   scrollbar-color: rgba(0, 0, 0, 0) transparent;
   scrollbar-width: thin;
   transition: all .5s;
-  margin-left: -25px; /*for not display arrows of horizontal scrollbar on hover*/
-  margin-right: -25px;
+  margin-left: -16px;
+  margin-right: -16px;
 }
 .categories-name{
   width:100%;
@@ -200,7 +212,7 @@ h3{
   text-overflow: ellipsis;
   margin-top: 15px;
   font-weight: 700;
-  font-size: 17px;
+  font-size: 24px;
 }
 
 .services-block{
@@ -256,7 +268,7 @@ h3{
 .page-title-text{
   font-size: 20px;
   font-weight: 600;
-  line-height: 45px;
+  line-height: 39px;
 }
 
 .checkbox{
@@ -282,6 +294,10 @@ h3{
   bottom: 1px;
   font-size: 12px;
   left: 56px;
+  display: block;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 .action-button-wrapper{
   position: fixed;
@@ -290,7 +306,34 @@ h3{
   width: calc(100% - 2em) !important;
   left: 1em;
   right: 1em;
+  z-index:200;
 }
 .action-button{
   margin: 0 auto;
 }
+
+::ng-deep .mat-calendar-body-label{
+  opacity: 0;
+}
+::ng-deep .mat-calendar-body-label[colspan="7"]{
+  display: none;
+}
+/* ::ng-deep .mat-calendar-table-header-divider::after {
+  background: white;
+}
+::ng-deep .mat-drawer-side {
+  border-right: solid 1px white;
+} */
+ .no-timeslot{
+  position: absolute;
+  top: 0px;
+  z-index: 1;
+  width: 100%;
+  text-align: center;
+  height: 36px;
+  overflow: hidden;
+ }
+ .time-mat-chip-set{
+  position: relative; 
+  z-index: 10;
+ }

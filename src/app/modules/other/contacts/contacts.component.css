@@ -1,0 +1,76 @@
+/*---------- DRAG n DROP -------------*/
+.handler {
+    cursor: move;
+    position: absolute;
+    top: 6px;
+    right: 40px;
+    width: 20px;
+    height: 20px;
+    color: #585858;
+    z-index: 1000;
+}
+  .del-icon {
+    cursor: default;
+    position: absolute;
+    top: 6px;
+    right: 10px;
+    width: 20px;
+    height: 20px;
+    color: #585858;
+    z-index: 1000;
+}
+.cdk-drag-placeholder {
+    background: white;
+    transition: transform 500ms ease;
+    /* padding: 20px; */
+    border: 3px solid rgb(43, 43, 43);
+    z-index: 999;
+}
+.cdk-drag-animating {
+transition: transform 500ms cubic-bezier(0, 0, 0.2, 1);
+}
+/* .nav-icon {
+    display: inline-block;
+    width: 1.09375rem;
+    margin: -5px .3rem -5px 0;
+    font-size: 1.1rem;
+    color: #20a8d8;
+    text-align: center;
+    position: relative;
+    top: 2px;
+  } */
+
+.hand
+{
+  cursor: pointer;
+}
+.center {
+  display: flex;
+  justify-content: center;
+}
+.add-button{
+  margin-top: 20px;
+}
+.contact-header{
+  padding: 8px 8px 0!important;
+}
+.contact-title{
+  background-color: unset;
+}
+.contact-card{
+  background-color: #f7f7f7; 
+  margin-bottom: 8px;
+}
+
+.contact-toggle{
+  margin-left: 16px;
+  margin-top: -2px;
+  display: block;
+  width: 100px;
+}
+.mat-form-field-100{
+  width:100%
+}
+.form-invalid{
+  color: red;
+}

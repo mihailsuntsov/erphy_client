@@ -3,6 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { LoadSpravService } from '../../../../services/loadsprav';
 import { Validators, UntypedFormGroup, UntypedFormArray, UntypedFormControl, UntypedFormBuilder } from '@angular/forms';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
+import { ContactsComponent } from 'src/app/modules/other/contacts/contacts.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog,  MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { HttpClient } from '@angular/common/http';
@@ -19,6 +20,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { MomentDefault } from 'src/app/services/moment-default';
 import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
+import { Contact } from 'src/app/modules/other/contacts/contacts.component'
 const MY_FORMATS = MomentDefault.getMomentFormat();
 const moment = MomentDefault.getMomentDefault();
 
@@ -111,6 +113,7 @@ interface docResponse {//интерфейс для получения ответ
 
   store_default_lang_code: string;      // internet-store basic language, e.g. EN, RU, UA, ...
 
+ 
 
   // settings for online cheduling page/frame
   fld_step: number;
@@ -169,6 +172,7 @@ interface docResponse {//интерфейс для получения ответ
   fld_creator: string;
   onlineSchedulingLanguagesList: OnlineSchedulingLanguage[];
   onlineSchedulingFieldsTranslations: OnlineSchedulingFieldsTranslation[];
+  onlineSchedulingContactsList: Contact[];
 }
 interface OnlineSchedulingFieldsTranslation{
   langCode: string;
@@ -208,7 +212,16 @@ interface OnlineSchedulingLanguage{
   name: string;
   fileName: string;
 }
-
+// interface Contact{
+//   id: number;
+//   company_id: number;
+//   additional: string;     // eg. "Sales manager telephone"
+//   contact_type: string;   //instagram/youtube/email/telephone
+//   contact_value: string;  //  eg. https://www.instagram.com/msuntsov
+//   display_in_os: boolean;  // 
+//   location_os: string;    // where display this contact in Online scheduling - vertical list or horizontal icons
+//   output_order: number;
+// }
 interface IdAndName{
   id: number;
   name: string;
@@ -241,7 +254,7 @@ interface idNameDescription{ //универсалный интерфейс дл�
   selector: 'app-companies-doc',
   templateUrl: './companies-doc.component.html',
   styleUrls: ['./companies-doc.component.css'],
-  providers: [LoadSpravService,
+  providers: [LoadSpravService, ContactsComponent,
     { provide: DateAdapter, useClass: MomentDateAdapter,deps: [MAT_DATE_LOCALE, MAT_MOMENT_DATE_ADAPTER_OPTIONS]}, //+++
     {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},
   ]
@@ -318,11 +331,11 @@ export class CompaniesDocComponent implements OnInit {
 
   // Fields Translations variables
   onlineSchedulingDefaultLanguage: string = ''; // default language from Company settings ( like EN )
-  // onlineSchedulingLanguagesList: string[] = [];  // the array of languages from all onlineSchedulings like ["EN","RU", ...]
   onlineSchedulingFieldsTranslations: OnlineSchedulingFieldsTranslation[]=[]; // the list of translated product's data
   onlineSchedulingTranslationModeOn = false; // translation mode ON
   // list of languages with which thу online sceduling form will be accessible
-  onlineSchedulingFieldsLanguagesList: OnlineSchedulingLanguage[]=[]; 
+  // onlineSchedulingFieldsLanguagesList: OnlineSchedulingLanguage[]=[]; // the array of languages from all onlineSchedulings like ["EN","RU", ...]
+  onlineSchedulingContactsList: Contact[]=[]; // the array of contacts
   spravSysEdizmOfProductTime: any[]=[];//  units of measurement of time
   spravSysLocales  : IdAndName[] = [];                // here will be loaded all locales
   showLanguagesFormFields:boolean = false;
@@ -345,7 +358,8 @@ export class CompaniesDocComponent implements OnInit {
   rightsDefined:boolean; // определены ли права !!!
 
   @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
-  
+  @ViewChild(ContactsComponent, {static: false}) public contactsComponent:ContactsComponent;
+
 constructor(private activateRoute: ActivatedRoute,
   private http: HttpClient,
   public dialogAddFiles: MatDialog,
@@ -496,11 +510,12 @@ constructor(private activateRoute: ActivatedRoute,
       stl_job_title_color:              new UntypedFormControl('',[Validators.maxLength(7)]),
 
       onlineSchedulingFieldsTranslations:new UntypedFormArray ([]) ,
-      onlineSchedulingLanguagesList:    new UntypedFormArray ([]) ,
+      onlineSchedulingLanguagesList:    new UntypedFormArray  ([]) ,
+      onlineSchedulingContactsList:     new UntypedFormArray  ([]) ,
     });
     this.formAboutDocument = new UntypedFormGroup({
-      id: new UntypedFormControl      ('',[]),
-      master: new UntypedFormControl      ('',[]),
+      id: new UntypedFormControl           ('',[]),
+      master: new UntypedFormControl       ('',[]),
       creator: new UntypedFormControl      ('',[]),
       changer: new UntypedFormControl      ('',[]),
       company: new UntypedFormControl      ('',[]),
@@ -853,7 +868,7 @@ onDefaultCreatorSearchValueChanges(){
                   this.formBaseInformation.get('stl_job_title_color').setValue(documentValues.stl_job_title_color);
                   this.searchDefaultCreatorCtrl.setValue(documentValues.fld_creator);
                   this.onlineSchedulingFieldsTranslations = documentValues.onlineSchedulingFieldsTranslations;
-
+                  this.onlineSchedulingContactsList = documentValues.onlineSchedulingContactsList;
                   // this.searchRegionCtrl.setValue(documentValues.region);
                   // this.searchJrRegionCtrl.setValue(documentValues.jr_region);
                   this.area=documentValues.area;
@@ -1153,6 +1168,7 @@ onDefaultCreatorSearchValueChanges(){
 
   updateDocument(){ 
     this.oneClickSaveControl=true;
+    this.fillContactsList();
     return this.http.post('/api/auth/updateCompany', this.formBaseInformation.value)
       .subscribe(
           (data) => 
@@ -1178,6 +1194,14 @@ onDefaultCreatorSearchValueChanges(){
           },
           error => {this.oneClickSaveControl=false; console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
       );
+  }
+  
+  fillContactsList(){
+    const control = <UntypedFormArray>this.formBaseInformation.get('onlineSchedulingContactsList');
+    control.clear();
+    this.contactsComponent.getContactsList().forEach(row=>{
+      control.push(this.contactsComponent.formingContactRowFromApiResponse(row));
+    });
   }
 
   getPriceTypesList(){
