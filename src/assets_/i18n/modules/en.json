@@ -146,7 +146,9 @@
         "select":"Select",
         "paid_break":"This break is paid for by the employer",
         "vertical_list":"Display contact in contact list block",
-        "horizontal_icons":"Show contact icon in icon bar"
+        "horizontal_icons":"Show contact icon in icon bar",
+        "display_in_os":"Display on business card website",
+        "fill_example":"Fill in the information from the sample"
     },
     "tab":{
     },

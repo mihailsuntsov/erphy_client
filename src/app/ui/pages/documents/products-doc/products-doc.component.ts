@@ -15,7 +15,7 @@ import { FilesDocComponent } from '../files-doc/files-doc.component';
 // import { CagentsDocComponent } from '../cagents-doc/cagents-doc.component';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { HttpClient } from '@angular/common/http';
-import { UploadFileService } from './upload-file.service';
+// import { UploadFileService } from './upload-file.service';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 import { ProductCategoriesSelectComponent } from 'src/app/modules/trade-modules/product-categories-select/product-categories-select.component';
 import { ShowImageDialog } from 'src/app/ui/dialogs/show-image-dialog.component';
@@ -320,7 +320,7 @@ interface docResponse {//интерфейс для получения ответ
   selector: 'app-products-doc',
   templateUrl: './products-doc.component.html',
   styleUrls: ['./products-doc.component.css'],
-  providers: [LoadSpravService,UploadFileService,ProductHistoryService,
+  providers: [LoadSpravService,/*UploadFileService,*/ProductHistoryService,
     { provide: DateAdapter, useClass: MomentDateAdapter,deps: [MAT_DATE_LOCALE, MAT_MOMENT_DATE_ADAPTER_OPTIONS]}, //
     {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},
   ]
@@ -1723,7 +1723,8 @@ changeTranslationMode(){if(this.storeTranslationModeOn) this.storeTranslationMod
       data:
       { 
         mode: 'select',
-        companyId: this.formBaseInformation.get('company_id').value
+        companyId: this.formBaseInformation.get('company_id').value,
+        maxFiles:10
       },
     });
     dialogRef.afterClosed().subscribe(result => {

@@ -8,6 +8,7 @@ import { SharedModule } from '../../../../modules/shared.module';
 import { DepartmentPartsModule } from 'src/app/modules/trade-modules/department-parts/department-parts.module';
 import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 import { DragDropModule } from '@angular/cdk/drag-drop';
+import { ContactsModule } from 'src/app/modules/other/contacts/contacts.module';
 
 @NgModule({
   declarations: [DepartmentsDocComponent],
@@ -23,7 +24,8 @@ import { DragDropModule } from '@angular/cdk/drag-drop';
     DepartmentPartsModule,
     MaterialModule,
     DragDropModule,
-    TranslocoModule
+    TranslocoModule,
+    ContactsModule
   ]
 })
 export class DepartmentsDocModule { }

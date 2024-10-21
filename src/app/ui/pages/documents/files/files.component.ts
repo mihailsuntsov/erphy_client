@@ -89,7 +89,7 @@ export class FilesComponent implements OnInit {
   receivedUsersList: IdAndName[]=[{id: null, name:'---'}];
   files: File[] = [];//массив данных для таблицы, картинок-миниатюр и чекбоксов (чекбоксы берут из него id, таблица -всё)
   selectedObjects: number[]=[]; // выбранные во всплывающем окне выбора категорий объекты (категории), для массового присвоения файлам
-
+  maxSelectFilesQtt: number=24; // max number of files that can be selected in the window mode. 24 = max number of dispalyed files in the select list "Files"
 
   //переменные прав
   permissionsSet: any[];//сет прав на документ
@@ -210,6 +210,7 @@ viewMode:string = "grid"; // способ отображения файлов - 
       if(this.data)
       {
         this.mode=this.data.mode;
+        this.maxSelectFilesQtt=this.data.maxSelectFilesQtt?this.data.maxSelectFilesQtt:this.maxSelectFilesQtt;
         this.sendingQueryForm.companyId=this.data.companyId;
         // this.sendingQueryForm.showOnlyAnonymeAccessFiles =true; //показывать только файлы с разрешенным анонимным доступом. Нужно для mode = select
         this.sendingQueryForm.showOnlyAnonymeAccessFiles =false; 
@@ -459,9 +460,12 @@ viewMode:string = "grid"; // способ отображения файлов - 
     
     /** Selects all rows if they are not all selected; otherwise clear selection. */
     masterToggle() {
-      this.isAllSelected() ?
+      (this.isAllSelected() || this.selection.selected.length==this.maxSelectFilesQtt)?
           this.selection.clear() :
-          this.files.forEach(row => this.selection.select(row));
+          this.files.forEach(row => {
+            if(this.selection.selected.length<this.maxSelectFilesQtt)
+              this.selection.select(row)
+          });
           this.createCheckedList();
     }
    
@@ -1021,75 +1025,84 @@ viewMode:string = "grid"; // способ отображения файлов - 
 //*******************************************************        F I L E S      ***********************************************************/
 //*****************************************************************************************************************************************/
 
-getImage(imageUrl: string): Observable<Blob> {
-  return this.http.get(imageUrl, {responseType: 'blob'});
-}
-
-createImageFromBlob(image: Blob, index:number) {
-  const reader = new FileReader();
-  reader.addEventListener('load', () => {
-    this.files[index].image = reader.result;
-  }, false);
-  if (image) {
-    reader.readAsDataURL(image);
+  getImage(imageUrl: string): Observable<Blob> {
+    return this.http.get(imageUrl, {responseType: 'blob'});
   }
-}
 
-clickBtnFileUplioad(){
-  const dialogRef = this.filesUploadDialog.open(FilesUploadDialogComponent, {
-    width: '800px', 
-    data:
-    { 
-      categoryId: +this.sendingQueryForm.selectedNodeId,
-      categoryName: this.sendingQueryForm.selectedNodeName , 
-      title:translate('menu.dialogs.files_upload'), //+++
-      companyId:+this.sendingQueryForm.companyId,
-    },
-  });
-  dialogRef.afterClosed().subscribe(result => {
+  createImageFromBlob(image: Blob, index:number) {
+    const reader = new FileReader();
+    reader.addEventListener('load', () => {
+      this.files[index].image = reader.result;
+    }, false);
+    if (image) {
+      reader.readAsDataURL(image);
+    }
+  }
 
-    //после загрузки картинки устанавливается автосортировка по времени загрузки, чтобы новые файлы были вверху
-    this.sendingQueryForm.sortColumn='date_time_created_sort'; // колонка сортировки
-    this.sendingQueryForm.sortAsc='asc'; // установится asc, setSort перевернёт ее в desc
-    this.setSort('date_time_created_sort')
-
-    this.getPagesList();
-    this.getTable();
-  });   
-
-}
-getUsersList(){
-  if(this.receivedUsersList.length==1)// contains only id:null, name:"---"
-  this.http.get('/api/auth/getUsersListByCompanyId?company_id='+this.sendingQueryForm.companyId).subscribe(
-      data  => { 
-        this.receivedUsersList = this.receivedUsersList.concat(data as IdAndName[])
+  clickBtnFileUplioad(){
+    const dialogRef = this.filesUploadDialog.open(FilesUploadDialogComponent, {
+      width: '800px', 
+      data:
+      { 
+        categoryId: +this.sendingQueryForm.selectedNodeId,
+        categoryName: this.sendingQueryForm.selectedNodeName , 
+        title:translate('menu.dialogs.files_upload'), //+++
+        companyId:+this.sendingQueryForm.companyId,
       },
-      error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
-  );
-}
+    });
+    dialogRef.afterClosed().subscribe(result => {
 
-changeOwner(newOwnerId:number){
-  const body = {
-    "documentIds":                this.checkedList,//join convert array to the string with "," delimitters
-    "newOwnerId":                 newOwnerId,
-    "documentName":               "files",
-    "documentRegistryId":         13,
-    "editDocAllCompaniesPermit":  "152",
-    "editDocMyCompanyPermit":     "153",
-    "editMyDocPermit":            "728"  
-  }; 
-  this.clearCheckboxSelection();
-  return this.http.post('/api/auth/changeDocumentOwner', body) 
-    .subscribe(
-      (data) => {   
-        let result=data as any;
-        switch(result){
-          case 1:{this.getData();this.openSnackBar(translate('menu.msg.changed_succ'), translate('menu.msg.close'));break;}  //+++
-          case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:(translate('menu.msg.error_msg'))}});break;}
-          case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.ne_perm')}});break;}
-        }
-      },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},);
-} 
+      //после загрузки картинки устанавливается автосортировка по времени загрузки, чтобы новые файлы были вверху
+      this.sendingQueryForm.sortColumn='date_time_created_sort'; // колонка сортировки
+      this.sendingQueryForm.sortAsc='asc'; // установится asc, setSort перевернёт ее в desc
+      this.setSort('date_time_created_sort')
+
+      this.getPagesList();
+      this.getTable();
+    });   
+
+  }
+  getUsersList(){
+    if(this.receivedUsersList.length==1)// contains only id:null, name:"---"
+    this.http.get('/api/auth/getUsersListByCompanyId?company_id='+this.sendingQueryForm.companyId).subscribe(
+        data  => { 
+          this.receivedUsersList = this.receivedUsersList.concat(data as IdAndName[])
+        },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+    );
+  }
+
+  changeOwner(newOwnerId:number){
+    const body = {
+      "documentIds":                this.checkedList,//join convert array to the string with "," delimitters
+      "newOwnerId":                 newOwnerId,
+      "documentName":               "files",
+      "documentRegistryId":         13,
+      "editDocAllCompaniesPermit":  "152",
+      "editDocMyCompanyPermit":     "153",
+      "editMyDocPermit":            "728"  
+    }; 
+    this.clearCheckboxSelection();
+    return this.http.post('/api/auth/changeDocumentOwner', body) 
+      .subscribe(
+        (data) => {   
+          let result=data as any;
+          switch(result){
+            case 1:{this.getData();this.openSnackBar(translate('menu.msg.changed_succ'), translate('menu.msg.close'));break;}  //+++
+            case null:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:(translate('menu.msg.error_msg'))}});break;}
+            case -1:{this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.attention'),message:translate('menu.msg.ne_perm')}});break;}
+          }
+        },error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('menu.msg.error'),message:error.error}})},);
+  }
+
+  isCheckboxesDisabled(row:any){
+    // console.log('row',row)
+    if(this.data && !this.checkedList.includes(row.id) && this.checkedList.length>=this.maxSelectFilesQtt)
+      return true;
+    else return false;
+  }
+
+
   // clickBtnDeleteImage(id: number): void {
   //   const dialogRef = this.ConfirmDialog.open(ConfirmDialog, {
   //     width: '400px',

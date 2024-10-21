@@ -6,13 +6,8 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { FaIconLibrary, FontAwesomeModule } from '@fortawesome/angular-fontawesome'
-import { faSquare, faCheckSquare, faPhone, faEnvelope, faGlobe } from '@fortawesome/free-solid-svg-icons';
-import {
-  // faSquare as farSquare,
-  // faCheckSquare as farCheckSquare,
-//  faEnvelope,
- 
-} from '@fortawesome/free-regular-svg-icons';
+import { faPhone, faEnvelope, faGlobe } from '@fortawesome/free-solid-svg-icons';
+// import {} from '@fortawesome/free-regular-svg-icons';
 import {
   faStackOverflow,
   faGithub,

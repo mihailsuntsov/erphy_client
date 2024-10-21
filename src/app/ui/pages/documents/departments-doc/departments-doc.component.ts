@@ -1,8 +1,4 @@
-import { Component, EventEmitter, OnInit, Output } from '@angular/core';
-// Для получения параметров маршрута необходим специальный сервис ActivatedRoute. 
-// Он содержит информацию о маршруте, в частности, параметры маршрута, 
-// параметры строки запроса и прочее. Он внедряется в приложение через механизм dependency injection, 
-// поэтому в конструкторе мы можем получить его.
+import { Component, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
 import { ActivatedRoute} from '@angular/router';
 import { LoadSpravService } from '../../../../services/loadsprav';
 import { Validators, UntypedFormGroup, UntypedFormControl, UntypedFormArray} from '@angular/forms';
@@ -16,6 +12,8 @@ import { translate } from '@ngneat/transloco';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { DepartmentPartsComponent } from 'src/app/modules/trade-modules/department-parts/department-parts.component';
 import { Cookie } from 'ng2-cookies/ng2-cookies';
+import { ContactsComponent } from 'src/app/modules/other/contacts/contacts.component';
+import { Contact } from 'src/app/modules/other/contacts/contacts.component'
 
 interface docResponse {//интерфейс для получения ответа в методе getDepartmentValuesById
     id: number;
@@ -37,6 +35,7 @@ interface docResponse {//интерфейс для получения ответ
     additional: string;
     payment_account_id:number;
     boxoffice_id:number;
+    display_in_online_scheduling:boolean;
 }
 interface idNameDescription{ //универсалный интерфейс для выбора из справочников
   id: string;
@@ -55,7 +54,7 @@ interface DepartmentPart{
   selector: 'app-departments-doc',
   templateUrl: './departments-doc.component.html',
   styleUrls: ['./departments-doc.component.css'],
-  providers: [LoadSpravService]
+  providers: [LoadSpravService,ContactsComponent,]
 })
 export class DepartmentsDocComponent implements OnInit {
 
@@ -98,7 +97,8 @@ export class DepartmentsDocComponent implements OnInit {
   allowToUpdate:boolean = false;
   allowToView:boolean = false;
   rightsDefined:boolean = false;
-
+  
+  @ViewChild(ContactsComponent, {static: false}) public contactsComponent:ContactsComponent;
   @Output() baseData: EventEmitter<any> = new EventEmitter(); //+++ for get base datа from parent component (like myId, myCompanyId etc)
   
   constructor(
@@ -127,6 +127,8 @@ export class DepartmentsDocComponent implements OnInit {
       boxoffice_id: new UntypedFormControl             ('',[]), // касса предприятия, к которой относится отделение
       payment_account_id: new UntypedFormControl       ('',[]), // расч. счёт по умолчанию
       parts:  new UntypedFormControl                   ([],[]),//массив с частями отделения
+      display_in_online_scheduling: new UntypedFormControl(false,[]),
+      onlineSchedulingContactsList: new UntypedFormArray  ([]) , // contacts
 
     });
     this.formAboutDocument = new UntypedFormGroup({
@@ -245,6 +247,7 @@ export class DepartmentsDocComponent implements OnInit {
   }
 
   updateDocument(){
+    this.fillContactsList();
     this.formBaseInformation.get('parts').setValue(this.receivedPartsList);
     this.updateDocumentResponse=null;
     return this.http.post('/api/auth/updateDepartment', this.formBaseInformation.value)
@@ -254,7 +257,15 @@ export class DepartmentsDocComponent implements OnInit {
                     this.getData();
                     this.openSnackBar(translate('docs.msg.doc_sved_suc'),translate('docs.msg.close'));
                   }, error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})});
-    }
+  }
+
+  fillContactsList(){
+    const control = <UntypedFormArray>this.formBaseInformation.get('onlineSchedulingContactsList');
+    control.clear();
+    this.contactsComponent.getContactsList().forEach(row=>{
+      control.push(this.contactsComponent.formingContactRowFromApiResponse(row));
+    });
+  }
 
   openSnackBar(message: string, action: string) {
     this._snackBar.open(message, action, {
@@ -283,9 +294,12 @@ export class DepartmentsDocComponent implements OnInit {
                   this.formAboutDocument.get('parent').setValue(documentResponse.parent);
                   this.formAboutDocument.get('company').setValue(documentResponse.company);
                   this.formAboutDocument.get('date_time_created').setValue(documentResponse.date_time_created);
-                  this.formAboutDocument.get('date_time_changed').setValue(documentResponse.date_time_changed);
+                  this.formAboutDocument.get('date_time_changed').setValue(documentResponse.date_time_changed);   
+                  this.formBaseInformation.get('display_in_online_scheduling').setValue(documentResponse.display_in_online_scheduling)               
+                  // this.contactsComponent.fillContactsListFromApiResponse(documentResponse.onlineSchedulingContactsList);
                   this.getBoxofficesList();
                   this.getCompaniesPaymentAccounts();
+                  this.getContactsList();
                   // this.getDepartmentsList();  // если отделения и типы цен грузить не здесь, а в месте где вызывалась getDocumentValuesById,
                   this.getPriceTypesList();   // то из-за асинхронной передачи данных company_id будет еще null, 
                                               // и запрашиваемые списки не загрузятся
@@ -299,6 +313,7 @@ export class DepartmentsDocComponent implements OnInit {
   } 
 
   createNewDocument(){
+    this.fillContactsList();
     this.http.post('/api/auth/insertDepartment', this.formBaseInformation.value)
       .subscribe(
           (data) =>   {
@@ -365,7 +380,15 @@ export class DepartmentsDocComponent implements OnInit {
         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
     );
   }
-
+  getContactsList(){
+    return this.http.get('/api/auth/getDepartmentContactsList?company_id='+this.formBaseInformation.get('company_id').value+'&department_id='+this.id).subscribe(
+        (data) => { 
+          let result:Contact[] = data as Contact[];
+          this.contactsComponent.fillContactsListFromApiResponse(result);
+        },
+        error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})}
+    );
+  }
   getBoxofficeNameById(id:string):string{
     let name:string = translate('docs.msg.not_set');
     if(this.boxoffices){
@@ -523,5 +546,7 @@ export class DepartmentsDocComponent implements OnInit {
         error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}});},
     );  
   }
+
+  displayInOS_Change(event:any){}
 
 }

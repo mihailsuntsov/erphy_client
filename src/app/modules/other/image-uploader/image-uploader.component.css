@@ -1,0 +1,26 @@
+.card-name{ flex-grow: 1; }
+.flex{ display: flex; }
+
+.card{
+    width:100%;    
+    margin-bottom: 10px;
+}
+.internal-card{
+    margin: 10px 0 10px 0;
+}
+.container-resize{
+    width: 100%;
+    bottom: 0;
+    top: 0px;
+    height: 550px;
+    margin: 0 auto;
+    padding: 20px;
+    position: relative;
+    /* background-color: antiquewhite; */
+    z-index: 10;
+}
+
+.upload-button{
+    width: 100%;
+    margin: 25px 0;
+}

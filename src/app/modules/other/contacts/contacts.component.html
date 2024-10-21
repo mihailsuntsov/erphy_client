@@ -1,27 +1,4 @@
 
-
-<!-- <div style="text-align:center">
-    <h2>Using Solid Icons</h2>
-    <fa-icon [icon]="['fas', 'square']"></fa-icon>
-    <br />
-    <fa-icon [icon]="['fas', 'check-square']"></fa-icon>
-  </div>
-  <hr />
-  <div style="text-align:center">
-    <h2>Using Regular Icons</h2>
-    <fa-icon [icon]="['far', 'square']"></fa-icon>
-    <br />
-    <fa-icon [icon]="['far', 'check-square']"></fa-icon>
-  </div>
-  <hr />
-  <div style="text-align:center">
-    <h2>Using Brand Icons</h2>
-    <fa-icon [icon]="envelope"></fa-icon>
-    <br />
-    <fa-icon [icon]="github"></fa-icon>
-    <br />
-    <fa-icon [icon]="phone"></fa-icon>
-  </div> -->
 <div cdkDropList (cdkDropListDropped)="dropContact($event)">
     <mat-card   appearance="outlined"   *ngFor="let contact of formContacts.get('onlineSchedulingContactsList').controls;let i = index" 
                 [formGroup]="contact"
@@ -64,14 +41,15 @@
                         <mat-label>{{('modules.field.contact_type' | transloco)}} </mat-label>
                         <mat-select 
                         formControlName="contact_type"
+                        (selectionChange)="getControlTablefield().controls[i].get('contact_value').setValue('')"
                         #contact_type
                         >
                             <mat-option 
-                            *ngFor="let contcatType of contcatTypes;"
-                            value="{{contcatType.value}}"
+                            *ngFor="let contactType of contactTypes;"
+                            value="{{contactType.value}}"
                             >
-                            <fa-icon [icon]="contcatType.icon" style="margin-right:4px;"></fa-icon>
-                            {{['telephone','email'].includes(contcatType.value)?('docs.field.'+contcatType.value | transloco):contcatType.name}}
+                            <fa-icon [icon]="contactType.icon" style="margin-right:4px;"></fa-icon>
+                            {{['telephone','email'].includes(contactType.value)?('docs.field.'+contactType.value | transloco):contactType.name}}
                             </mat-option>
                         </mat-select>
                     </mat-form-field>
@@ -97,7 +75,7 @@
                 </div>
             </div>
             <div class="row">
-                <div class="col-xl-6  col-lg-12">
+                <!-- <div class="col-xl-6  col-lg-12">
                     <mat-form-field class="mat-form-field-100">
                         <mat-label>{{('docs.field.additional' | transloco)}}</mat-label>
                         <input  matInput
@@ -108,10 +86,10 @@
                                 formControlName="additional"/>
                         <mat-hint align="end" *ngIf="additional.value.length>90">{{additional.value.length}} / 100</mat-hint>
                     </mat-form-field>
-                </div>
-                <div class="col-xl-6  col-lg-12">
+                </div> -->
+                <div class="col-12">
                     <mat-form-field class="mat-form-field-100">
-                        <mat-label>{{('modules.field.contact_value' | transloco)}} <span *ngIf="contact_value.value==''" class="star">*</span></mat-label>
+                        <mat-label>{{('modules.field.contact_value' | transloco)}} <span *ngIf="getControlTablefield().controls[i].get('contact_value').value==''" class="star">*</span></mat-label>
                         <input  matInput
                                 [placeholder]="getContactPlaceholder(getControlTablefield().controls[i].get('contact_type').value)"
                                 [readonly]=!editability
@@ -119,6 +97,13 @@
                                 [ngClass]="{'is-invalid':getControlTablefield().controls[i].get('contact_value').invalid && getControlTablefield().controls[i].get('contact_value').touched}"
                                 maxlength="1000"
                                 formControlName="contact_value"/>
+                        <mat-icon
+                            *ngIf="getControlTablefield().controls[i].get('contact_value').value==''" 
+                            matTooltip="{{('modules.tip.fill_example' | transloco)}}" 
+                            class="add_circle"
+                            (click)="insertExampleValue(i, getControlTablefield().controls[i].get('contact_type').value);">
+                            auto_fix_high
+                        </mat-icon>
                         <mat-hint align="end" *ngIf="contact_value.value.length>950">{{contact_value.value.length}} / 1000</mat-hint>
                         <mat-hint align="start" *ngIf="getControlTablefield().controls[i].get('contact_value').touched">
                             <i *ngIf="getControlTablefield().controls[i].get('contact_value').value==''" class="form-invalid">{{('docs.error.field_miss' | transloco)}}</i>
@@ -144,5 +129,10 @@
     </div>
 </div>
 <!-- <pre>
+
     {{formContacts.get('onlineSchedulingContactsList').value | json}}
+</pre> -->
+<!-- contactsList:
+<pre>
+    {{contactsList}}
 </pre> -->

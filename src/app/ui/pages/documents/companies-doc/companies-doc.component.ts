@@ -23,6 +23,8 @@ import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/materia
 import { Contact } from 'src/app/modules/other/contacts/contacts.component'
 const MY_FORMATS = MomentDefault.getMomentFormat();
 const moment = MomentDefault.getMomentDefault();
+// import { ImageCroppedEvent } from 'ngx-image-cropper';
+import { ImageUploaderComponent } from 'src/app/modules/other/image-uploader/image-uploader.component';
 
 interface docResponse {//интерфейс для получения ответа в запросе значений полей документа
   id: number;
@@ -260,6 +262,14 @@ interface idNameDescription{ //универсалный интерфейс дл�
   ]
 })
 export class CompaniesDocComponent implements OnInit {
+  name = 'Angular';
+  imageChangedEvent: any = '';
+  croppedImage: any = '';
+
+
+
+
+
   id: number=0;// id документа
   receivedDepartmentsList: IdAndName [] = [];//массив для получения списка отделений
   myCompanyId:number=null;
@@ -335,7 +345,7 @@ export class CompaniesDocComponent implements OnInit {
   onlineSchedulingTranslationModeOn = false; // translation mode ON
   // list of languages with which thу online sceduling form will be accessible
   // onlineSchedulingFieldsLanguagesList: OnlineSchedulingLanguage[]=[]; // the array of languages from all onlineSchedulings like ["EN","RU", ...]
-  onlineSchedulingContactsList: Contact[]=[]; // the array of contacts
+  // onlineSchedulingContactsList: Contact[]=[]; // the array of contacts
   spravSysEdizmOfProductTime: any[]=[];//  units of measurement of time
   spravSysLocales  : IdAndName[] = [];                // here will be loaded all locales
   showLanguagesFormFields:boolean = false;
@@ -369,7 +379,8 @@ constructor(private activateRoute: ActivatedRoute,
   private _snackBar: MatSnackBar,
   private _fb: UntypedFormBuilder, //чтобы билдить группу форм myForm: FormBuilder, //для билдинга групп форм по контактным лицам и банковским реквизитам
   @Optional() @Inject(MAT_DIALOG_DATA) public data: any,
-  public ConfirmDialog: MatDialog,
+  public ConfirmDialog: MatDialog,  
+  private imageUploaderComponent: MatDialog,
   private _adapter: DateAdapter<any>) { 
     if(activateRoute.snapshot.params['id'])
       this.id = +activateRoute.snapshot.params['id'];// +null returns 0
@@ -567,6 +578,39 @@ constructor(private activateRoute: ActivatedRoute,
     this.getSpravSysTimeZones();
 
   }
+  fileChangeEvent(event: any): void {
+    this.imageChangedEvent = event;
+}
+// imageCropped(event: ImageCroppedEvent) {
+//   console.log('event',event)
+//   this.createImageFromBlob(event.blob)
+//     // this.croppedImage = event.objectUrl; // if output="blob"
+//     // this.croppedImage = event.base64;    // if output="base64"
+// }
+// imageLoaded() {
+//     // show cropper
+// }
+// cropperReady() {
+//     // cropper ready
+// }
+// loadImageFailed() {
+//     // show message
+// }
+// createImageFromBlob(image: Blob) {
+//   let reader = new FileReader();
+//   reader.addEventListener("load", () => {
+//       this.croppedImage = reader.result;
+//   }, false);
+//   if (image) {
+//       reader.readAsDataURL(image);
+//   }
+// }
+
+
+
+
+
+
 
   get regNumberName(){
     if(+this.formBaseInformation.get('jr_country_id').value==1)
@@ -868,7 +912,8 @@ onDefaultCreatorSearchValueChanges(){
                   this.formBaseInformation.get('stl_job_title_color').setValue(documentValues.stl_job_title_color);
                   this.searchDefaultCreatorCtrl.setValue(documentValues.fld_creator);
                   this.onlineSchedulingFieldsTranslations = documentValues.onlineSchedulingFieldsTranslations;
-                  this.onlineSchedulingContactsList = documentValues.onlineSchedulingContactsList;
+                  // this.onlineSchedulingContactsList = documentValues.onlineSchedulingContactsList;
+                  this.contactsComponent.fillContactsListFromApiResponse(documentValues.onlineSchedulingContactsList);
                   // this.searchRegionCtrl.setValue(documentValues.region);
                   // this.searchJrRegionCtrl.setValue(documentValues.jr_region);
                   this.area=documentValues.area;
@@ -1835,4 +1880,21 @@ onDefaultCreatorSearchValueChanges(){
       this.formLanguageTableColumns();
     }, 1);
   }
+
+  
+  uploadAvatar() {
+    const dialogFastDcedule = this.imageUploaderComponent.open(ImageUploaderComponent, {
+      width: '400px', 
+      data: {
+        companyId: this.id
+      },
+    });
+    dialogFastDcedule.afterClosed().subscribe(result => {
+      // console.log(`Dialog result: ${result}`);
+      if(result){
+        
+      }
+    });
+  }
+
 }

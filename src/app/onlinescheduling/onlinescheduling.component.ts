@@ -16,6 +16,8 @@ import { Moment } from 'moment';
 import { MatCalendar } from '@angular/material/datepicker';
 const MY_FORMATS = MomentDefault.getMomentFormat();
 const moment = MomentDefault.getMomentDefault();
+import { Contact, ContactType } from 'src/app/modules/other/contacts/contacts.component';
+import { SanitizedHtmlPipe } from 'src/app/services/sanitized-html.pipe';
 
 interface ProductCategory{
   id: number;
@@ -115,6 +117,7 @@ interface CompanySettings{
   date_format: string;
   onlineSchedulingLanguagesList: OnlineSchedulingLanguage[];
   onlineSchedulingFieldsTranslations: OnlineSchedulingFieldsTranslation[];
+  onlineSchedulingContactsList: Contact[];
 
   // to add (there are no in database at this moment)
   fld_toolbar_show: boolean;
@@ -138,13 +141,10 @@ interface CompanySettings{
   txt_unav_by_time: string;
 
   stl_color_no_active_element: string;
-
-
-
-
-
-
-
+  str_color_toolbar_buttons: string,
+  
+  
+  company_about: string;
 }
 
 interface Department{
@@ -228,7 +228,7 @@ interface TimeSlot{
   selector: 'app-onlinescheduling',
   templateUrl: './onlinescheduling.component.html',
   styleUrls: ['./onlinescheduling.component.css'],
-  providers:[    
+  providers:[ SanitizedHtmlPipe,   
     { provide: DateAdapter, useClass: MomentDateAdapter,deps: [MAT_DATE_LOCALE, MAT_MOMENT_DATE_ADAPTER_OPTIONS]},
     {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},
   ],
@@ -243,6 +243,7 @@ export class OnlineschedulingComponent implements AfterViewInit {
     private el: ElementRef,
     private osDialogComponent: MatDialog,
     private ref: ChangeDetectorRef,
+    public sanitizedHtml:SanitizedHtmlPipe,
     // private rendererFactory: RendererFactory2,
     private _adapter: DateAdapter<any>,
     private route: ActivatedRoute //dependency injection
@@ -251,6 +252,111 @@ export class OnlineschedulingComponent implements AfterViewInit {
   }
 
   @Inject(DOCUMENT) private document: Document
+
+  contactTypes:ContactType[]=[
+    {
+      name:'Email',
+      value:'email',
+      placeholder:'myname@postservice.com',
+      icon: ['fas', 'envelope']
+    },
+    {
+      name:'Phone',
+      value:'telephone',
+      placeholder:'+12223334455',
+      icon: ['fas', 'phone']
+    },
+    {
+      name:'Website',
+      value:'website',
+      placeholder:'www.mysite.com',
+      icon:['fas', 'globe']
+    },
+    {
+      name:'WhatsApp',
+      value:'whatsapp',
+      placeholder:'https://wa.me/12223334455',
+      icon:['fab', 'whatsapp']
+    },
+    {
+      name:'Instagram',
+      value:'instagram',
+      placeholder:'https://www.instagram.com/myinstagramnickname/',
+      icon:['fab', 'instagram']
+    },
+    {
+      name:'Facebook',
+      value:'facebook',
+      placeholder:'https://www.facebook.com/profile.php?id=100070105646282',
+      icon:['fab', 'facebook']
+    },
+    {
+      name:'Github',
+      value:'github',
+      placeholder:'https://github.com/mygithubnickname',
+      icon:['fab', 'github']
+    },
+    {
+      name:'StackOverflow',
+      value:'stackoverflow',
+      placeholder:'https://stackoverflow.com/users/1234567890/mynickname',
+      icon:['fab', 'stack-overflow']
+    },
+    {
+      name:'TikTok',
+      value:'tiktok',
+      placeholder:'https://www.tiktok.com/@mytiktok',
+      icon:['fab', 'tiktok']
+    },
+    {
+      name:'LinkedIn',
+      value:'linkedin',
+      placeholder:'https://www.linkedin.com/in/mylinkedin/',
+      icon:['fab', 'linkedin']
+    },
+    {
+      name:'PayPal',
+      value:'paypal',
+      placeholder:'https://paypal.me/YourName/XXX',
+      icon:['fab', 'paypal']
+    },
+    {
+      name:'YouTube',
+      value:'youtube',
+      placeholder:'https://www.youtube.com/@ERPHY-APP',
+      icon:['fab', 'youtube']
+    },
+    {
+      name:'Discord',
+      value:'discord',
+      placeholder:'https://discordapp.com/users/12345678901234567890',
+      icon:['fab', 'discord']
+    },
+    {
+      name:'Telegram',
+      value:'telegram',
+      placeholder:'https://t.me/mytelegram',
+      icon:['fab', 'telegram']
+    },
+    {
+      name:'x-twitter',
+      value:'twitter',
+      placeholder:'https://x.com/mytwitter',
+      icon:['fab', 'x-twitter']
+    },
+    {
+      name:'Viber',
+      value:'viber',
+      placeholder:'viber://add?number=12223334455',
+      icon:['fab', 'viber']
+    },
+    {
+      name:'VK',
+      value:'vk',
+      placeholder:'https://vk.com/myvkid',
+      icon:['fab', 'vk']
+    }
+  ]
 
 
   company: any;
@@ -312,7 +418,7 @@ export class OnlineschedulingComponent implements AfterViewInit {
     stl_job_title_color: '#545454',
     onlineSchedulingLanguagesList: [],
     onlineSchedulingFieldsTranslations: [],
-    
+    onlineSchedulingContactsList:[],
     // to add (there are no in database at this moment)
     fld_toolbar_show: true,
     fld_toolbar_title: '',
@@ -335,6 +441,8 @@ export class OnlineschedulingComponent implements AfterViewInit {
     txt_unav_by_time: 'This specialist is not available at the selected time.',
   
     stl_color_no_active_element: '#dcdcdc',
+    str_color_toolbar_buttons: '',
+    company_about: '',
   
   };
   initialLoading=true;// to handle the end of loading document
@@ -441,17 +549,22 @@ export class OnlineschedulingComponent implements AfterViewInit {
   }
 
   setDynamicStyle() {
-    if(this.currentView == 'main'){
-      this.element = this.el.nativeElement.querySelector("#topaccordeon .mat-expansion-panel:last-of-type");
-      this.renderer.setStyle(this.element, "border-bottom-right-radius", this.onlineSchedulingSettings.stl_corner_radius+'px');
-      this.renderer.setStyle(this.element, "border-bottom-left-radius", this.onlineSchedulingSettings.stl_corner_radius+'px');
-      this.element = this.el.nativeElement.querySelector("#topaccordeon .mat-expansion-panel:first-of-type");
-      this.renderer.setStyle(this.element, "border-top-right-radius", '0px');
-      this.renderer.setStyle(this.element, "border-top-left-radius", '0px');
-      this.element = this.el.nativeElement.querySelector(".department-address");
-      this.renderer.setStyle(this.element, "color", this.onlineSchedulingSettings.stl_job_title_color);
-    }
+    // if(this.currentView == 'main'){
+    //   this.element = this.el.nativeElement.querySelector("#topaccordeon .mat-expansion-panel:last-of-type");
+    //   this.renderer.setStyle(this.element, "border-bottom-right-radius", this.onlineSchedulingSettings.stl_corner_radius+'px');
+    //   this.renderer.setStyle(this.element, "border-bottom-left-radius", this.onlineSchedulingSettings.stl_corner_radius+'px');
+    //   this.element = this.el.nativeElement.querySelector("#topaccordeon .mat-expansion-panel:first-of-type");
+    //   this.renderer.setStyle(this.element, "border-top-right-radius", '0px');
+    //   this.renderer.setStyle(this.element, "border-top-left-radius", '0px');
+    //   this.element = this.el.nativeElement.querySelector(".department-address");
+    //   this.renderer.setStyle(this.element, "color", this.onlineSchedulingSettings.stl_job_title_color);
+    // }
 
+    
+    let toolbarIcons = this.el.nativeElement.querySelectorAll("#toolbar button");
+    toolbarIcons.forEach(icon => {
+      this.renderer.setStyle(icon, "color", this.onlineSchedulingSettings.str_color_toolbar_buttons);
+    });
     // wide buttons
     let elements = this.el.nativeElement.querySelectorAll("button.mat-mdc-extended-fab");
     elements.forEach(element => {
@@ -513,7 +626,7 @@ export class OnlineschedulingComponent implements AfterViewInit {
                   this.panel_max_width=this.onlineSchedulingSettings.stl_panel_max_width;
                   this.panel_max_width_uq=this.onlineSchedulingSettings.stl_panel_max_width_unit;
                   this.color_buttons=this.onlineSchedulingSettings.stl_color_buttons;
-
+                  // this.onlineSchedulingSettings.onlineSchedulingContactsList=
                   // non-created backend parameters
 
                   this.onlineSchedulingSettings.fld_toolbar_show=true;
@@ -537,7 +650,8 @@ export class OnlineschedulingComponent implements AfterViewInit {
                   this.onlineSchedulingSettings.txt_unav_by_time='This specialist is not available at the selected time.';
                 
                   this.onlineSchedulingSettings.stl_color_no_active_element='#dcdcdc';
-
+                  this.onlineSchedulingSettings.company_about='Hello, my name is Bella, and I’m a nail technician with 5 years of experience. I specialize in nail art, manicures and pedicures!'
+                  this.onlineSchedulingSettings.str_color_toolbar_buttons='#ffffff';
 
                   this.setDynamicStyle();
                   break;}
@@ -1293,6 +1407,42 @@ export class OnlineschedulingComponent implements AfterViewInit {
         this.selectedDepartment = department;        
       }
     });
+  }
+  getContactIcon(contact_type:string):string[]{
+    let result = ['',''];
+    this.contactTypes.map(type=>{
+      if(type.value===contact_type){
+        result=type.icon;
+      }
+    })
+    return result;
+  }
+  getContactLink(contact_type:string, contact_value:string):string{
+    let result ='';
+    this.contactTypes.map(type=>{
+      if(type.value===contact_type){
+        switch(contact_type){
+          case 'email' :{
+            result='mailto:'+contact_value;
+            break;
+          }
+          case 'telephone' :{
+            result='tel:'+contact_value;
+            break;
+          }
+          case 'website' :{
+            result='https://'+contact_value;
+            break;
+          }
+          default:
+            result=contact_value;
+        }
+      }
+    })
+    return result;
+  }
+  clickContactListItem(){
+
   }
   
 }

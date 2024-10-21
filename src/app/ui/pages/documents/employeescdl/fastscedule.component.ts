@@ -29,7 +29,7 @@ import { UntypedFormGroup, UntypedFormControl } from '@angular/forms';
                 </button>
             </mat-card-title>
         </mat-card-header>
-    <mat-card-content>
+      <mat-card-content>
 
         <form [formGroup]="formBaseInformation">
             <div class="container-fluid">

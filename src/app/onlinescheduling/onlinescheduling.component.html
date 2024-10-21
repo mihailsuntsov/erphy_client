@@ -1,5 +1,8 @@
 <div id="outer">
-        <mat-toolbar class="toolbar"
+        <mat-toolbar 
+        class="toolbar transparent"
+        *ngIf="currentView=='main'"
+        id="toolbar"
         [style.max-width]="panel_max_width+panel_max_width_uq">
                 <div class="toolbar-inner-wrapper">
                         <button mat-icon-button class="example-icon" aria-label="Example icon-button with menu icon">
@@ -7,21 +10,15 @@
                         </button>
                         <span></span>
                         <span class="toolbar-spacer"></span>
-
-                        <!-- <button 
-                        mat-icon-button 
-                        class="example-icon" 
-                        aria-label="Example icon-button with share icon"
-                        (click)="clickBtnToMainScreen()"
-                        *ngIf="currentView!='main'">
-                        <mat-icon>arrow_back_ios_new</mat-icon>
-                        </button> -->
                 </div>
         </mat-toolbar>
         <div 
         id="inner"
         [style.background-color]="onlineSchedulingSettings.stl_background_color"
         [style.max-width]="panel_max_width+panel_max_width_uq"
+        [ngStyle]="{'background-image': 'url(' + 'http://localhost:4200/api/public/getFile/a8db1ad9-c64-2024-10-19-14-16-37-322_encrypted.jpg' + ')'}"
+
+        
         >
 
                 
@@ -34,21 +31,37 @@
 
                                 <div class="hero-image"
                                 style="
-                                        background-image: url('http://localhost:4200/api/public/getFile/2f7a20ac-84f-2024-10-01-12-11-38-722_encrypted.jpg');
-                                        background-color: #cccccc;
-                                        height: 250px;
+                                        background-image: url('http://localhost:4200/api/public/getFile/3a98e9ef-e94-2024-10-19-12-27-51-404_encrypted.jpg');
+                                        height: 150px;
                                 ">
-                                        <div class="hero-text">
+                                        <!-- <div class="hero-text">
                                         <h1>Imagination</h1>
                                         <h3>Beauty nails studio</h3>
-                                        <!-- <button (click)="setDynamicStyle()">Hire me</button> -->
-                                        </div>
+                                        </div> -->
+                                </div>
+
+                                <div href="https://twitter.com/twcloudchen" class="circle"
+                                [style.border-style]="'solid'"
+                                [style.border-color]="'#ffffff'"
+                                [style.border-width]="'8px'"
+                                [style.left]="'50%'"
+                                [style.width] = "'150px'"
+                                [style.height] = "'150px'"
+                                [style.top]="'147px'"
+                                [ngStyle]="{'background-image': 'url(' + 'http://localhost:4200/api/public/getFile/5ee0c59c-d9b-2024-10-19-13-59-45-158_encrypted.jpg' + ')'}"
+                                
+                                style="    
+                                position: absolute;
+                                transform: translate(-50%, -50%);
+                                border-radius: 50%;
+                                "
+                                >
                                 </div>
 
                         </section>
 
 
-                        <mat-accordion 
+                        <!-- <mat-accordion 
                         id="topaccordeon" 
                         class="department-panel-headers-align" 
                         *ngIf="currentView=='main'"
@@ -72,71 +85,164 @@
                                                                 </mat-option>
                                                         </mat-select>
                                                 </mat-form-field>
-                                        </form>
+                                        </form> -->
 
 
 
-                                        <div style="width:100%; padding: 0;">
+                                        <!-- <div style="width:100%; padding: 0;">
 						<iframe style="border:0; height: 250px; width: 100%;" loading="lazy" class="map" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2947.1992393145356!2d18.753389514991305!3d42.380901941778575!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x134c2d813d6eed01%3A0x7fd4258ebda47356!2z0JDQstGC0L7RgdC10YDQstC40YEgVHJpIFRvbmE!5e0!3m2!1sru!2sru!4v1492598871822" frameborder="0"  allowfullscreen></iframe>
-					</div>
+					</div> -->
 
 
                                         <!-- <p>{{panel_max_width+panel_max_width_uq}}</p>
                                         <p>Company URL: {{company}}</p>
                                         <p (click)="setDynamicStyle()">Language ID: {{lang}}</p> -->
                                         
-                                </mat-expansion-panel>
+                                <!-- </mat-expansion-panel>
 
 
 
-                        </mat-accordion>
+                        </mat-accordion> -->
 
 
-                
+                        <section 
+                        class="about-section"
+                        [style.margin-top]= "'70px'"
+                        *ngIf="currentView=='main'"
+                        >
+                                <div 
+                                [style.max-width]="'80%'"
+                                [style.font-size]="'24px'"
+                                [style.font-style]="'normal'"
+                                [style.font-weight]="'600'"
+                                [style.color]="'teal'"
+                                [style.margin]="'6px auto'"
+                                >
+                                {{onlineSchedulingSettings.company_name}}
+                                </div>
+                                <div 
+                                [style.max-width]="'75%'"
+                                [style.font-size]="'14px'"
+                                [style.font-style]="'italic'"
+                                [style.margin]="'auto'"
+                                [style.color]="'#752b59'"
+                                [innerHTML]="onlineSchedulingSettings.company_about | sanitizedHtml"
+                                >
+
+                                </div>
+                        </section>
+
+
                         <section class="menu-section"
-                        *ngIf="currentView=='main'">
-                                <div class="main-menu-row">
-                                        <div class="main-menu-item" (click)="clickBtnSelectSpecialist()">
-                                                <button 
-                                                mat-mini-fab 
-                                                class="main-select-icon"
-                                                >
-                                                        <mat-icon>person</mat-icon>
-                                                </button>
-                                                <div matListItemTitle class="main-select-text">
-                                                        {{onlineSchedulingSettings.txt_btn_select_specialist}}
+                                *ngIf="currentView=='main'">
+
+                                <div class="scheduling-block">
+
+                                        <div class="main-menu-row">
+                                                <div class="main-menu-item" (click)="clickBtnSelectSpecialist()">
+                                                        <button 
+                                                        mat-mini-fab 
+                                                        class="main-select-icon"
+                                                        >
+                                                                <mat-icon>person</mat-icon>
+                                                        </button>
+                                                        <div matListItemTitle class="main-select-text">
+                                                                {{onlineSchedulingSettings.txt_btn_select_specialist}}
+                                                        </div>
+                                                        <span class="mat-expansion-indicator main-menu-arrow" style="transform: rotate(270deg);"></span>
                                                 </div>
-                                                <span class="mat-expansion-indicator main-menu-arrow" style="transform: rotate(270deg);"></span>
+                                        </div>
+                                        <div class="main-menu-row">
+                                                <div class="main-menu-item" (click)="clickBtnSelectTime()">
+                                                        <button 
+                                                        mat-mini-fab 
+                                                        class="main-select-icon"
+                                                        >
+                                                                <mat-icon>today</mat-icon>
+                                                        </button>
+                                                        <div matListItemTitle class="main-select-text">
+                                                                {{onlineSchedulingSettings.txt_btn_select_time}}
+                                                        </div>
+                                                        <span class="mat-expansion-indicator main-menu-arrow" style="transform: rotate(270deg);"></span>
+                                                </div>
+                                        </div>
+                                        <div class="main-menu-row">
+                                                <div class="main-menu-item" (click)="clickBtnSelectServices()">
+                                                        <button 
+                                                        mat-mini-fab 
+                                                        class="main-select-icon"
+                                                        >
+                                                                <mat-icon>checklist</mat-icon>
+                                                        </button>
+                                                        <div matListItemTitle class="main-select-text">
+                                                                {{onlineSchedulingSettings.txt_btn_select_services}}
+                                                        </div>
+                                                        <span class="mat-expansion-indicator main-menu-arrow" style="transform: rotate(270deg);"></span>
+                                                </div>
                                         </div>
                                 </div>
-                                <div class="main-menu-row">
-                                        <div class="main-menu-item" (click)="clickBtnSelectTime()">
-                                                <button 
-                                                mat-mini-fab 
-                                                class="main-select-icon"
-                                                >
-                                                        <mat-icon>today</mat-icon>
-                                                </button>
-                                                <div matListItemTitle class="main-select-text">
-                                                        {{onlineSchedulingSettings.txt_btn_select_time}}
+
+
+                                <div class="contacts-block" *ngIf="onlineSchedulingSettings.onlineSchedulingContactsList.length>0">
+                                        <ng-container *ngFor="let contact of onlineSchedulingSettings.onlineSchedulingContactsList; index as i">
+                                                <div class="main-menu-row"  *ngIf="contact.location_os=='vertical'">
+                                                        <a                                                 
+                                                        class="contacts-link"
+                                                        target="_blank"
+                                                        [style.color]="onlineSchedulingSettings.stl_color_text"
+                                                        href="{{getContactLink(contact.contact_type, contact.contact_value)}}"
+                                                        >
+                                                                <div class="main-menu-item" *ngIf="contact.location_os=='vertical'">
+                                                                        
+                                                                                <button 
+                                                                                mat-mini-fab 
+                                                                                class="main-select-icon"
+                                                                                >
+                                                                                        <fa-icon [icon]="getContactIcon(contact.contact_type)" style="font-size: 23px; line-height: 1pt;"></fa-icon>
+                                                                                </button>
+                                                                                <div class="main-select-text" >
+                                                                                        {{contact.contact_value}}
+                                                                                </div>
+                                                                        
+                                                                        <!-- <span class="mat-expansion-indicator main-menu-arrow" style="transform: rotate(270deg);"></span> -->
+                                                                </div>
+                                                        </a>                                                        
                                                 </div>
-                                                <span class="mat-expansion-indicator main-menu-arrow" style="transform: rotate(270deg);"></span>
-                                        </div>
+                                        </ng-container>
+
                                 </div>
-                                <div class="main-menu-row">
-                                        <div class="main-menu-item" (click)="clickBtnSelectServices()">
-                                                <button 
-                                                mat-mini-fab 
-                                                class="main-select-icon"
+                                <div class="contacts-line" [style.margin-top]="'25px'">
+                                
+                                        <ng-container *ngFor="let contact of onlineSchedulingSettings.onlineSchedulingContactsList; index as i">
+                                                <a 
+                                                *ngIf="contact.location_os=='horizontal'"
+                                                class="contacts-link"
+                                                target="_blank"
+                                                [style.color]="onlineSchedulingSettings.stl_color_text"
+                                                href="{{getContactLink(contact.contact_type, contact.contact_value)}}"
                                                 >
-                                                        <mat-icon>checklist</mat-icon>
-                                                </button>
-                                                <div matListItemTitle class="main-select-text">
-                                                        {{onlineSchedulingSettings.txt_btn_select_services}}
-                                                </div>
-                                                <span class="mat-expansion-indicator main-menu-arrow" style="transform: rotate(270deg);"></span>
-                                        </div>
+                                                        <div class="horizontal-contact-item">
+                                                                        
+                                                                <button 
+                                                                mat-mini-fab 
+                                                                class="main-select-icon"
+                                                                >
+                                                                        <fa-icon [icon]="getContactIcon(contact.contact_type)" style="font-size: 23px; line-height: 1pt;"></fa-icon>
+                                                                </button>
+                                                        
+                                                        <!-- <span class="mat-expansion-indicator main-menu-arrow" style="transform: rotate(270deg);"></span> -->
+                                                        </div>
+                                                </a>
+                                        </ng-container>
+
                                 </div>
+
+                                <div class="powered-logo-part">
+                                        <span class="powered-logo">
+                                                <a href="https://erphy.me" target="_blank">Powered by ERPHY</a>
+                                        </span>
+                                </div>
+
                         </section>
 
                         <section class="screen-section"
@@ -371,6 +477,7 @@
                 </div>
 
 
+                <!-- <code><pre>{{onlineSchedulingSettings | json }}</pre></code> -->
                 
 
 

@@ -709,10 +709,14 @@
                                         <mat-card-title>{{t('docs.card.contacts')}}</mat-card-title>
                                     </mat-card-header>
                                     <mat-card-content class="input-form">
+                                        
+
+                                        <button (click)="uploadAvatar()">
+                                            Upload
+                                        </button>
 
 
                                         <app-contacts
-                                            [contactsList]="onlineSchedulingContactsList"
                                             [companyId]="id"
                                             [editability]="editability">
                                         </app-contacts>

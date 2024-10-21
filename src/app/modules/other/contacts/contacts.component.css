@@ -74,3 +74,11 @@ transition: transform 500ms cubic-bezier(0, 0, 0.2, 1);
 .form-invalid{
   color: red;
 }
+.add_circle {
+  cursor: pointer;
+  position: absolute;
+  bottom: 8px;
+  right: 0px;
+  color: #585858;
+  z-index: 1000;
+}

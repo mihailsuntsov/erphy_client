@@ -1,0 +1,113 @@
+<mat-card appearance="outlined" class="card" style="margin-bottom:0;" *transloco="let t">
+    <mat-card-header>
+        <mat-card-title class="flex">
+            <div class="card-name">&nbsp;</div>
+            <button 
+                (click)="resetSelection()"
+                matTooltip="{{t('docs.tip.reset')}}"
+                mat-raised-button
+                color="primary"
+                *ngIf="imageBlob!=''"
+                style="margin-right: 5px;"
+                class="button small-button">
+                <i class="material-icons">delete_forever</i>
+            </button>
+            <button 
+                (click)="onNoClick()"
+                matTooltip="{{t('docs.tip.close')}}"
+                mat-raised-button
+                color="accent"
+                class="button small-button">
+                <i class="material-icons">close</i>
+            </button>
+        </mat-card-title>
+    </mat-card-header>
+  <mat-card-content style="padding-bottom: 0; padding-left: 0; padding-right: 0;">
+
+    <div class="container-resize" 
+    *ngIf="imageBlob==''">
+
+        <button 
+        class="upload-button"
+        mat-fab extended
+        color="primary"
+        (click)="fileToUpload.click()"
+        >
+            <mat-icon>cloud_upload</mat-icon>
+            Загрузить фаил с компьютера
+        </button>
+
+        <button 
+        class="upload-button"
+        (click)="openDialogSelectFile()"
+        color="primary"
+        mat-fab extended>
+            <mat-icon>perm_media</mat-icon>
+            Выбрать файл из библиотеки файлов
+        </button>
+
+
+    </div>
+
+    <input type="file" accept="image/*" style="display:none" #fileToUpload id="fileToUpload" (change)="fileChangeEvent($event)">
+
+    <div class="container-resize" style="padding: 7px" *ngIf="imageBlob!=''">
+        <div
+        style="
+        height: 300px;
+        text-align: center;
+        display: flex;">
+            <image-cropper
+                [imageFile] = "imageBlob"
+                [maintainAspectRatio]="true"
+                [aspectRatio]="4 / 4"
+                [roundCropper] = "roundCropper"
+                format="png"
+                output="blob"
+                (imageCropped)="imageCropped($event)"
+                (imageLoaded)="imageLoaded()"
+                (cropperReady)="cropperReady()"
+                (loadImageFailed)="loadImageFailed()"
+            ></image-cropper>
+        </div>
+        <div  >
+            <div 
+                style="
+                margin:30px auto;
+                width:180px;
+                height: 180px;
+                border-radius: 50%;
+                background-position: center;
+                background-repeat: no-repeat;
+                background-size: cover;
+                "
+                [ngStyle]="{'background-image': 'url(' + croppedImage + ')'}"
+            >
+            </div>
+        </div>
+    </div>
+  </mat-card-content>
+</mat-card>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

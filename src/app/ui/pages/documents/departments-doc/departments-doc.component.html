@@ -8,7 +8,7 @@
                                                 matTooltip="{{t('docs.tip.create')}}"
                                                 (click)="clickBtnCreateNewDocument()" 
                                                 *ngIf="allowToCreate && +id==0 "
-                                                [disabled]="!formBaseInformation.valid" 
+                                                [disabled]="!formBaseInformation.valid||!contactsComponent.formContacts.valid" 
                                                 color="primary"
                                                 type="submit"
                                                 class="button small-button">
@@ -19,7 +19,7 @@
                                                 *ngIf="+id>0 && allowToUpdate && allowToView"
                                                 matTooltip="{{t('docs.tip.save')}}"
                                                 (click)="updateDocument()"
-                                                [disabled]="!formBaseInformation.valid" 
+                                                [disabled]="!formBaseInformation.valid||!contactsComponent.formContacts.valid" 
                                                 color="primary"
                                                 type="button"
                                                 class="button small-button">
@@ -159,6 +159,15 @@
                                                                                                         <mat-label>{{t('docs.field.account')}}</mat-label>
                                                                                                         <input  matInput [readonly]="true" 
                                                                                                                 [ngModel]="getPaymentAccountNameById(formBaseInformation.get('payment_account_id').value)" [ngModelOptions]="{standalone: true}"/>
+                                                                                                </mat-form-field><mat-form-field 
+                                                                                                class="slideWidth100">                                                                    
+                                                                                                <mat-slide-toggle 
+                                                                                                        formControlName="display_in_online_scheduling"
+                                                                                                        (change)="displayInOS_Change($event)"
+                                                                                                        >
+                                                                                                        {{t('modules.tip.display_in_os')}}
+                                                                                                        </mat-slide-toggle>
+                                                                                                        <input matInput hidden/>
                                                                                                 </mat-form-field>
                                                                                     </div>
                                                                                 </div>
@@ -199,7 +208,21 @@
                                                                         </div>
                                                                     </div> 
                                                                 </mat-card-content>
-                                                            </mat-card>
+                                                        </mat-card>
+                                                        <mat-card appearance="outlined" class="internal-card">
+                                                                <mat-card-header>
+                                                                    <mat-card-title>{{t('docs.card.contacts')}}</mat-card-title>
+                                                                </mat-card-header>
+                                                                <mat-card-content class="input-form">
+                            
+                                                                    <app-contacts
+                                                                        [companyId]="formBaseInformation.get('company_id').value"
+                                                                        [departmentId]="id"
+                                                                        [editability]="editability">
+                                                                    </app-contacts>
+
+                                                                </mat-card-content>
+                                                        </mat-card>
                                                 </div>
                                         </div>
                                 </div>

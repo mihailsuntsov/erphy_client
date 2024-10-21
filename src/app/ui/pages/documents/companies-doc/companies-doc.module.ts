@@ -8,6 +8,7 @@ import { SharedModule } from '../../../../modules/shared.module';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { TRANSLOCO_SCOPE, TranslocoModule } from '@ngneat/transloco';
 import { ContactsModule } from 'src/app/modules/other/contacts/contacts.module';
+import { ImageUploaderModule } from 'src/app/modules/other/image-uploader/image-uploader.module';
 
 @NgModule({
   declarations: [CompaniesDocComponent],
@@ -20,7 +21,8 @@ import { ContactsModule } from 'src/app/modules/other/contacts/contacts.module';
     SharedModule,
     DragDropModule,
     TranslocoModule,
-    ContactsModule
+    ContactsModule,
+    ImageUploaderModule
   ],
   providers:[{ provide: TRANSLOCO_SCOPE, useValue: ['docs','menu','modules']},]
 })

@@ -383,7 +383,9 @@
         "ap_s_sum_all_length":"Израчунајте на основу збира свих услуга",
         "ap_s_max_length":"Израчунајте по најдуже услуге",
         "vertical_list":    "Листа контаката",
-        "horizontal_icons": "Икона линија"
+        "horizontal_icons": "Икона линија",
+        "display_in_os":"Приказ на веб-визиткарте",
+        "fill_example":"Попунити податке из узорка"
     },
     "kpi":{
         "hour":         "Чac",

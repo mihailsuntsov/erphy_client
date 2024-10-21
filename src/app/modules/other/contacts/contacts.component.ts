@@ -4,13 +4,11 @@ import { MatDialog } from '@angular/material/dialog';
 import { ConfirmDialog } from 'src/app/ui/dialogs/confirmdialog-with-custom-text.component';
 import { translate } from '@ngneat/transloco'; //+++
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
-import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faCoffee } from '@fortawesome/free-solid-svg-icons';
-// import { ValidationService } from './validation.service';
 
 export interface Contact{
   id: number;
   company_id:     number;
+  department_id:  number;
   additional:     string;   // eg. "Sales manager telephone"
   contact_type:   string;   // instagram/youtube/email/telephone
   contact_value:  string;   // eg. https://www.instagram.com/msuntsov
@@ -19,7 +17,7 @@ export interface Contact{
   output_order:   number;
 }
 
-interface ContactType{
+export interface ContactType{
   name: string;
   value: string;
   placeholder: string;
@@ -33,12 +31,13 @@ interface ContactType{
 })
 
 export class ContactsComponent {
-  @Input() contactsList: Contact[];
+  // @Input() contactsList: Contact[];
   @Input() companyId: number;
+  @Input() departmentId: number;
   @Input() editability:boolean;
   formContacts:any;
 
-  contcatTypes:ContactType[]=[
+  contactTypes:ContactType[]=[
     {
       name:'Email',
       value:'email',
@@ -60,7 +59,7 @@ export class ContactsComponent {
     {
       name:'WhatsApp',
       value:'whatsapp',
-      placeholder:'https://wa.me/7962242XXXX',
+      placeholder:'https://wa.me/12223334455',
       icon:['fab', 'whatsapp']
     },
     {
@@ -141,21 +140,7 @@ export class ContactsComponent {
       placeholder:'https://vk.com/myvkid',
       icon:['fab', 'vk']
     }
-
-
-
-
-
-
-
-
-
-
-
   ]
-
-
-
 
   constructor(
     private _fb: UntypedFormBuilder,
@@ -182,6 +167,7 @@ export class ContactsComponent {
     return this._fb.group({
       id:             new UntypedFormControl (row.id,[]),
       company_id:     new UntypedFormControl (row.company_id,     []),
+      department_id:  new UntypedFormControl (row.department_id,     []),
       additional:     new UntypedFormControl (row.additional,     [Validators.maxLength(100)]),     // eg. "Sales manager telephone"
       contact_type:   new UntypedFormControl (row.contact_type,   [Validators.required, Validators.maxLength(50)]),   //instagram/youtube/email/telephone
       contact_value:  new UntypedFormControl (row.contact_value,  [Validators.required, Validators.maxLength(1000)]),   //  eg. https://www.instagram.com/msuntsov
@@ -197,6 +183,7 @@ export class ContactsComponent {
     add.push(this._fb.group({
       id:             new UntypedFormControl (null,[]),
       company_id:     new UntypedFormControl (this.companyId,     []),
+      department_id:  new UntypedFormControl (this.departmentId,     []),
       additional:     new UntypedFormControl ('',     [Validators.maxLength(100)]),     // eg. "Sales manager telephone"
       contact_type:   new UntypedFormControl ('telephone',   [Validators.required, Validators.maxLength(50)]),   //instagram/youtube/email/telephone
       contact_value:  new UntypedFormControl ('',  [Validators.required, Validators.maxLength(1000)]),   //  eg. https://www.instagram.com/msuntsov
@@ -211,8 +198,8 @@ export class ContactsComponent {
       width: '400px',
       data:
       { 
-        head: translate('docs.msg.del_cntct'),
-        query: translate('docs.msg.del_cntct_q'),
+        head: translate('docs.msg.del_prod_item'),
+        query: translate('docs.msg.del_query'),
         warning: '',
       },
     });
@@ -233,6 +220,7 @@ export class ContactsComponent {
                       resultContainer.push({
                         id:             m.get('id').value,
                         company_id:     m.get('company_id').value,
+                        department_id:  m.get('department_id').value,
                         additional:     m.get('additional').value,
                         contact_type:   m.get('contact_type').value,
                         contact_value:  m.get('contact_value').value,
@@ -268,11 +256,18 @@ export class ContactsComponent {
   }
   getContactPlaceholder(contact_type:string){
     let result = '';
-    this.contcatTypes.map(type=>{
+    this.contactTypes.map(type=>{
       if(type.value===contact_type){
         result=type.placeholder;
       }
     })
     return result;
+  }
+  insertExampleValue(index:number, contact_type:string){
+    this.contactTypes.map(type=>{
+      if(type.value===contact_type){
+        this.getControlTablefield().controls[index].get('contact_value').setValue(type.placeholder);
+      }
+    })
   }
 }
