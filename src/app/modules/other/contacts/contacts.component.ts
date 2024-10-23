@@ -9,6 +9,7 @@ export interface Contact{
   id: number;
   company_id:     number;
   department_id:  number;
+  user_id:  number;
   additional:     string;   // eg. "Sales manager telephone"
   contact_type:   string;   // instagram/youtube/email/telephone
   contact_value:  string;   // eg. https://www.instagram.com/msuntsov
@@ -34,6 +35,7 @@ export class ContactsComponent {
   // @Input() contactsList: Contact[];
   @Input() companyId: number;
   @Input() departmentId: number;
+  @Input() userId: number;
   @Input() editability:boolean;
   formContacts:any;
 
@@ -168,6 +170,7 @@ export class ContactsComponent {
       id:             new UntypedFormControl (row.id,[]),
       company_id:     new UntypedFormControl (row.company_id,     []),
       department_id:  new UntypedFormControl (row.department_id,     []),
+      user_id:        new UntypedFormControl (row.user_id,     []),
       additional:     new UntypedFormControl (row.additional,     [Validators.maxLength(100)]),     // eg. "Sales manager telephone"
       contact_type:   new UntypedFormControl (row.contact_type,   [Validators.required, Validators.maxLength(50)]),   //instagram/youtube/email/telephone
       contact_value:  new UntypedFormControl (row.contact_value,  [Validators.required, Validators.maxLength(1000)]),   //  eg. https://www.instagram.com/msuntsov
@@ -184,6 +187,7 @@ export class ContactsComponent {
       id:             new UntypedFormControl (null,[]),
       company_id:     new UntypedFormControl (this.companyId,     []),
       department_id:  new UntypedFormControl (this.departmentId,     []),
+      user_id:        new UntypedFormControl (this.userId,     []),
       additional:     new UntypedFormControl ('',     [Validators.maxLength(100)]),     // eg. "Sales manager telephone"
       contact_type:   new UntypedFormControl ('telephone',   [Validators.required, Validators.maxLength(50)]),   //instagram/youtube/email/telephone
       contact_value:  new UntypedFormControl ('',  [Validators.required, Validators.maxLength(1000)]),   //  eg. https://www.instagram.com/msuntsov
@@ -221,6 +225,7 @@ export class ContactsComponent {
                         id:             m.get('id').value,
                         company_id:     m.get('company_id').value,
                         department_id:  m.get('department_id').value,
+                        user_id:        m.get('user_id').value,
                         additional:     m.get('additional').value,
                         contact_type:   m.get('contact_type').value,
                         contact_value:  m.get('contact_value').value,

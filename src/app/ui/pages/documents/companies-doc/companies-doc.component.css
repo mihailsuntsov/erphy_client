@@ -219,3 +219,22 @@ transition: transform 500ms cubic-bezier(0, 0, 0.2, 1);
     font-size:13px !important;
     color:rgba(0, 0, 0, 0.6) !important;
 }
+.logo{
+    position: absolute;
+    right: 10px;
+    top: -15px;
+    margin: 25px auto 10px;
+    width: 85px;
+    height: 85px;
+    border-radius: 50%;
+    cursor:pointer;
+    background-color:#e0e0e0;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: cover;
+}
+.logo .material-icons{
+    padding: 19px 18px;
+    font-size: 50px;
+    color: gray;
+}

@@ -117,4 +117,7 @@ export class CommonUtilitesService{
     return Math.abs(num);
   }
 
+  getMaxFileSize():number{
+    return 10 * 1024 * 1024;// = 10 Mb; Также нужно менять в Java (config/AppInit переменная maxUploadSizeInMb)
+  }
 }

@@ -2,7 +2,8 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { UsersDocRoutingModule } from './users-doc-routing.module';
 import { UsersDocComponent } from './users-doc.component';
-
+import { ContactsModule } from 'src/app/modules/other/contacts/contacts.module';
+import { ImageUploaderModule } from 'src/app/modules/other/image-uploader/image-uploader.module';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { MaterialModule } from '../../../../modules/material.module';
 import { SharedModule } from '../../../../modules/shared.module';
@@ -19,7 +20,9 @@ import { ProductCategoriesSelectModule } from 'src/app/modules/trade-modules/pro
     ReactiveFormsModule,
     SharedModule,
     MaterialModule,
-    TranslocoModule
+    TranslocoModule,
+    ContactsModule,
+    ImageUploaderModule
   ],
   providers:[{ provide: TRANSLOCO_SCOPE, useValue: ['docs','menu','modules']},]
 })

@@ -9,6 +9,7 @@ import { MatDialog,  MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable } from 'rxjs';
+import { MatSlideToggleChange } from '@angular/material/slide-toggle';
 import { map, startWith } from 'rxjs/operators';
 import { debounceTime, tap, switchMap } from 'rxjs/operators';
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
@@ -104,6 +105,10 @@ interface docResponse {//интерфейс для получения ответ
 
   type: string;// entity or individual
   legal_form: string;// legal form of individual (ie entrepreneur, ...)
+  logo_id: number;
+  logo_file_name: string;
+  is_business_card: boolean;
+  is_online_booking: boolean;
 
   //Settings
   st_prefix_barcode_pieced: number;// prefix of barcode for pieced product
@@ -262,9 +267,9 @@ interface idNameDescription{ //универсалный интерфейс дл�
   ]
 })
 export class CompaniesDocComponent implements OnInit {
-  name = 'Angular';
+  // name = 'Angular';
   imageChangedEvent: any = '';
-  croppedImage: any = '';
+  logoImage: any = '';
 
 
 
@@ -338,6 +343,7 @@ export class CompaniesDocComponent implements OnInit {
   isDefaultCreatorListLoading = false;//true когда идет запрос и загрузка списка. Нужен для отображения индикации загрузки
   canDefaultCreatorAutocompleteQuery = false; //можно ли делать запрос на формирование списка для Autocomplete, т.к. valueChanges отрабатывает когда нужно и когда нет.
   filteredDefaultCreators: any;
+  imageBlob: any = ''; // Logo of company
 
   // Fields Translations variables
   onlineSchedulingDefaultLanguage: string = ''; // default language from Company settings ( like EN )
@@ -464,6 +470,12 @@ constructor(private activateRoute: ActivatedRoute,
       time_zone_id:  new UntypedFormControl       (21,[]), // 21 is UTC (GMT+0) time zone
       timeZoneName: new UntypedFormControl      ('',[]),
       store_default_lang_code:     new UntypedFormControl   ('EN',[Validators.required, Validators.minLength(2),Validators.maxLength(2)]),
+      logo_id:  new UntypedFormControl      (null,[]),
+      logo_file_name:  new UntypedFormControl      ('',[]),
+      is_business_card:  new UntypedFormControl      (false,[]),
+      is_online_booking:  new UntypedFormControl      (false,[]),
+
+
 
       fld_step:                         new UntypedFormControl('',[]),
       fld_max_amount_services:          new UntypedFormControl('',[]),
@@ -578,14 +590,14 @@ constructor(private activateRoute: ActivatedRoute,
     this.getSpravSysTimeZones();
 
   }
-  fileChangeEvent(event: any): void {
-    this.imageChangedEvent = event;
-}
+//   fileChangeEvent(event: any): void {
+//     this.imageChangedEvent = event;
+// }
 // imageCropped(event: ImageCroppedEvent) {
 //   console.log('event',event)
 //   this.createImageFromBlob(event.blob)
-//     // this.croppedImage = event.objectUrl; // if output="blob"
-//     // this.croppedImage = event.base64;    // if output="base64"
+//     // this.logoImage = event.objectUrl; // if output="blob"
+//     // this.logoImage = event.base64;    // if output="base64"
 // }
 // imageLoaded() {
 //     // show cropper
@@ -599,7 +611,7 @@ constructor(private activateRoute: ActivatedRoute,
 // createImageFromBlob(image: Blob) {
 //   let reader = new FileReader();
 //   reader.addEventListener("load", () => {
-//       this.croppedImage = reader.result;
+//       this.logoImage = reader.result;
 //   }, false);
 //   if (image) {
 //       reader.readAsDataURL(image);
@@ -856,6 +868,10 @@ onDefaultCreatorSearchValueChanges(){
                   this.formBaseInformation.get('booking_doc_name_variation_id').setValue(documentValues.booking_doc_name_variation_id);
                   this.formBaseInformation.get('store_default_lang_code').setValue(documentValues.store_default_lang_code); 
                   this.formBaseInformation.get('time_zone_id').setValue(documentValues.time_zone_id);
+                  this.formBaseInformation.get('logo_id').setValue(documentValues.logo_id);
+                  this.formBaseInformation.get('logo_file_name').setValue(documentValues.logo_file_name);
+                  this.formBaseInformation.get('is_business_card').setValue(documentValues.is_business_card);
+                  this.formBaseInformation.get('is_online_booking').setValue(documentValues.is_online_booking);
 
                   this.formBaseInformation.get('fld_step').setValue(documentValues.fld_step);
                   this.formBaseInformation.get('fld_max_amount_services').setValue(documentValues.fld_max_amount_services);
@@ -929,8 +945,11 @@ onDefaultCreatorSearchValueChanges(){
                   this.getPriceTypesList();         
                   this.getDepartmentsList();                  
                   this.refreshTableColumns();
+                  if(this.formBaseInformation.get('logo_id').value)
+                    this.getLogo();
                 } else {this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}})} //+++
                 this.refreshPermissions();
+                this.refreshEnableDisableFields();
             },
             error => {console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})} //+++
         );
@@ -1890,11 +1909,43 @@ onDefaultCreatorSearchValueChanges(){
       },
     });
     dialogFastDcedule.afterClosed().subscribe(result => {
-      // console.log(`Dialog result: ${result}`);
       if(result){
-        
+        this.formBaseInformation.get('logo_id').setValue(result);
+        this.getLogo()
       }
     });
   }
-
+ 
+  getLogo(){
+    this.http.get('/api/auth/getFileImageById?file_id='+this.formBaseInformation.get('logo_id').value+'&is_full_size=false', {responseType: 'blob'}).subscribe(blob => {
+      let imageBlob=blob;
+      let reader = new FileReader();
+      reader.addEventListener("load", () => {
+          this.logoImage = reader.result;
+      }, false);
+      if (imageBlob) {
+          reader.readAsDataURL(imageBlob);
+      }
+    });
+  }
+  is_business_card_toggle(event: MatSlideToggleChange) {
+    if(!event.checked){
+      this.formBaseInformation.get('is_online_booking').setValue(false);
+    }
+    this.refreshEnableDisableFields();
+  }
+  
+  refreshEnableDisableFields(){
+    console.log(!this.editability || 
+      !this.formBaseInformation.get('is_business_card').value)
+    console.log(!this.editability)
+    console.log(!this.formBaseInformation.get('is_business_card').value)
+      
+    if(
+      !this.editability || 
+      !this.formBaseInformation.get('is_business_card').value
+    ){
+      this.formBaseInformation.controls['is_online_booking'].disable();
+    } else this.formBaseInformation.controls['is_online_booking'].enable();
+  }
 }

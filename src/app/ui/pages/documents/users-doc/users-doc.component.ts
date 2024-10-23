@@ -22,10 +22,13 @@ import { MomentDefault } from 'src/app/services/moment-default';
 import { MomentDateAdapter, MAT_MOMENT_DATE_ADAPTER_OPTIONS } from '@angular/material-moment-adapter';
 import { DateAdapter, MAT_DATE_FORMATS, MAT_DATE_LOCALE } from '@angular/material/core';
 import { MatSlideToggleChange } from '@angular/material/slide-toggle';
-import { MatSelect } from '@angular/material/select';
-import { MatOption } from '@angular/material/core';
+// import { MatSelect } from '@angular/material/select';
+// import { MatOption } from '@angular/material/core';
+import { Contact } from 'src/app/modules/other/contacts/contacts.component'
+import { ContactsComponent } from 'src/app/modules/other/contacts/contacts.component';
 const MY_FORMATS = MomentDefault.getMomentFormat();
 const moment = MomentDefault.getMomentDefault();
+import { ImageUploaderComponent } from 'src/app/modules/other/image-uploader/image-uploader.component';
 
 interface ProductSearchResponse{  // интерфейс получения списка товаров во время поиска товара 
   name: string;                   // наименование товара
@@ -85,7 +88,11 @@ counterparty_id: number; // Карточка контрагента // Countepar
 counterparty_name: string; // Карточка контрагента // Counteparty card
 incoming_service_id: number; //Принимаемая услуга - какую услугу сотрудник оказывает предприятию, для обоснования получения зп. // Incoming service from employee to company, when he working   for its salary
 incoming_service_name: string; 
-
+onlineSchedulingContactsList: Contact[];
+logo_id: number;
+logo_file_name: string;
+is_business_card: boolean;
+is_online_booking: boolean;
 
 //describes set of services that employee (this user) can provide, and where (parts of departments) he can provide these services
 userProducts:UserProducts[];
@@ -106,7 +113,7 @@ interface IdAndName{ //универсалный интерфейс для выб
   selector: 'app-users-doc',
   templateUrl: './users-doc.component.html',
   styleUrls: ['./users-doc.component.css'],
-  providers: [LoadSpravService,ProductCategoriesSelectComponent,
+  providers: [LoadSpravService,ProductCategoriesSelectComponent, ContactsComponent,
     { provide: DateAdapter, useClass: MomentDateAdapter,deps: [MAT_DATE_LOCALE, MAT_MOMENT_DATE_ADAPTER_OPTIONS]}, //+++
     {provide: MAT_DATE_FORMATS, useValue: MY_FORMATS},
   ]
@@ -123,7 +130,7 @@ export class UsersDocComponent implements OnInit {
   spravSysLanguages: IdAndName[] = [];                // here will be loaded all languages`
   spravSysLocales  : IdAndName[] = [];                // here will be loaded all locales
   oneClickSaveControl:boolean=false;//блокировка кнопок Save и Complete для защиты от двойного клика
-
+  @ViewChild(ContactsComponent, {static: false}) public contactsComponent:ContactsComponent;
   visBtnUpdate = false;
 
   
@@ -133,7 +140,7 @@ export class UsersDocComponent implements OnInit {
   gettingTableData: boolean = false;//идет загрузка данных
   displayedColumns:string[] = [];//отображаемые колонки таблицы
   editability:boolean = false;//редактируемость. true если есть право на создание и документ содается, или есть право на редактирование и документ создан
-
+  logoImage:any='';
 
   //Формы
   formBaseInformation:any;//форма основной информации и банк. реквизитов
@@ -194,6 +201,7 @@ export class UsersDocComponent implements OnInit {
     public MessageDialog: MatDialog,
     private productCategoriesSelectComponent: MatDialog,
     public dialogCreateDepartment: MatDialog,
+    private imageUploaderComponent: MatDialog,
     private _snackBar: MatSnackBar,
     private _adapter: DateAdapter<any>
     ){
@@ -238,8 +246,13 @@ export class UsersDocComponent implements OnInit {
       // counterparty_name:  new UntypedFormControl    ('',[]), // Карточка контрагента // Counteparty card
       incoming_service_name:  new UntypedFormControl    ('',[]), // Принимаемая услуга - какую услугу сотрудник оказывает предприятию, для обоснования получения зп. // Incoming service from employee to company, when he working   for its salary
       incoming_service_id:  new UntypedFormControl    ('',[]), // Принимаемая услуга - какую услугу сотрудник оказывает предприятию, для обоснования получения зп. // Incoming service from employee to company, when he working   for its salary
-
       userProducts: new UntypedFormArray([]), //describes set of services that employee can provide, and where (parts of departments) he can provide these services
+      onlineSchedulingContactsList:     new UntypedFormArray  ([]) ,
+      logo_id:  new UntypedFormControl      (null,[]),
+      logo_file_name:  new UntypedFormControl      ('',[]),
+      is_business_card:  new UntypedFormControl      (false,[]),
+      is_online_booking:  new UntypedFormControl      (false,[]),
+
     });
     this.formAboutDocument = new UntypedFormGroup({
       id: new UntypedFormControl           ('',[]),
@@ -544,6 +557,7 @@ export class UsersDocComponent implements OnInit {
 
   updateDocument(){
     this.oneClickSaveControl=true;
+    this.fillContactsList();
     if(!this.formBaseInformation.get('is_employee').value){
       this.searchCagentCtrl.setValue('');
       this.formBaseInformation.get('job_title_id').setValue(null);
@@ -560,7 +574,13 @@ export class UsersDocComponent implements OnInit {
         this.oneClickSaveControl=false;
       },error => {this.oneClickSaveControl=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})},);
   }
-
+  fillContactsList(){
+    const control = <UntypedFormArray>this.formBaseInformation.get('onlineSchedulingContactsList');
+    control.clear();
+    this.contactsComponent.getContactsList().forEach(row=>{
+      control.push(this.contactsComponent.formingContactRowFromApiResponse(row));
+    });
+  }
   getDocumentValuesById(){
     const docId = {"id": this.id};
     this.oneClickSaveControl=true;
@@ -600,6 +620,13 @@ export class UsersDocComponent implements OnInit {
                   this.formBaseInformation.get('incoming_service_id').setValue(documentResponse.incoming_service_id);
                   this.formBaseInformation.get('incoming_service_name').setValue(documentResponse.incoming_service_name);
                   this.fillProductsListFromApiResponse(documentResponse.userProducts);
+                  this.contactsComponent.fillContactsListFromApiResponse(documentResponse.onlineSchedulingContactsList);
+                  this.formBaseInformation.get('logo_id').setValue(documentResponse.logo_id);
+                  this.formBaseInformation.get('logo_file_name').setValue(documentResponse.logo_file_name);
+                  this.formBaseInformation.get('is_business_card').setValue(documentResponse.is_business_card);
+                  this.formBaseInformation.get('is_online_booking').setValue(documentResponse.is_online_booking);
+                  if(this.formBaseInformation.get('logo_id').value)
+                    this.getLogo();
 
                   this.getDepartmentsList(this.formBaseInformation.get('company_id').value);  
                   this.getUserGroupList();
@@ -608,6 +635,7 @@ export class UsersDocComponent implements OnInit {
                   
                 } else {this.oneClickSaveControl=false;this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:translate('docs.msg.ne_perm')}})} //+++
                 this.refreshPermissions();
+                this.refreshEnableDisableFields();
                 this.oneClickSaveControl=false;
             },
             error => {this.oneClickSaveControl=false;console.log(error);this.MessageDialog.open(MessageDialog,{width:'400px',data:{head:translate('docs.msg.error'),message:error.error}})} //+++
@@ -918,17 +946,63 @@ export class UsersDocComponent implements OnInit {
     if(!event.checked){
       this.formBaseInformation.get('is_currently_employed').setValue(false);
       this.formBaseInformation.get('is_display_in_employee_list').setValue(false);
-      
-      // this.formBaseInformation.get('incoming_service_id').setValue(null);
-      // this.formBaseInformation.get('incoming_service_name').setValue('');
-      // this.formBaseInformation.get('job_title_id').setValue(null);
-      // this.formBaseInformation.get('job_title_name').setValue('');
-      // this.formBaseInformation.get('counterparty_id').setValue(null);
-      // this.searchCagentCtrl.setValue('');
-    } else {
-      this.formBaseInformation.get('is_currently_employed').setValue(true);
-      this.formBaseInformation.get('is_display_in_employee_list').setValue(true);
+      this.formBaseInformation.get('is_business_card').setValue(false);
+      this.formBaseInformation.get('is_online_booking').setValue(false);
+
     }
+    this.refreshEnableDisableFields();
+  }
+  is_currently_employed_toggle(event: MatSlideToggleChange){
+    if(!event.checked){
+      this.formBaseInformation.get('is_display_in_employee_list').setValue(false);
+      this.formBaseInformation.get('is_business_card').setValue(false);
+      this.formBaseInformation.get('is_online_booking').setValue(false);
+    }
+    this.refreshEnableDisableFields();
+  }
+  is_provide_services_toggle(event: MatSlideToggleChange){
+    if(!event.checked){
+      this.formBaseInformation.get('is_online_booking').setValue(false);
+    }
+    this.refreshEnableDisableFields();
+  }
+
+  is_business_card_toggle(event: MatSlideToggleChange) {
+    if(!event.checked){
+      this.formBaseInformation.get('is_online_booking').setValue(false);
+    }
+    this.refreshEnableDisableFields();
+  }
+
+  refreshEnableDisableFields(){
+    if(
+      !this.editability || 
+      !this.formBaseInformation.get('is_employee').value||
+      !this.formBaseInformation.get('is_currently_employed').value||
+      !this.formBaseInformation.get('is_business_card').value||
+      !this.formBaseInformation.get('is_display_in_employee_list').value      
+    ){
+      this.formBaseInformation.controls['is_online_booking'].disable();
+    } else this.formBaseInformation.controls['is_online_booking'].enable();
+
+    if(
+      !this.editability || 
+      !this.formBaseInformation.get('is_employee').value
+    ){
+      this.formBaseInformation.controls['is_currently_employed'].disable();
+    } else this.formBaseInformation.controls['is_currently_employed'].enable();
+
+    if(
+      !this.editability || 
+      !this.formBaseInformation.get('is_employee').value||
+      !this.formBaseInformation.get('is_currently_employed').value   
+    ){
+      this.formBaseInformation.controls['is_business_card'].disable();
+      this.formBaseInformation.controls['is_display_in_employee_list'].disable();
+    } else{
+      this.formBaseInformation.controls['is_business_card'].enable();
+      this.formBaseInformation.controls['is_display_in_employee_list'].enable();
+    } 
   }
 
   insertUserCagent(){
@@ -975,6 +1049,33 @@ export class UsersDocComponent implements OnInit {
         );
       }
     });     
+  }
+  
+  uploadAvatar() {
+    const dialogFastDcedule = this.imageUploaderComponent.open(ImageUploaderComponent, {
+      width: '400px', 
+      data: {
+        companyId: this.formBaseInformation.get('company_id').value
+      },
+    });
+    dialogFastDcedule.afterClosed().subscribe(result => {
+      if(result){
+        this.formBaseInformation.get('logo_id').setValue(result);
+        this.getLogo()
+      }
+    });
+  }
+  getLogo(){
+    this.http.get('/api/auth/getFileImageById?file_id='+this.formBaseInformation.get('logo_id').value+'&is_full_size=false', {responseType: 'blob'}).subscribe(blob => {
+      let imageBlob=blob;
+      let reader = new FileReader();
+      reader.addEventListener("load", () => {
+          this.logoImage = reader.result;
+      }, false);
+      if (imageBlob) {
+          reader.readAsDataURL(imageBlob);
+      }
+    });
   }
 }
 

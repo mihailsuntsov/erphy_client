@@ -1,6 +1,6 @@
 import { Component, OnInit , Inject} from '@angular/core';
 import {MatDialogRef, MAT_DIALOG_DATA} from '@angular/material/dialog';
-import { Validators, UntypedFormGroup, UntypedFormControl} from '@angular/forms';
+import { UntypedFormGroup, UntypedFormControl} from '@angular/forms';
 import { MatSnackBar} from '@angular/material/snack-bar';
 import { MessageDialog } from 'src/app/ui/dialogs/messagedialog.component';
 import { MatDialog } from '@angular/material/dialog';
@@ -8,12 +8,13 @@ import { UploadFileService } from './upload-file.service';
 import { HttpClient, HttpResponse, HttpEventType } from '@angular/common/http';
 import { translate } from '@ngneat/transloco'; //+++
 import { Cookie } from 'ng2-cookies/ng2-cookies';
+import { CommonUtilitesService } from 'src/app/services/common_utilites.serviсe';
 
 @Component({
   selector: 'app-files-upload-dialog',
   templateUrl: './files-upload-dialog.component.html',
   styleUrls: ['./files-upload-dialog.component.css'],
-  providers: [UploadFileService,Cookie]
+  providers: [UploadFileService,Cookie,CommonUtilitesService]
 })
 export class FilesUploadDialogComponent implements OnInit {
   formBaseInformation:any;//форма для основной информации, содержащейся в документе
@@ -30,7 +31,7 @@ currentIndexFileArray:number=0;
 filesArray: File[]=[];
 countUploadedFiles:number = 0;
 uploadingFileName:string;
-maxFileSize:number = 10 * 1024 * 1024; // = 10 Mb; Также нужно менять в Java (config/AppInit переменная maxUploadSizeInMb)
+maxFileSize:number = 0; // = 10 Mb; Также нужно менять в Java (config/AppInit переменная maxUploadSizeInMb)
 
   constructor(
     public dialogRef: MatDialogRef<FilesUploadDialogComponent>,
@@ -39,6 +40,7 @@ maxFileSize:number = 10 * 1024 * 1024; // = 10 Mb; Также нужно мен�
     private _snackBar: MatSnackBar,
     private http: HttpClient,
     private uploadService: UploadFileService,
+    private commonUtilites: CommonUtilitesService,
     @Inject(MAT_DIALOG_DATA) public data: any) {}
     
   onNoClick(): void {
@@ -46,6 +48,7 @@ maxFileSize:number = 10 * 1024 * 1024; // = 10 Mb; Также нужно мен�
   }
 
   ngOnInit() {
+    this.maxFileSize=this.commonUtilites.getMaxFileSize();
     // console.log("data.categoryId:"+this.data.categoryId);
     // console.log("data.companyId:"+this.data.companyId);
     // console.log("data.categoryName:"+this.data.categoryName);
@@ -185,8 +188,10 @@ maxFileSize:number = 10 * 1024 * 1024; // = 10 Mb; Также нужно мен�
   // as a cookie contains text information, but sharedFile needs to get boolean
   setSharedFileOnCookie():boolean{
     switch (Cookie.get('files_anonyme_access')) {
-      case 'true'||true: return true;
-      case 'false'||false: return false;    
+      // case 'true'||true: return true;
+      // case 'false'||false: return false;    
+      case 'true': return true;
+      case 'false': return false;    
     }
   }
 

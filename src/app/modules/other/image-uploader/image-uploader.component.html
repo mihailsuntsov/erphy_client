@@ -1,7 +1,7 @@
 <mat-card appearance="outlined" class="card" style="margin-bottom:0;" *transloco="let t">
     <mat-card-header>
         <mat-card-title class="flex">
-            <div class="card-name">&nbsp;</div>
+            <div class="card-name">{{fileName}}</div>
             <button 
                 (click)="resetSelection()"
                 matTooltip="{{t('docs.tip.reset')}}"
@@ -12,6 +12,18 @@
                 class="button small-button">
                 <i class="material-icons">delete_forever</i>
             </button>
+            
+            <button 
+                mat-raised-button 
+                (click)="upload()"
+                *ngIf="imageBlob!=''"
+                matTooltip="{{t('docs.tip.save')}}"
+                color="primary"
+                style="margin-right: 5px;"
+                class="button small-button">
+                <i class="material-icons">save</i>
+            </button>
+
             <button 
                 (click)="onNoClick()"
                 matTooltip="{{t('docs.tip.close')}}"
@@ -73,7 +85,7 @@
         <div  >
             <div 
                 style="
-                margin:30px auto;
+                margin:25px auto 10px;
                 width:180px;
                 height: 180px;
                 border-radius: 50%;
@@ -85,6 +97,16 @@
             >
             </div>
         </div>
+        <div class="div-100"> 
+            <div *ngIf="isUploading" class="progress">
+                    <div class="progress-bar progress-bar-info progress-bar-striped" role="progressbar" attr.aria-valuenow="{{progress.percentage}}"
+                    aria-valuemin="0" aria-valuemax="100" [ngStyle]="{width:progress.percentage+'%'}">
+                     - {{progress.percentage}}%</div>
+            </div>
+            <!-- <div *ngIf="currentFileUpload" class="div-100">
+                {{'modules.field.uploading' | transloco}}: {{fileName}}
+            </div> -->
+        </div> 
     </div>
   </mat-card-content>
 </mat-card>

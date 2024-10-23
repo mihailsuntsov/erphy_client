@@ -28,20 +28,8 @@
                     <mat-option [value]="data.categoryId" *ngIf="+data.categoryId>0">{{data.categoryName}}</mat-option>
                 </mat-select>  
             </mat-form-field>
-            <!-- <mat-form-field  style="width: 100%">
-                <input   matInput
-                        placeholder="{{'docs.field.description' | transloco}}"
-                        formControlName="description"/>
-            </mat-form-field> -->
             <mat-form-field style="width: 100%">
                 <mat-slide-toggle formControlName="sharedFile" (change)="onAnonymeAccessChange()">{{'modules.field.shared_file' | transloco}}</mat-slide-toggle>
-                <!-- <mat-slide-toggle matInput 
-                    formControlName="sharedFile"  
-                    class="example-margin"
-                    (change) = "onAnonymeAccessChange()"
-                    matTooltip="{{'modules.tip.shared_file' | transloco}}">
-                    {{'modules.field.shared_file' | transloco}}
-                </mat-slide-toggle>1--{{formBaseInformation.get('sharedFile').value}}--1 -->
                 <input matInput hidden/>
             </mat-form-field>
             <div class="div-100"> 
